@@ -1,5 +1,6 @@
 import { Analytics } from "@vercel/analytics/react";
 import Head from "next/head";
+import ThemeProvider from './components/ThemeProvider';
 // 导入 Tailwind CSS
 import './/globals.css';
 
@@ -25,7 +26,7 @@ export const metadata = {
 
 export default function RootLayout({ children, params: { lang } }) {
   return (
-    <html lang={lang}>
+    <html lang={lang} className="light">
       <Head>
         <meta name="keywords" content="Chinese performances, events in China, concerts, theater, cultural shows, 中国演出, 中国活动, 音乐会, 戏剧, 文化表演, 中国パフォーマンス, 中国のイベント, コンサート, 劇場, 文化公演" />
         <script type="application/ld+json">
@@ -62,8 +63,10 @@ export default function RootLayout({ children, params: { lang } }) {
         </script>
       </Head>
       <body>
-        {children}
-        <Analytics />
+        <ThemeProvider>
+          {children}
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   );
