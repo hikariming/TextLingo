@@ -1,9 +1,12 @@
 import { Bars3Icon, BookOpenIcon, DocumentTextIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
 import LanguageSwitcher from '../LanguageSwitcher'
 import { useTranslations } from 'next-intl'
+import { headers } from 'next/headers'
 
 export default function Navbar() {
   const t = useTranslations('app')
+  const headersList = headers()
+  const pathname = headersList.get('x-pathname') || '/'
 
   const navigation = [
     { name: t('nav.library'), href: '/', icon: BookOpenIcon },
@@ -12,7 +15,7 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="relative w-full bg-neutral-100">
+    <header className="relative w-full bg-slate-100">
       <nav className="mx-auto flex max-w-5xl items-center justify-between p-2 lg:px-8">
         {/* Logo */}
         <div className="flex lg:flex-1">
@@ -43,10 +46,17 @@ export default function Navbar() {
             <a
               key={item.name}
               href={item.href}
-              className="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-600 flex items-center gap-2"
+              className={`text-sm font-semibold leading-6 flex items-center gap-2 px-4 py-2 rounded-full relative
+                ${pathname === item.href 
+                  ? 'text-blue-600 hover:text-blue-500 bg-white shadow-md' 
+                  : 'text-gray-900 hover:text-gray-600'
+                }`}
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className={`h-5 w-5 ${pathname === item.href ? 'text-blue-600' : ''}`} />
               {item.name}
+              {pathname === item.href && (
+                <div className="absolute -bottom-[1px] left-2 right-2 h-[2px] bg-gradient-to-r from-blue-400/0 via-blue-400/70 to-blue-400/0"></div>
+              )}
             </a>
           ))}
         </div>
