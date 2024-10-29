@@ -1,0 +1,11 @@
+{
+  "Landing": {
+    "nav": {
+      "library": "Text Library",
+      "words": "Words",
+      "knowledge": "Knowledge",
+      "logoAlt": "Company Name",
+      "openMenu": "Open main menu"
+    }
+  }
+}

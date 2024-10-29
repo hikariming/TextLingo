@@ -1,0 +1,11 @@
+{
+  "Landing": {
+    "nav": {
+      "library": "テキストライブラリ",
+      "words": "単語",
+      "knowledge": "知識",
+      "logoAlt": "会社名",
+      "openMenu": "メインメニューを開く"
+    }
+  }
+}
