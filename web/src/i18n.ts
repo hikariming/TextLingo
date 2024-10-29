@@ -5,14 +5,14 @@ const locales: string[] = ['en', 'jp', 'zh'];
 
 export const metadata = {
   title: {
-    en: "Chinese Performance Events - Find Shows in China | Event Information",
-    zh: "中国演出活动 - 寻找中国演出 | 活动信息",
-    jp: "中国パフォーマンスイベント - 中国のショーを探す | イベント情報"
+    en: "TextLingo - Read, Translate & Learn Foreign Text Materials",
+    zh: "TextLingo - 阅读、翻译、学习海外文本素材",
+    jp: "TextLingo - 海外テキスト文本の読解、翻訳、学習"
   },
   description: {
-    en: "Discover the latest Chinese performance events and shows. Find information on concerts, theater, and cultural performances across China.",
-    zh: "发现最新的中国演出活动和表演。查找中国各地的音乐会、戏剧和文化表演信息。",
-    jp: "最新の中国パフォーマンスイベントとショーを発見。中国全土のコンサート、劇場、文化公演の情報を見つけましょう。"
+    en: "Discover and learn from global text materials. Enhance your language skills through reading, translation and interactive learning.",
+    zh: "发现和学习全球文本素材。通过阅读、翻译和互动学习提升您的语言能力。",
+    jp: "グローバルなテキスト文本を発見し、学習。読解、翻訳、インタラクティブな学習で語学力を向上させましょう。"
   },
   alternates: {
     languages: {

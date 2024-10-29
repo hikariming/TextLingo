@@ -6,14 +6,14 @@ import './/globals.css';
 
 export const metadata = {
   title: {
-    default: "Chinese Performance Events - Find Shows in China | Event | Live Information",
-    zh: "中国演出活动 - 寻找中国演出 | 活动信息 | 现场信息",
-    ja: "中国パフォーマンスイベント - 中国のショーを探す | イベント情報 | ライブ情報"
+    default: "TextLingo - Read, Translate & Learn Foreign Text Materials | Global Learning Platform",
+    zh: "TextLingo - 阅读、翻译、学习海外文本素材 | 全球学习平台",
+    ja: "TextLingo - 海外テキスト文本の読解、翻訳、学習 | グローバル学習プラットフォーム"
   },
   description: {
-    default: "Discover the latest Chinese performance events and shows. Find information on concerts, theater, and cultural performances , live information across China.",
-    zh: "发现最新的中国演出活动和表演。查找中国各地的音乐会、戏剧和文化表演信息，现场信息。",
-    ja: "最新の中国パフォーマンスイベントとショーを発見。中国全土のコンサート、劇場、文化公演、ライブ情報を見つけましょう。"
+    default: "Explore and learn from diverse text materials worldwide. Enhance your language skills through interactive reading, translation, and learning experiences.",
+    zh: "探索和学习来自世界各地的多样化文本素材。通过互动阅读、翻译和学习体验提升您的语言能力。",
+    ja: "世界中の多様なテキスト文本を探索し、学習。インタラクティブな読解、翻訳、学習体験で語学力を向上させましょう。"
   },
   alternates: {
     languages: {
@@ -36,27 +36,27 @@ export default function RootLayout({ children, params: { lang } }) {
               "@type": "WebSite",
               "name": {
                 "@language": "en",
-                "@value": "Chinese Performance Events"
+                "@value": "TextLingo"
               },
               "name": {
                 "@language": "zh",
-                "@value": "中国演出活动"
+                "@value": "TextLingo"
               },
               "name": {
                 "@language": "ja",
-                "@value": "中国パフォーマンスイベント"
+                "@value": "TextLingo"
               },
               "description": {
                 "@language": "en",
-                "@value": "Find information on concerts, theater, and cultural performances across China."
+                "@value": "Learn from global text materials through reading, translation and interactive learning."
               },
               "description": {
                 "@language": "zh",
-                "@value": "查找中国各地的音乐会、戏剧和文化表演信息。"
+                "@value": "通过阅读、翻译和互动学习来学习全球文本素材。"
               },
               "description": {
                 "@language": "ja",
-                "@value": "中国全土のコンサート、劇場、文化公演の情報を見つけましょう。"
+                "@value": "読解、翻訳、インタラクティブな学習で世界のテキスト文本を学びましょう。"
               }
             }
           `}
