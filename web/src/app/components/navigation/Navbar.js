@@ -1,11 +1,14 @@
-import { Bars3Icon } from '@heroicons/react/24/outline'
+import { Bars3Icon, BookOpenIcon, DocumentTextIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
 import LanguageSwitcher from '../LanguageSwitcher'
+import { useTranslations } from 'next-intl'
 
-export default function Navbar({ t }) {
+export default function Navbar() {
+  const t = useTranslations('app')
+
   const navigation = [
-    { name: t('nav.library'), href: '/library' },
-    { name: t('nav.words'), href: '/words' },
-    { name: t('nav.knowledge'), href: '/knowledge' },
+    { name: t('nav.library'), href: '/', icon: BookOpenIcon },
+    { name: t('nav.words'), href: '/words', icon: DocumentTextIcon },
+    { name: t('nav.knowledge'), href: '/knowledge', icon: AcademicCapIcon },
   ];
 
   return (
@@ -40,8 +43,9 @@ export default function Navbar({ t }) {
             <a
               key={item.name}
               href={item.href}
-              className="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-600"
+              className="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-600 flex items-center gap-2"
             >
+              <item.icon className="h-5 w-5" />
               {item.name}
             </a>
           ))}

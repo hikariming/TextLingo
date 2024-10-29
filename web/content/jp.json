@@ -1,11 +1,16 @@
 {
-  "Landing": {
+  "app": {
+    "locale": "jp",
     "nav": {
       "library": "テキストライブラリ",
       "words": "単語",
       "knowledge": "知識",
       "logoAlt": "会社名",
       "openMenu": "メインメニューを開く"
+    },
+    "knowledge": {
+      "create": "ドキュメントライブラリを作成",
+      "createDescription": "リンク、PDF、Word、TXT、MD などのドキュメントをインポートして、知識ベースを作成します。"
     }
   }
 }

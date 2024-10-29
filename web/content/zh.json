@@ -1,11 +1,16 @@
 {
-  "Landing": {
+  "app": {
+    "locale": "zh",
     "nav": {
       "library": "文本库",
       "words": "单词",
       "knowledge": "知识",
       "logoAlt": "公司名称",
       "openMenu": "打开主菜单"
+    },
+    "knowledge": {
+      "create": "创建文档库",
+      "createDescription": "新建知识库以导入链接，或PDF、Word、TXT、MD 等文档"
     }
   }
 }

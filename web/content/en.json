@@ -1,11 +1,15 @@
 {
-  "Landing": {
+  "app": {
     "nav": {
       "library": "Text Library",
       "words": "Words",
       "knowledge": "Knowledge",
       "logoAlt": "Company Name",
       "openMenu": "Open main menu"
+    },
+    "knowledge": {
+      "create": "Create Document Library",
+      "createDescription": "Import links, or PDF, Word, TXT, MD, etc. documents to create a knowledge base."
     }
   }
 }

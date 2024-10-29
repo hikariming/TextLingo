@@ -1,75 +1,59 @@
-import { ArrowLeftIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
+import FirstStep from './components/firstStep'
+import Link from 'next/link'
+import Navbar from '@/app/components/navigation/Navbar'
+import { getTranslations } from 'next-intl/server'
 
-export default function DataSourceSelector({ t }) {
-  const dataSourceOptions = [
-    {
-      id: 'text',
-      icon: '📄',
-      title: '导入已有文本',
-      primary: true
-    },
-    {
-      id: 'notion',
-      icon: 'N',
-      title: '同步自 Notion 内容'
-    },
-    {
-      id: 'web',
-      icon: '🌐',
-      title: '同步自 Web 站点'
-    }
+export default async function TextKnowledge() {
+  const t = await getTranslations()
+  const steps = [
+    { id: 1, title: '选择数据源', current: true },
+    { id: 2, title: '文本分段与清洗', current: false },
+    { id: 3, title: '处理并完成', current: false }
   ]
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* 返回按钮 */}
-      <div className="mb-8">
-        <button className="flex items-center text-blue-600 hover:text-blue-700">
-          <ArrowLeftIcon className="h-4 w-4 mr-2" />
-          <span>创建知识库</span>
-        </button>
-      </div>
+    <div className="flex flex-col min-h-screen">
+      <Navbar t={t} />
+      <div className="flex flex-1">
+        {/* 左侧导航栏 */}
+        <div className="w-64 border-r bg-white">
+          <div className="p-4">
+            <Link href="/" className="text-blue-600 hover:text-blue-700 flex items-center">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              创建知识库
+            </Link>
+          </div>
+          
+          {/* 步骤列表 */}
+          <nav className="mt-4">
+            {steps.map((step) => (
+              <div
+                key={step.id}
+                className={`px-4 py-2 flex items-center ${
+                  step.current 
+                    ? 'text-blue-600 bg-blue-50' 
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <span className={`mr-3 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center
+                  ${step.current ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                >
+                  {step.id}
+                </span>
+                <span>{step.title}</span>
+              </div>
+            ))}
+          </nav>
+        </div>
 
-      {/* 标题 */}
-      <h1 className="text-2xl font-bold mb-8">选择数据源</h1>
-
-      {/* 数据源选项 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-        {dataSourceOptions.map((option) => (
-          <button
-            key={option.id}
-            className={`p-4 rounded-lg border-2 flex items-center space-x-3 hover:border-blue-500 transition-colors ${
-              option.primary ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-            }`}
-          >
-            <span className="text-xl">{option.icon}</span>
-            <span className="text-gray-900">{option.title}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* 文件上传区域 */}
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-neutral-100">
-        <div className="text-center">
-          <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <div className="mt-4">
-            <p className="text-gray-600">
-              拖拽文件至此，或者{' '}
-              <button className="text-blue-600 hover:text-blue-700">选择文件</button>
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              已支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、MD、HTM，每个文件不超过15MB。
-            </p>
+        {/* 右侧内容区 */}
+        <div className="flex-1">
+          <div className="max-w-2xl px-8 py-6">
+            <FirstStep />
           </div>
         </div>
-      </div>
-
-      {/* 创建空知识库按钮 */}
-      <div className="mt-8">
-        <button className="text-blue-600 hover:text-blue-700 flex items-center">
-          <span className="mr-2">+</span>
-          创建一个空知识库
-        </button>
       </div>
     </div>
   )
