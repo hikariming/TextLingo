@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { BookOpenIcon } from '@heroicons/react/24/outline'
 import AIExplanation from './components/AIExplanation'
 
@@ -23,7 +23,7 @@ export default function TranslationLearningPage() {
         grammar: [
           "「走り出す」是复合动词，由「走る」（跑）和「出す」（开始）组成，表示「开始跑」。",
           "「走り出した」是「走り出す」的た形，表示过去完成的动作。",
-          "「午���」是名词，表示「下午」。",
+          "「午後」是名词，表示「下午」。",
           "「も」是助词，表示「也」，用于强调或添加信息。"
         ],
         vocabulary: [
@@ -113,7 +113,22 @@ export default function TranslationLearningPage() {
     ],
     material2: [
       {
-        original: "China's giant economy faces an equally giant crisis of confidence—and a growing deficit of accurate information is only making things worse.",
+        original: "333333",
+        translation: "中国庞大的经济面临着同样巨大的信心危机，而且不断增长的准确信息缺失只会让情况变得更糟。",
+        isNewParagraph: true,
+        grammar: [
+          "这是一个复合句，使用破折号连接两个相关的陈述",
+          "giant作为形容词表示'巨大的'",
+          "deficit of 表示'缺乏'"
+        ],
+        vocabulary: [
+          { word: "giant", meaning: "巨大的" },
+          { word: "confidence", meaning: "信心" },
+          { word: "deficit", meaning: "缺乏，赤字" }
+        ]
+      },
+      {
+        original: "China's giant economy faces an equally giant crisis of confidence—and a growing deficit of accurate information is only making things worse.111111111111111",
         translation: "中国庞大的经济面临着同样巨大的信心危机，而且不断增长的准确信息缺失只会让情况变得更糟。",
         isNewParagraph: true,
         grammar: [
@@ -129,6 +144,32 @@ export default function TranslationLearningPage() {
       },
       {
         original: "Even as the country wrestles with a property crash, the services sector slowed by one measure in August.",
+        translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
+        isNewParagraph: false,
+        grammar: [
+          "Even as 表示让步关系",
+          "wrestle with 表示'与...搏斗、应对'"
+        ],
+        vocabulary: [
+          { word: "wrestle", meaning: "搏斗，应对" },
+          { word: "property crash", meaning: "房地产崩盘" }
+        ]
+      },
+      {
+        original: "Even a11s the country wrestles with a property crash, the services sector slowed by one measure in August.",
+        translation: "即使在国家���在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
+        isNewParagraph: false,
+        grammar: [
+          "Even as 表示让步关系",
+          "wrestle with 表示'与...搏斗、应对'"
+        ],
+        vocabulary: [
+          { word: "wrestle", meaning: "搏斗，应对" },
+          { word: "property crash", meaning: "房地产崩盘" }
+        ]
+      },
+      {
+        original: "Even a122321s the country wrestles with a property crash, the services sector slowed by one measure in August.",
         translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
         isNewParagraph: false,
         grammar: [
@@ -194,27 +235,37 @@ export default function TranslationLearningPage() {
             </label>
           </div>
         </div>
-        <div className="space-y-4">
-          {content[selectedMaterial].map((sentence, index) => (
-            <div key={index} className={`${sentence.isNewParagraph ? 'mt-6' : ''} p-4`}>
-              <div>
-                <p
-                  className={`cursor-pointer border-b-2 inline
-                    ${selectedSentence === sentence.original 
-                      ? 'border-blue-400' 
-                      : 'border-transparent hover:border-gray-200'
+        <div>
+          {content[selectedMaterial].reduce((paragraphs, sentence, index) => {
+            if (sentence.isNewParagraph || index === 0) {
+              // 开始新段落
+              paragraphs.push([sentence]);
+            } else {
+              // 将句子添加到当前段落
+              paragraphs[paragraphs.length - 1].push(sentence);
+            }
+            return paragraphs;
+          }, []).map((paragraph, paraIndex) => (
+            <div key={paraIndex} className="mt-4 first:mt-0">
+              {paragraph.map((sentence, sentIndex) => (
+                <span key={sentIndex} className="inline">
+                  <span
+                    className={`border-b-2 ${
+                      selectedSentence === sentence.original 
+                        ? 'border-blue-400' 
+                        : 'border-transparent hover:border-gray-200'
                     }`}
-                  onClick={() => setSelectedSentence(sentence.original)}
-                  style={{ lineHeight: '2em' }}
-                >
-                  {sentence.original}
-                </p>
-                {showTranslation && (
-                  <p className="block mt-2 text-gray-600">
-                    {sentence.translation}
-                  </p>
-                )}
-              </div>
+                    onClick={() => setSelectedSentence(sentence.original)}
+                  >
+                    {sentence.original}
+                  </span>
+                  {showTranslation && (
+                    <div className="mt-2 text-gray-600">
+                      {sentence.translation}
+                    </div>
+                  )}
+                </span>
+              ))}
             </div>
           ))}
         </div>
