@@ -33,15 +33,17 @@ export default function KnowledgeCards() {
 
         {/* 现有知识库卡片 */}
         {existingKnowledgeBases.map((kb, index) => (
-          <div key={index} className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center mb-4">
-              <div className="text-blue-600">📁</div>
-              <h3 className="text-lg font-medium ml-2 text-black">{kb.title}</h3>
+          <Link key={index} href={`/${t('locale')}/textknowledge/details`}>
+            <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center mb-4">
+                <div className="text-blue-600">📁</div>
+                <h3 className="text-lg font-medium ml-2 text-black">{kb.title}</h3>
+              </div>
+              <div className="text-gray-500 text-xs">
+                {kb.count} · {kb.size} · {kb.usage}
+              </div>
             </div>
-            <div className="text-gray-500 text-xs">
-              {kb.count} · {kb.size} · {kb.usage}
-            </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
