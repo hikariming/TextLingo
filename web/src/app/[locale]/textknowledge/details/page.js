@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { BookOpenIcon } from '@heroicons/react/24/outline'
 import AIExplanation from './components/AIExplanation'
+import ReadingMaterials from './components/ReadingMaterials'
 
 export default function TranslationLearningPage() {
   const [selectedMaterial, setSelectedMaterial] = useState('material1')
@@ -36,7 +36,7 @@ export default function TranslationLearningPage() {
         translation: "重叠交织的日子也...",
         isNewParagraph: true,
         grammar: [
-          "「重ね合う」是复合动词，由「重ねる」（叠加）和「合う」（相互）组成，表示相互叠加或重叠的意思。这里使用了连体形。",
+          "「重ね合う」是复合动词，由「重ねる」��叠加）和「合う」（相互）组成，表示相互叠加或重叠的意思。这里使用了连体形。",
           "「日々」（ひび）是名词，表示「日子」或「时光」。",
           "「も」是助词，表示「也」或「即使」的意思，用于强调或包含。"
         ],
@@ -200,34 +200,11 @@ export default function TranslationLearningPage() {
   return (
     <div className="flex h-screen bg-white text-gray-900">
       {/* Left Navigation */}
-      <nav className="w-64 border-r border-neutral-200 bg-slate-50 p-4">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Reading Materials</h2>
-        <ul>
-          {readingMaterials.map((material) => (
-            <li key={material.id} className="mb-2">
-              <button
-                className={`w-full flex items-center px-4 py-2 rounded-full text-left transition-colors
-                  ${selectedMaterial === material.id 
-                    ? 'bg-white text-blue-600 shadow-md' 
-                    : 'text-gray-900 hover:text-gray-600'
-                  }`}
-                onClick={() => setSelectedMaterial(material.id)}
-                title={material.title}
-              >
-                <BookOpenIcon className={`flex-shrink-0 mr-2 h-4 w-4 ${
-                  selectedMaterial === material.id ? 'text-blue-600' : ''
-                }`} />
-                <span className="truncate">
-                  {material.title}
-                </span>
-                {selectedMaterial === material.id && (
-                  <div className="absolute -bottom-[1px] left-2 right-2 h-[2px] bg-gradient-to-r from-blue-400/0 via-blue-400/70 to-blue-400/0"></div>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <ReadingMaterials 
+        readingMaterials={readingMaterials}
+        selectedMaterial={selectedMaterial}
+        onMaterialSelect={setSelectedMaterial}
+      />
 
       {/* Middle Reading Area */}
       <main className="flex-1 overflow-auto p-6 bg-white">
