@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+*$py.class 
+api/config.yml
+*.env
+!api/config.example.yml
