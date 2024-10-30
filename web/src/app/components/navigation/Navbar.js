@@ -1,12 +1,13 @@
+'use client'
+
 import { Bars3Icon, BookOpenIcon, DocumentTextIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
 import LanguageSwitcher from '../LanguageSwitcher'
 import { useTranslations } from 'next-intl'
-import { headers } from 'next/headers'
+import { usePathname } from 'next/navigation'
 
 export default function Navbar() {
   const t = useTranslations('app')
-  const headersList = headers()
-  const pathname = headersList.get('x-pathname') || '/'
+  const pathname = usePathname()
 
   const navigation = [
     { name: t('nav.library'), href: '/', icon: BookOpenIcon },

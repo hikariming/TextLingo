@@ -19,7 +19,7 @@ export default function KnowledgeCards() {
     <div className="bg-slate-100 min-h-screen">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
         {/* 新建知识库卡片 */}
-        <Link href={`/${t('locale')}/textknowledge`}>
+        <Link href={`/${t('locale')}/textknowledge/create`}>
           <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center mb-4">
               <div className="text-blue-600 text-xl">+</div>
