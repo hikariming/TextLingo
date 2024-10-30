@@ -158,14 +158,14 @@ export default function TranslationLearningPage() {
           {content[selectedMaterial].map((sentence, index) => (
             <div 
               key={index} 
-              className={`rounded-lg border border-neutral-200 p-4 transition-colors
-                ${selectedSentence === sentence.original 
-                  ? 'bg-slate-50 border-blue-200' 
-                  : 'hover:bg-slate-50'
-                }`}
+              className="p-4"
             >
               <p
-                className="cursor-pointer"
+                className={`cursor-pointer border-b-2 inline-block
+                  ${selectedSentence === sentence.original 
+                    ? 'border-blue-400' 
+                    : 'border-transparent hover:border-gray-200'
+                  }`}
                 onClick={() => setSelectedSentence(sentence.original)}
               >
                 {sentence.original}
