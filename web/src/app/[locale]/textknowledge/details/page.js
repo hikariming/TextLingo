@@ -11,6 +11,7 @@ export default function TranslationLearningPage() {
 
   const readingMaterials = [
     { id: 'material1', title: '満ちてゆく 藤井风' },
+    { id: 'material2', title: 'China\'s giant economy faces an equally giant crisis of confidence—and a growing deficit of accurate information is only making things worse.' },
   ]
 
   const content = {
@@ -18,10 +19,11 @@ export default function TranslationLearningPage() {
       {
         original: "走り出した午後も",
         translation: "开始奔跑的下午也...",
+        isNewParagraph: true,
         grammar: [
           "「走り出す」是复合动词，由「走る」（跑）和「出す」（开始）组成，表示「开始跑」。",
           "「走り出した」是「走り出す」的た形，表示过去完成的动作。",
-          "「午後」是名词，表示「下午」。",
+          "「午���」是名词，表示「下午」。",
           "「も」是助词，表示「也」，用于强调或添加信息。"
         ],
         vocabulary: [
@@ -32,6 +34,7 @@ export default function TranslationLearningPage() {
       {
         original: "重ね合う日々も",
         translation: "重叠交织的日子也...",
+        isNewParagraph: true,
         grammar: [
           "「重ね合う」是复合动词，由「重ねる」（叠加）和「合う」（相互）组成，表示相互叠加或重叠的意思。这里使用了连体形。",
           "「日々」（ひび）是名词，表示「日子」或「时光」。",
@@ -45,6 +48,7 @@ export default function TranslationLearningPage() {
       {
         original: "避けがたく全て終わりが来る",
         translation: "难以避免地，一切都将迎来终结。",
+        isNewParagraph: true,
         grammar: [
           "「避けがたく」是形容词「避けがたい」的连用形，表示「难以避免」。",
           "「全て」是副词，表示「全部、一切」。",
@@ -61,6 +65,7 @@ export default function TranslationLearningPage() {
       {
         original: "あの日のきらめきも",
         translation: "那一天的闪耀光芒也...",
+        isNewParagraph: true,
         grammar: [
           "「あの」是指示形容词，表示「那个」。",
           "「日」（ひ）是名词，表示「日子」。",
@@ -77,6 +82,7 @@ export default function TranslationLearningPage() {
       {
         original: "淡いときめきも",
         translation: "淡淡的心动也...",
+        isNewParagraph: true,
         grammar: [
           "「淡い」是形容词，表示「淡薄的、浅淡的」。",
           "「ときめき」是名词，意为「心跳加速、心动」。",
@@ -90,6 +96,7 @@ export default function TranslationLearningPage() {
       {
         original: "あれもこれもどこか置いてくる",
         translation: "把这个那个都放在某处后再回来。",
+        isNewParagraph: true,
         grammar: [
           "「あれも」和「これも」是并列结构，表示「这个也...那个也...」。「も」是助词，表示强调和包含。",
           "「どこか」是不定代词，表示「某处」。",
@@ -101,6 +108,36 @@ export default function TranslationLearningPage() {
           { word: "どこか", reading: "どこか", meaning: "某处" },
           { word: "置く", reading: "おく", meaning: "放置" },
           { word: "くる", reading: "くる", meaning: "来" }
+        ]
+      }
+    ],
+    material2: [
+      {
+        original: "China's giant economy faces an equally giant crisis of confidence—and a growing deficit of accurate information is only making things worse.",
+        translation: "中国庞大的经济面临着同样巨大的信心危机，而且不断增长的准确信息缺失只会让情况变得更糟。",
+        isNewParagraph: true,
+        grammar: [
+          "这是一个复合句，使用破折号连接两个相关的陈述",
+          "giant作为形容词表示'巨大的'",
+          "deficit of 表示'缺乏'"
+        ],
+        vocabulary: [
+          { word: "giant", meaning: "巨大的" },
+          { word: "confidence", meaning: "信心" },
+          { word: "deficit", meaning: "缺乏，赤字" }
+        ]
+      },
+      {
+        original: "Even as the country wrestles with a property crash, the services sector slowed by one measure in August.",
+        translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
+        isNewParagraph: false,
+        grammar: [
+          "Even as 表示让步关系",
+          "wrestle with 表示'与...搏斗、应对'"
+        ],
+        vocabulary: [
+          { word: "wrestle", meaning: "搏斗，应对" },
+          { word: "property crash", meaning: "房地产崩盘" }
         ]
       }
     ]
@@ -121,11 +158,14 @@ export default function TranslationLearningPage() {
                     : 'text-gray-900 hover:text-gray-600'
                   }`}
                 onClick={() => setSelectedMaterial(material.id)}
+                title={material.title}
               >
-                <BookOpenIcon className={`mr-2 h-4 w-4 ${
+                <BookOpenIcon className={`flex-shrink-0 mr-2 h-4 w-4 ${
                   selectedMaterial === material.id ? 'text-blue-600' : ''
                 }`} />
-                {material.title}
+                <span className="truncate">
+                  {material.title}
+                </span>
                 {selectedMaterial === material.id && (
                   <div className="absolute -bottom-[1px] left-2 right-2 h-[2px] bg-gradient-to-r from-blue-400/0 via-blue-400/70 to-blue-400/0"></div>
                 )}
@@ -156,23 +196,25 @@ export default function TranslationLearningPage() {
         </div>
         <div className="space-y-4">
           {content[selectedMaterial].map((sentence, index) => (
-            <div 
-              key={index} 
-              className="p-4"
-            >
-              <p
-                className={`cursor-pointer border-b-2 inline-block
-                  ${selectedSentence === sentence.original 
-                    ? 'border-blue-400' 
-                    : 'border-transparent hover:border-gray-200'
-                  }`}
-                onClick={() => setSelectedSentence(sentence.original)}
-              >
-                {sentence.original}
-              </p>
-              {showTranslation && (
-                <p className="mt-2 text-gray-600">{sentence.translation}</p>
-              )}
+            <div key={index} className={`${sentence.isNewParagraph ? 'mt-6' : ''} p-4`}>
+              <div>
+                <p
+                  className={`cursor-pointer border-b-2 inline
+                    ${selectedSentence === sentence.original 
+                      ? 'border-blue-400' 
+                      : 'border-transparent hover:border-gray-200'
+                    }`}
+                  onClick={() => setSelectedSentence(sentence.original)}
+                  style={{ lineHeight: '2em' }}
+                >
+                  {sentence.original}
+                </p>
+                {showTranslation && (
+                  <p className="block mt-2 text-gray-600">
+                    {sentence.translation}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>
