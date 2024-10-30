@@ -50,7 +50,7 @@ export default function TranslationLearningPage() {
         translation: "难以避免地，一切都将迎来终结。",
         isNewParagraph: true,
         grammar: [
-          "「避けがたく」是形容词「避けがたい」的连用形，表示「难以避免」。",
+          "「避けがたく」是容词「避けがたい」的连用形，表示「难以避免」。",
           "「全て」是副词，表示「全部、一切」。",
           "「終わり」是名词，意为「结束」。",
           "「が」是主格助词，标示主语。",
@@ -115,7 +115,7 @@ export default function TranslationLearningPage() {
       {
         original: "333333",
         translation: "中国庞大的经济面临着同样巨大的信心危机，而且不断增长的准确信息缺失只会让情况变得更糟。",
-        isNewParagraph: true,
+        isNewParagraph: false,
         grammar: [
           "这是一个复合句，使用破折号连接两个相关的陈述",
           "giant作为形容词表示'巨大的'",
@@ -157,7 +157,7 @@ export default function TranslationLearningPage() {
       },
       {
         original: "Even a11s the country wrestles with a property crash, the services sector slowed by one measure in August.",
-        translation: "即使在国家���在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
+        translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
         isNewParagraph: false,
         grammar: [
           "Even as 表示让步关系",
@@ -170,6 +170,19 @@ export default function TranslationLearningPage() {
       },
       {
         original: "Even a122321s the country wrestles with a property crash, the services sector slowed by one measure in August.",
+        translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
+        isNewParagraph: true,
+        grammar: [
+          "Even as 表示让步关系",
+          "wrestle with 表示'与...搏斗、应对'"
+        ],
+        vocabulary: [
+          { word: "wrestle", meaning: "搏斗，应对" },
+          { word: "property crash", meaning: "房地产崩盘" }
+        ]
+      },
+      {
+        original: "Even a1221321s the country wrestles with a property crash, the services sector slowed by one measure in August.",
         translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
         isNewParagraph: false,
         grammar: [
@@ -236,38 +249,64 @@ export default function TranslationLearningPage() {
           </div>
         </div>
         <div>
-          {content[selectedMaterial].reduce((paragraphs, sentence, index) => {
-            if (sentence.isNewParagraph || index === 0) {
-              // 开始新段落
-              paragraphs.push([sentence]);
-            } else {
-              // 将句子添加到当前段落
-              paragraphs[paragraphs.length - 1].push(sentence);
+          {(() => {
+            const sentences = content[selectedMaterial];
+            
+            // 先把句子按段落分组
+            const paragraphs = [];
+            let currentParagraph = [];
+
+            sentences.forEach((sentence) => {
+              if (sentence.isNewParagraph && currentParagraph.length > 0) {
+                console.log(sentence.original);
+                // 如果是新段落且当前段落不为空，保存当前段落并开始新段落
+                paragraphs.push(currentParagraph);
+                currentParagraph = [sentence];
+              } else {
+                // 否则添加到当前段落
+                currentParagraph.push(sentence);
+              }
+            });
+
+            // 添加最后一个段落
+            if (currentParagraph.length > 0) {
+              paragraphs.push(currentParagraph);
             }
-            return paragraphs;
-          }, []).map((paragraph, paraIndex) => (
-            <div key={paraIndex} className="mt-4 first:mt-0">
-              {paragraph.map((sentence, sentIndex) => (
-                <span key={sentIndex} className="inline">
-                  <span
-                    className={`border-b-2 ${
-                      selectedSentence === sentence.original 
-                        ? 'border-blue-400' 
-                        : 'border-transparent hover:border-gray-200'
-                    }`}
-                    onClick={() => setSelectedSentence(sentence.original)}
-                  >
-                    {sentence.original}
+
+            // 检查数组长度和第一段的存在性，然后再进行合并操作
+            if (paragraphs.length > 1 && 
+                paragraphs[0]?.length > 0 && 
+                paragraphs[0][0]?.isNewParagraph === false) {
+              paragraphs[0] = [...paragraphs[0], ...paragraphs[1]];
+              paragraphs.splice(1, 1);
+            }
+
+            console.log(paragraphs);
+
+            return paragraphs.map((paragraph, paraIndex) => (
+              <div key={paraIndex} className={`${paraIndex > 0 ? 'mt-4' : ''}`}>
+                {paragraph.map((sentence, sentIndex) => (
+                  <span key={sentIndex} className="inline">
+                    <span
+                      className={`border-b-2 ${
+                        selectedSentence === sentence.original 
+                          ? 'border-blue-400' 
+                          : 'border-transparent hover:border-gray-200'
+                      }`}
+                      onClick={() => setSelectedSentence(sentence.original)}
+                    >
+                      {sentence.original}
+                    </span>
+                    {showTranslation && (
+                      <div className="mt-2 text-gray-600">
+                        {sentence.translation}
+                      </div>
+                    )}
                   </span>
-                  {showTranslation && (
-                    <div className="mt-2 text-gray-600">
-                      {sentence.translation}
-                    </div>
-                  )}
-                </span>
-              ))}
-            </div>
-          ))}
+                ))}
+              </div>
+            ));
+          })()}
         </div>
       </main>
 
