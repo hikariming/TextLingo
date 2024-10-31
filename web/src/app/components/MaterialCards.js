@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 export default function KnowledgeCards() {
   const t = useTranslations('app')
 
-  // 现有知识库数据示例
+  // 现有素材库数据示例
   const existingKnowledgeBases = [
     {
       title: 'Copy of 易智平台及易智助手',
@@ -12,14 +12,14 @@ export default function KnowledgeCards() {
       size: '13 千字符',
       usage: '0 知识'
     },
-    // ... 其他知识库数据
+    // ... 其他素材库数据
   ]
 
   return (
     <div className="bg-slate-100 min-h-screen">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
-        {/* 新建知识库卡片 */}
-        <Link href={`/${t('locale')}/textknowledge/create`}>
+        {/* 新建素材库卡片 */}
+        <Link href={`/${t('locale')}/material/create`}>
           <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center mb-4">
               <div className="text-blue-600 text-xl">+</div>
@@ -31,9 +31,9 @@ export default function KnowledgeCards() {
           </div>
         </Link>
 
-        {/* 现有知识库卡片 */}
+        {/* 现有素材库卡片 */}
         {existingKnowledgeBases.map((kb, index) => (
-          <Link key={index} href={`/${t('locale')}/textknowledge/details`}>
+          <Link key={index} href={`/${t('locale')}/material/details`}>
             <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center mb-4">
                 <div className="text-blue-600">📁</div>

@@ -1,19 +1,31 @@
+'use client'
+import { useState } from 'react'
 import FirstStep from './components/firstStep'
+import SecondStep from './components/secondStep'
+import ThirdStep from './components/thirdStep'
 import Link from 'next/link'
-import Navbar from '@/app/components/navigation/Navbar'
-import { getTranslations } from 'next-intl/server'
+// import Navbar from '@/app/components/navigation/Navbar'
 
-export default async function TextKnowledge() {
-  const t = await getTranslations()
+export default function TextKnowledge() {
+  const [currentStep, setCurrentStep] = useState(1)
+  
   const steps = [
-    { id: 1, title: '选择数据源', current: true },
-    { id: 2, title: '文本分段与清洗', current: false },
-    { id: 3, title: '处理并完成', current: false }
+    { id: 1, title: '选择数据源', current: currentStep === 1 },
+    { id: 2, title: '文本分段与翻译', current: currentStep === 2 },
+    { id: 3, title: '处理并完成', current: currentStep === 3 }
   ]
+
+  const handleNext = () => {
+    setCurrentStep(prev => Math.min(prev + 1, 3))
+  }
+
+  const handlePrev = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1))
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar t={t} />
+      {/* <Navbar t={t} /> */}
       <div className="flex flex-1">
         {/* 左侧导航栏 */}
         <div className="w-64 border-r bg-white">
@@ -22,7 +34,7 @@ export default async function TextKnowledge() {
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              创建知识库
+              创建素材库
             </Link>
           </div>
           
@@ -50,8 +62,10 @@ export default async function TextKnowledge() {
 
         {/* 右侧内容区 */}
         <div className="flex-1">
-          <div className="max-w-2xl px-8 py-6">
-            <FirstStep />
+          <div className="h-full">
+            {currentStep === 1 && <FirstStep onNext={handleNext} />}
+            {currentStep === 2 && <SecondStep onNext={handleNext} onPrev={handlePrev} />}
+            {currentStep === 3 && <ThirdStep onPrev={handlePrev} />}
           </div>
         </div>
       </div>

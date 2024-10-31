@@ -18,6 +18,8 @@ def create_app():
     
     # 注册蓝图
     from controllers.user_controller import user_bp
+    from controllers.material_controller import material_bp
+    app.register_blueprint(material_bp)
     app.register_blueprint(user_bp)
     
     return app
