@@ -1,5 +1,5 @@
 from datetime import datetime
-from mongoengine import Document, StringField, IntField, DateTimeField, ObjectIdField
+from mongoengine import Document, StringField, IntField, DateTimeField, ObjectIdField, ReferenceField
 
 class Material(Document):
     def __init__(self, title, file_type, file_size, file_path, user_id, original_filename=None, 
@@ -14,6 +14,7 @@ class Material(Document):
         self.status = status
         self.created_at = datetime.utcnow()
         self.updated_at = datetime.utcnow()
+        self.factory_id = ReferenceField('MaterialsFactory', required=True)
     
     def to_dict(self):
         return {
@@ -26,5 +27,6 @@ class Material(Document):
             "original_filename": self.original_filename,
             "status": self.status,
             "created_at": self.created_at,
-            "updated_at": self.updated_at
+            "updated_at": self.updated_at,
+            "factory_id": str(self.factory_id.id) if self.factory_id else None,
         }
