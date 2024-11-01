@@ -1,5 +1,5 @@
 import Navbar from '../components/navigation/Navbar'
-import MaterialCards from '../components/MaterialCards'
+import MaterialCards from './material/factory/MaterialCards'
 
 export default async function LandingPage({ params: { locale } }) {
   return (
