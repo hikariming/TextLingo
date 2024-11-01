@@ -19,7 +19,7 @@ export default async function KnowledgePage() {
   return (
     <>
       <Navbar />
-      <div className="bg-slate-100 min-h-screen">
+      <div className="bg-slate-100 min-h-screen pt-16">
         <div className="container mx-auto p-4">
           <KnowledgeContent initialKnowledge={savedKnowledge} />
         </div>
