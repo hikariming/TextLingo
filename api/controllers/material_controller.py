@@ -7,7 +7,7 @@ import uuid
 
 material_bp = Blueprint('material', __name__, url_prefix='/api/materials')
 
-ALLOWED_EXTENSIONS = {'txt', 'md', 'pdf', 'html', 'xlsx', 'xls', 'docx', 'csv', 'htm'}
+ALLOWED_EXTENSIONS = {'txt', 'md', 'docx' }
 MAX_FILE_SIZE = 15 * 1024 * 1024  # 15MB
 
 def secure_chinese_filename(filename):
