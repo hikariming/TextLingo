@@ -1,10 +1,12 @@
 import { ArrowLeftIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 export default function DataSourceSelector({ t, onNext }) {
   const [selectedSource, setSelectedSource] = useState('text')
   const [inputText, setInputText] = useState('')
   const [webUrl, setWebUrl] = useState('')
+  const [dragActive, setDragActive] = useState(false)
+  const fileInputRef = useRef(null)
 
   const dataSourceOptions = [
     {
@@ -28,6 +30,105 @@ export default function DataSourceSelector({ t, onNext }) {
   const handleOptionClick = (optionId) => {
     setSelectedSource(optionId)
   }
+
+  const handleDrag = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
+    }
+  }
+
+  const handleDrop = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    
+    const files = e.dataTransfer.files
+    if (files?.[0]) {
+      await handleFile(files[0])
+    }
+  }
+
+  const handleFileInput = async (e) => {
+    const files = e.target.files
+    if (files?.[0]) {
+      await handleFile(files[0])
+    }
+  }
+
+  const handleFile = async (file) => {
+    // Check file size (15MB)
+    if (file.size > 15 * 1024 * 1024) {
+      alert('文件大小不能超过15MB')
+      return
+    }
+
+    // Check file type
+    const extension = file.name.split('.').pop().toLowerCase()
+    const allowedTypes = ['txt', 'markdown', 'pdf', 'html', 'xlsx', 'xls', 'docx', 'csv', 'md', 'htm']
+    if (!allowedTypes.includes(extension)) {
+      alert('不支持的文件类型')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/materials', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+
+      // 上传成功后调用onNext
+      onNext()
+    } catch (error) {
+      alert('文件上传失败: ' + error.message)
+    }
+  }
+
+  const textSourceJSX = (
+    <div 
+      className={`border-2 border-dashed rounded-lg p-6 bg-neutral-100
+        ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
+      onDragEnter={handleDrag}
+      onDragLeave={handleDrag}
+      onDragOver={handleDrag}
+      onDrop={handleDrop}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={handleFileInput}
+        accept=".txt,.markdown,.pdf,.html,.xlsx,.xls,.docx,.csv,.md,.htm"
+      />
+      <div className="text-center">
+        <ArrowUpTrayIcon className="mx-auto h-10 w-10 text-gray-400" />
+        <div className="mt-3">
+          <p className="text-gray-600 text-sm">
+            拖拽文件至此，或者{' '}
+            <button 
+              className="text-blue-600 hover:text-blue-700"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              选择文件
+            </button>
+          </p>
+          <p className="mt-2 text-xs text-gray-500">
+            已支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、MD、HTM，每个文件不超过15MB。
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -59,22 +160,7 @@ export default function DataSourceSelector({ t, onNext }) {
       </div>
 
       {/* 根据选择显示不同的输入区域 */}
-      {selectedSource === 'text' && (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-neutral-100">
-          <div className="text-center">
-            <ArrowUpTrayIcon className="mx-auto h-10 w-10 text-gray-400" />
-            <div className="mt-3">
-              <p className="text-gray-600 text-sm">
-                拖拽文件至此，或者{' '}
-                <button className="text-blue-600 hover:text-blue-700">选择文件</button>
-              </p>
-              <p className="mt-2 text-xs text-gray-500">
-                已支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、MD、HTM，每个文件不超过15MB。
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {selectedSource === 'text' && textSourceJSX}
 
       {selectedSource === 'input' && (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-neutral-100">

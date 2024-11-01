@@ -4,8 +4,15 @@ from bson import ObjectId
 
 class MaterialService:
     @staticmethod
-    def create_material(title, content, file_type, file_size, user_id):
-        material = Material(title, content, file_type, file_size, user_id)
+    def create_material(title, content, file_type, file_size, file_path, user_id):
+        material = Material(
+            title=title,
+            content=content,
+            file_type=file_type,
+            file_size=file_size,
+            file_path=file_path,
+            user_id=user_id
+        )
         result = mongo.db.materials.insert_one(material.to_dict())
         return material
 

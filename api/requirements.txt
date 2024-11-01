@@ -3,5 +3,6 @@ flask_pymongo
 pymongo
 pyyaml
 openai
+flask-cors
 
 

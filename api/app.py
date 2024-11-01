@@ -1,9 +1,16 @@
 from flask import Flask
 from extensions import mongo
+from flask_cors import CORS
 import yaml
 
 def create_app():
     app = Flask(__name__)
+    # 配置CORS，允许所有来源
+    CORS(app, resources={r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": "*"
+    }})
     
     # 从YAML文件加载配置
     with open('config.yml', 'r') as file:

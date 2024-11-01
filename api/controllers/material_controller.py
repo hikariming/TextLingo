@@ -3,11 +3,20 @@ from services.material_service import MaterialService
 from utils.response import success_response, error_response
 from werkzeug.utils import secure_filename
 import os
+import uuid
 
 material_bp = Blueprint('material', __name__, url_prefix='/api/materials')
 
 ALLOWED_EXTENSIONS = {'txt', 'md', 'pdf', 'html', 'xlsx', 'xls', 'docx', 'csv', 'htm'}
 MAX_FILE_SIZE = 15 * 1024 * 1024  # 15MB
+
+def secure_chinese_filename(filename):
+    # Get the file extension
+    if '.' not in filename:
+        return None
+    ext = filename.rsplit('.', 1)[1].lower()
+    # Generate a unique filename with the original extension
+    return f"{str(uuid.uuid4())}.{ext}"
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -15,29 +24,46 @@ def allowed_file(filename):
 @material_bp.route('/', methods=['POST'])
 def create_material():
     if 'file' not in request.files:
-        return error_response("No file provided", 400)
-    
+        return error_response("No file part", 400)
+
     file = request.files['file']
     if file.filename == '':
         return error_response("No selected file", 400)
     
-    if not allowed_file(file.filename):
-        return error_response("File type not allowed", 400)
+    original_filename = file.filename
+    if not allowed_file(original_filename):
+        return error_response(f"File type not allowed", 400)
     
-    if file.content_length > MAX_FILE_SIZE:
+    # Generate a secure filename while preserving the original name for the database
+    filename = secure_chinese_filename(original_filename)
+    if not filename:
+        return error_response("Invalid filename", 400)
+    
+    # 读取文件内容为二进制
+    content = file.read()
+    if not content:
+        return error_response("Empty file", 400)
+    
+    file_size = len(content)
+    if file_size > MAX_FILE_SIZE:
         return error_response("File size exceeds limit", 400)
 
-    filename = secure_filename(file.filename)
-    content = file.read()
-    file_size = len(content)
-    file_type = filename.rsplit('.', 1)[1].lower()
+    # Save content to data folder
+    data_folder = os.path.join(os.getcwd(), 'data')
+    os.makedirs(data_folder, exist_ok=True)
+    file_path = os.path.join(data_folder, filename)
     
+    # 以二进制模式写入文件
+    with open(file_path, 'wb') as f:
+        f.write(content)
+
     material = MaterialService.create_material(
-        title=filename,
-        content=content,
-        file_type=file_type,
+        title=original_filename,  # Use original filename as title
+        content=str(content),
+        file_type=filename.rsplit('.', 1)[1].lower(),
         file_size=file_size,
-        user_id=request.user_id  # 假设通过认证中间件设置
+        file_path=filename,  # Store the generated filename
+        user_id=request.user_id if hasattr(request, 'user_id') else None
     )
     
     return success_response(material.to_dict(), "Material created successfully")
