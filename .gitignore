@@ -4,3 +4,4 @@ __pycache__/
 api/config.yml
 *.env
 !api/config.example.yml
+api/data/*

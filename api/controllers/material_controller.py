@@ -4,6 +4,8 @@ from utils.response import success_response, error_response
 from werkzeug.utils import secure_filename
 import os
 import uuid
+from docx import Document
+import io
 
 material_bp = Blueprint('material', __name__, url_prefix='/api/materials')
 
@@ -51,17 +53,37 @@ def create_material():
     # Save content to data folder
     data_folder = os.path.join(os.getcwd(), 'data')
     os.makedirs(data_folder, exist_ok=True)
-    file_path = os.path.join(data_folder, filename)
     
-    # 以二进制模式写入文件
-    with open(file_path, 'wb') as f:
-        f.write(content)
+    file_extension = filename.rsplit('.', 1)[1].lower()
+    if file_extension == 'docx':
+        # 处理 docx 文件
+        doc = Document(io.BytesIO(content))
+        text_content = '\n'.join([paragraph.text for paragraph in doc.paragraphs if paragraph.text])
+        
+        # 生成对应的 txt 文件名
+        txt_filename = f"{filename.rsplit('.', 1)[0]}.txt"
+        txt_path = os.path.join(data_folder, txt_filename)
+        
+        # 保存 txt 文件
+        with open(txt_path, 'w', encoding='utf-8') as f:
+            f.write(text_content)
+            
+        # 更新文件信息
+        filename = txt_filename
+        file_type = 'txt'
+        file_size = len(text_content.encode('utf-8'))
+    else:
+        # 其他文件类型直接保存
+        file_path = os.path.join(data_folder, filename)
+        with open(file_path, 'wb') as f:
+            f.write(content)
 
     material = MaterialService.create_material(
-        title=original_filename,  # Use original filename as title
-        file_type=filename.rsplit('.', 1)[1].lower(),
+        title=original_filename,  # 保持原始文件名
+        file_type=file_type if file_extension == 'docx' else filename.rsplit('.', 1)[1].lower(),
         file_size=file_size,
-        file_path=filename,  # Store the generated filename
+        file_path=filename,
+        original_filename=original_filename,  # 新增原始文件名字段
         user_id=request.user_id if hasattr(request, 'user_id') else None
     )
     

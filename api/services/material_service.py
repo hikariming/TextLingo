@@ -1,15 +1,17 @@
 from models.material import Material
 from extensions import mongo
 from bson import ObjectId
+from datetime import datetime
 
 class MaterialService:
     @staticmethod
-    def create_material(title, file_type, file_size, file_path, user_id):
+    def create_material(title, file_type, file_size, file_path, user_id, original_filename=None):
         material = Material(
             title=title,
             file_type=file_type,
             file_size=file_size,
             file_path=file_path,
+            original_filename=original_filename,
             user_id=user_id
         )
         result = mongo.db.materials.insert_one(material.to_dict())

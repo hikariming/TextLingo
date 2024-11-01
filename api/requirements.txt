@@ -4,5 +4,5 @@ pymongo
 pyyaml
 openai
 flask-cors
-
+python-docx
 
