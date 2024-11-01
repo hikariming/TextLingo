@@ -123,7 +123,7 @@ export default function DataSourceSelector({ t, onNext }) {
             </button>
           </p>
           <p className="mt-2 text-xs text-gray-500">
-            已支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、MD、HTM，每个文件不超过15MB。
+            已支持 TXT、MARKDOWN、DOCX，每个文件不超过15MB。
           </p>
         </div>
       </div>
