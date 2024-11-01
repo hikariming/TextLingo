@@ -50,55 +50,70 @@ def create_material():
     if file_size > MAX_FILE_SIZE:
         return error_response("File size exceeds limit", 400)
 
-    # Save content to data folder
-    data_folder = os.path.join(os.getcwd(), 'data')
-    os.makedirs(data_folder, exist_ok=True)
+    # Update data folder paths
+    base_data_folder = os.path.join(os.getcwd(), 'data')
+    uploaded_folder = os.path.join(base_data_folder, 'step0_uploaded_file')
+    txt_folder = os.path.join(base_data_folder, 'step1_get_txt')
+    
+    # Create directories if they don't exist
+    os.makedirs(uploaded_folder, exist_ok=True)
+    os.makedirs(txt_folder, exist_ok=True)
     
     file_extension = filename.rsplit('.', 1)[1].lower()
-    docx_path = None
     
     if file_extension == 'docx':
-        # 保存原始 docx 文件（临时）
-        docx_path = os.path.join(data_folder, filename)
+        # Save original docx file
+        docx_path = os.path.join(uploaded_folder, filename)
         with open(docx_path, 'wb') as f:
             f.write(content)
             
-        # 处理 docx 文件
+        # Process docx file
         doc = Document(docx_path)
         text_content = '\n'.join([paragraph.text for paragraph in doc.paragraphs if paragraph.text])
         
-        # 生成对应的 txt 文件名
+        # Generate txt filename and save
         txt_filename = f"{filename.rsplit('.', 1)[0]}.txt"
-        txt_path = os.path.join(data_folder, txt_filename)
+        txt_path = os.path.join(txt_folder, txt_filename)
         
-        # 保存 txt 文件
         with open(txt_path, 'w', encoding='utf-8') as f:
             f.write(text_content)
             
-        # 删除原始 docx 文件
-        if os.path.exists(docx_path):
-            os.remove(docx_path)
-            
-        # 更新文件信息
+        # Update file info but keep original file
         filename = txt_filename
         file_type = 'txt'
         file_size = len(text_content.encode('utf-8'))
+        original_file_path = os.path.join('step0_uploaded_file', filename)  # 原文件路径
+        processed_file_path = os.path.join('step1_get_txt', txt_filename)   # 处理后的文件路径
+        
+        material = MaterialService.create_material(
+            title=original_filename,
+            file_type=file_extension,
+            file_size=file_size,
+            file_path=processed_file_path,          # 处理后的文件路径
+            original_file_path=original_file_path,  # 原文件路径
+            original_filename=original_filename,
+            user_id=request.user_id if hasattr(request, 'user_id') else None,
+            status="pending_segmentation"
+        )
+    elif file_extension in ['txt', 'md']:
+        # Save original file
+        original_path = os.path.join(uploaded_folder, filename)
+        with open(original_path, 'wb') as f:
+            f.write(content)
+        
+        # Read and save as txt in step1 folder
+        text_content = content.decode('utf-8')
+        txt_path = os.path.join(txt_folder, filename)
+        with open(txt_path, 'w', encoding='utf-8') as f:
+            f.write(text_content)
+            
+        file_size = len(text_content.encode('utf-8'))
     else:
-        # 其他文件类型直接保存
-        file_path = os.path.join(data_folder, filename)
+        # Save other file types in uploaded folder
+        file_path = os.path.join(uploaded_folder, filename)
         with open(file_path, 'wb') as f:
             f.write(content)
 
-    material = MaterialService.create_material(
-        title=original_filename,
-        file_type=file_type if file_extension == 'docx' else filename.rsplit('.', 1)[1].lower(),
-        file_size=file_size,
-        file_path=filename,
-        original_filename=original_filename,
-        user_id=request.user_id if hasattr(request, 'user_id') else None,
-        status="pending_segmentation"
-    )
-    
     return success_response(material.to_dict(), "Material created successfully")
 
 @material_bp.route('/', methods=['GET'])

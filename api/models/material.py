@@ -2,11 +2,13 @@ from datetime import datetime
 from mongoengine import Document, StringField, IntField, DateTimeField, ObjectIdField
 
 class Material(Document):
-    def __init__(self, title, file_type, file_size, file_path, user_id, original_filename=None, status="pending_segmentation"):
+    def __init__(self, title, file_type, file_size, file_path, user_id, original_filename=None, 
+                 original_file_path=None, status="pending_segmentation"):
         self.title = title
         self.file_type = file_type
         self.file_size = file_size
         self.file_path = file_path
+        self.original_file_path = original_file_path
         self.user_id = user_id
         self.original_filename = original_filename
         self.status = status
@@ -19,6 +21,7 @@ class Material(Document):
             "file_type": self.file_type,
             "file_size": self.file_size,
             "file_path": self.file_path,
+            "original_file_path": self.original_file_path,
             "user_id": self.user_id,
             "original_filename": self.original_filename,
             "status": self.status,
