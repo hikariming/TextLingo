@@ -39,7 +39,7 @@ def create_material():
     if not filename:
         return error_response("Invalid filename", 400)
     
-    # 读取文件内容为二进制
+    # 读取文件内容为二进制，仅用于验证和保存文件
     content = file.read()
     if not content:
         return error_response("Empty file", 400)
@@ -59,7 +59,6 @@ def create_material():
 
     material = MaterialService.create_material(
         title=original_filename,  # Use original filename as title
-        content=str(content),
         file_type=filename.rsplit('.', 1)[1].lower(),
         file_size=file_size,
         file_path=filename,  # Store the generated filename
