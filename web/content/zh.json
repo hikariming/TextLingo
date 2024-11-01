@@ -10,7 +10,13 @@
     },
     "knowledge": {
       "create": "创建素材库",
-      "createDescription": "新建素材库以导入链接，或PDF、Word、TXT、MD 等文档"
+      "createDescription": "新建素材库以导入链接，或PDF、Word、TXT、MD 等文档",
+      "name": "名称",
+      "description": "描述"
+    },
+    "common": {
+      "cancel": "取消",
+      "create": "创建"
     }
   }
 }

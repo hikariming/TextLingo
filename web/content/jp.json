@@ -10,7 +10,13 @@
     },
     "knowledge": {
       "create": "ドキュメントライブラリを作成",
-      "createDescription": "リンク、PDF、Word、TXT、MD などのドキュメントをインポートして、知識ベースを作成します。"
+      "createDescription": "リンク、PDF、Word、TXT、MD などのドキュメントをインポートして、知識ベースを作成します。",
+      "name": "名称",
+      "description": "説明"
+    },
+    "common": {
+      "cancel": "キャンセル",
+      "create": "作成"
     }
   }
 }
