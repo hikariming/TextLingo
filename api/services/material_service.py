@@ -5,14 +5,15 @@ from datetime import datetime
 
 class MaterialService:
     @staticmethod
-    def create_material(title, file_type, file_size, file_path, user_id, original_filename=None):
+    def create_material(title, file_type, file_size, file_path, user_id, original_filename=None, status="pending_segmentation"):
         material = Material(
             title=title,
             file_type=file_type,
             file_size=file_size,
             file_path=file_path,
             original_filename=original_filename,
-            user_id=user_id
+            user_id=user_id,
+            status=status
         )
         result = mongo.db.materials.insert_one(material.to_dict())
         return material
