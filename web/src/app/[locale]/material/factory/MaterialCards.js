@@ -1,8 +1,13 @@
+'use client'
+
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import CreateMaterialModal from './components/CreateMaterialModal'
 
 export default function KnowledgeCards() {
   const t = useTranslations('app')
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // 现有素材库数据示例
   const existingKnowledgeBases = [
@@ -15,11 +20,15 @@ export default function KnowledgeCards() {
     // ... 其他素材库数据
   ]
 
+  const handleCreateSuccess = () => {
+    // 这里可以添加刷新素材库列表的逻辑
+  }
+
   return (
     <div className="bg-slate-100 min-h-screen">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
         {/* 新建素材库卡片 */}
-        <Link href={`/${t('locale')}/material/create`}>
+        <div onClick={() => setIsModalOpen(true)} className="cursor-pointer">
           <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center mb-4">
               <div className="text-blue-600 text-xl">+</div>
@@ -29,7 +38,7 @@ export default function KnowledgeCards() {
               {t('knowledge.createDescription')}
             </p>
           </div>
-        </Link>
+        </div>
 
         {/* 现有素材库卡片 */}
         {existingKnowledgeBases.map((kb, index) => (
@@ -46,6 +55,12 @@ export default function KnowledgeCards() {
           </Link>
         ))}
       </div>
+
+      <CreateMaterialModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreateSuccess}
+      />
     </div>
   )
 } 
