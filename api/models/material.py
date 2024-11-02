@@ -1,5 +1,5 @@
 from datetime import datetime
-from mongoengine import Document, StringField, IntField, DateTimeField, ObjectIdField, ReferenceField
+from mongoengine import Document, StringField, IntField, DateTimeField, ObjectIdField, ReferenceField, ListField
 
 class Material(Document):
     def __init__(self, title, file_type, file_size, file_path, user_id, original_filename=None, 
@@ -15,6 +15,7 @@ class Material(Document):
         self.created_at = datetime.utcnow()
         self.updated_at = datetime.utcnow()
         self.factory_id = factory_id
+        self.segments = ListField(ReferenceField('MaterialSegment', reverse_delete_rule=CASCADE))
     
     def to_dict(self):
         return {

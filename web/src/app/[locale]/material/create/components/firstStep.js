@@ -11,6 +11,7 @@ export default function DataSourceSelector({ t, onNext }) {
   const fileInputRef = useRef(null)
   const [isUploaded, setIsUploaded] = useState(false)
   const [materialId, setMaterialId] = useState(null)
+  const [isUploading, setIsUploading] = useState(false)
 
   const searchParams = useSearchParams()
   const factoryId = searchParams.get('factoryId')
@@ -82,6 +83,7 @@ export default function DataSourceSelector({ t, onNext }) {
       return
     }
 
+    setIsUploading(true)
     try {
       const res = await MaterialsAPI.uploadFile(file, factoryId)
       console.log('res', res)
@@ -90,6 +92,8 @@ export default function DataSourceSelector({ t, onNext }) {
     } catch (error) {
       alert('文件上传失败: ' + error.message)
       setIsUploaded(false)
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -110,21 +114,30 @@ export default function DataSourceSelector({ t, onNext }) {
         accept=".txt,.markdown,.pdf,.html,.xlsx,.xls,.docx,.csv,.md,.htm"
       />
       <div className="text-center">
-        <ArrowUpTrayIcon className="mx-auto h-10 w-10 text-gray-400" />
-        <div className="mt-3">
-          <p className="text-gray-600 text-sm">
-            拖拽文件至此，或者{' '}
-            <button 
-              className="text-blue-600 hover:text-blue-700"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              选择文件
-            </button>
-          </p>
-          <p className="mt-2 text-xs text-gray-500">
-            已支持 TXT、MARKDOWN、DOCX，每个文件不超过15MB。
-          </p>
-        </div>
+        {isUploading ? (
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+            <p className="mt-3 text-gray-600">正在上传文件...</p>
+          </div>
+        ) : (
+          <>
+            <ArrowUpTrayIcon className="mx-auto h-10 w-10 text-gray-400" />
+            <div className="mt-3">
+              <p className="text-gray-600 text-sm">
+                拖拽文件至此，或者{' '}
+                <button 
+                  className="text-blue-600 hover:text-blue-700"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  选择文件
+                </button>
+              </p>
+              <p className="mt-2 text-xs text-gray-500">
+                已支持 TXT、MARKDOWN、DOCX，每个文件不超过15MB。
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
