@@ -30,8 +30,9 @@ export const MaterialsAPI = {
   },
 
   // 上传文件
-  uploadFile: async (file) => {
+  uploadFile: async (file, factoryId) => {
     const formData = new FormData()
+    formData.append('factory_id', factoryId)
     formData.append('file', file)
 
     const response = await fetch(`${API_BASE_URL}/materials`, {

@@ -28,6 +28,10 @@ def create_material():
     if 'file' not in request.files:
         return error_response("No file part", 400)
 
+    factory_id = request.form.get('factory_id')
+    if not factory_id:
+        return error_response("Factory ID is required", 400)
+
     file = request.files['file']
     if file.filename == '':
         return error_response("No selected file", 400)
@@ -93,7 +97,8 @@ def create_material():
             original_file_path=original_file_path,  # 原文件路径
             original_filename=original_filename,
             user_id=request.user_id if hasattr(request, 'user_id') else None,
-            status="pending_segmentation"
+            status="pending_segmentation",
+            factory_id=factory_id
         )
     elif file_extension in ['txt', 'md']:
         # Save original file
@@ -108,6 +113,17 @@ def create_material():
             f.write(text_content)
             
         file_size = len(text_content.encode('utf-8'))
+        material = MaterialService.create_material(
+            title=original_filename,
+            file_type=file_extension,
+            file_size=file_size,
+            file_path=txt_path,
+            original_file_path=original_path,
+            original_filename=original_filename,
+            user_id=request.user_id if hasattr(request, 'user_id') else None,
+            status="pending_segmentation",
+            factory_id=factory_id
+        )
     else:
         # Save other file types in uploaded folder
         file_path = os.path.join(uploaded_folder, filename)

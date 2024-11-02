@@ -8,6 +8,9 @@ export default function DataSourceSelector({ t, onNext }) {
   const [webUrl, setWebUrl] = useState('')
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef(null)
+  const [isUploaded, setIsUploaded] = useState(false)
+
+  const factoryId = new URLSearchParams(window.location.search).get('factoryId')
 
   const dataSourceOptions = [
     {
@@ -76,10 +79,11 @@ export default function DataSourceSelector({ t, onNext }) {
     }
 
     try {
-      await MaterialsAPI.uploadFile(file)
-      onNext()
+      await MaterialsAPI.uploadFile(file, factoryId)
+      setIsUploaded(true)
     } catch (error) {
       alert('文件上传失败: ' + error.message)
+      setIsUploaded(false)
     }
   }
 
@@ -183,9 +187,11 @@ export default function DataSourceSelector({ t, onNext }) {
       <div className="mt-6 flex justify-end space-x-4">
         <button 
           onClick={onNext}
-          disabled={!selectedSource}
+          disabled={!selectedSource || (selectedSource === 'text' && !isUploaded)}
           className={`px-4 py-2 text-white rounded-md ${
-            selectedSource ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
+            selectedSource && (selectedSource !== 'text' || isUploaded) 
+              ? 'bg-blue-600 hover:bg-blue-700' 
+              : 'bg-gray-400 cursor-not-allowed'
           }`}
         >
           下一步

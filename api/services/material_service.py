@@ -5,7 +5,7 @@ from datetime import datetime
 
 class MaterialService:
     @staticmethod
-    def create_material(title, file_type, file_size, file_path, user_id, original_filename=None, original_file_path=None, status="pending_segmentation"):
+    def create_material(title, file_type, file_size, file_path, user_id, original_filename=None, original_file_path=None, status="pending_segmentation", factory_id=None):
         material = Material(
             title=title,
             file_type=file_type,
@@ -14,7 +14,8 @@ class MaterialService:
             original_file_path=original_file_path,
             original_filename=original_filename,
             user_id=user_id,
-            status=status
+            status=status,
+            factory_id=factory_id
         )
         result = mongo.db.materials.insert_one(material.to_dict())
         return material
