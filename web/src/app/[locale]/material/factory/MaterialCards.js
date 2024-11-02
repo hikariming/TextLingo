@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
 import CreateMaterialModal from './components/CreateMaterialModal'
 import { MaterialsAPI } from '@/services/api'
+import { ArrowUpTrayIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
 
 export default function MaterialCards() {
   const t = useTranslations('app')
@@ -66,13 +67,24 @@ export default function MaterialCards() {
                 <div key={factory.id} className="block">
                   <Link href={`/${t('locale')}/material/details/${factory.id}`}>
                     <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center mb-4">
+                      <div className="flex items-center mb-3">
                         <div className="text-blue-600">📁</div>
                         <h3 className="text-lg font-medium ml-2 text-black">{factory.name}</h3>
                       </div>
-                      <div className="text-gray-500 text-xs">
+                      <div className="text-gray-500 text-xs mb-3">
                         {factory.materials?.length || 0} 文档 · 
                         {factory.description || '暂无描述'}
+                      </div>
+                      <div className="flex gap-2 mt-6 pt-2 border-t">
+                        <button className="flex items-center justify-center gap-1 text-xs text-gray-600 hover:text-blue-600 flex-1 py-0.5">
+                          <ArrowUpTrayIcon className="w-3.5 h-3.5" />
+                          导入
+                        </button>
+                        <div className="w-px bg-gray-200"></div>
+                        <button className="flex items-center justify-center gap-1 text-xs text-gray-600 hover:text-blue-600 flex-1 py-0.5">
+                          <Cog6ToothIcon className="w-3.5 h-3.5" />
+                          管理
+                        </button>
                       </div>
                     </div>
                   </Link>
