@@ -17,7 +17,8 @@
     "next": "14.2.11",
     "next-intl": "^3.19.4",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-hot-toast": "^2.4.1"
   },
   "devDependencies": {
     "postcss": "^8",

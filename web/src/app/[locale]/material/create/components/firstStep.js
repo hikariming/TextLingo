@@ -1,5 +1,6 @@
 import { ArrowLeftIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { useState, useRef } from 'react'
+import { MaterialsAPI } from '@/services/api'
 
 export default function DataSourceSelector({ t, onNext }) {
   const [selectedSource, setSelectedSource] = useState('text')
@@ -74,20 +75,8 @@ export default function DataSourceSelector({ t, onNext }) {
       return
     }
 
-    const formData = new FormData()
-    formData.append('file', file)
-
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/materials', {
-        method: 'POST',
-        body: formData,
-      })
-      
-      if (!response.ok) {
-        throw new Error('Upload failed')
-      }
-
-      // 上传成功后调用onNext
+      await MaterialsAPI.uploadFile(file)
       onNext()
     } catch (error) {
       alert('文件上传失败: ' + error.message)

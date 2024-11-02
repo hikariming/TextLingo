@@ -12,7 +12,9 @@
       "create": "ドキュメントライブラリを作成",
       "createDescription": "リンク、PDF、Word、TXT、MD などのドキュメントをインポートして、知識ベースを作成します。",
       "name": "名称",
-      "description": "説明"
+      "description": "説明",
+      "fetchError": "素材ライブラリの取得に失敗しました",
+      "createSuccess": "素材ライブラリの作成に成功しました"
     },
     "common": {
       "cancel": "キャンセル",

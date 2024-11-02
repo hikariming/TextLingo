@@ -11,7 +11,9 @@
       "create": "Create Document Library",
       "createDescription": "Import links, or PDF, Word, TXT, MD, etc. documents to create a knowledge base.",
       "name": "Name",
-      "description": "Description"
+      "description": "Description",
+      "fetchError": "Failed to fetch material library",
+      "createSuccess": "Material library created successfully"
     },
     "common": {
       "cancel": "Cancel",

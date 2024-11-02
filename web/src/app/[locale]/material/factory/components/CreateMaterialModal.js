@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { toast } from 'react-hot-toast'
+import { MaterialsAPI } from '@/services/api'
 
 export default function CreateMaterialModal({ isOpen, onClose, onSubmit }) {
   const t = useTranslations('app')
@@ -10,27 +12,12 @@ export default function CreateMaterialModal({ isOpen, onClose, onSubmit }) {
     description: ''
   })
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async (values) => {
     try {
-      const response = await fetch('/api/materials-factory', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          // user_id 应该从认证系统获取
-        })
-      })
-      
-      if (response.ok) {
-        onSubmit()
-        onClose()
-      }
+      await MaterialsAPI.create(values)
+      onSubmit()
     } catch (error) {
-      console.error('Error creating material:', error)
+      toast.error(t('knowledge.createError'))
     }
   }
 

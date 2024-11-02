@@ -2,26 +2,38 @@
 
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { toast } from 'react-hot-toast'
 import CreateMaterialModal from './components/CreateMaterialModal'
+import { MaterialsAPI } from '@/services/api'
 
-export default function KnowledgeCards() {
+export default function MaterialCards() {
   const t = useTranslations('app')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [factories, setFactories] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // 现有素材库数据示例
-  const existingKnowledgeBases = [
-    {
-      title: 'Copy of 易智平台及易智助手',
-      count: '1 文档',
-      size: '13 千字符',
-      usage: '0 知识'
-    },
-    // ... 其他素材库数据
-  ]
+  const fetchFactories = async () => {
+    try {
+      setIsLoading(true)
+      const data = await MaterialsAPI.getAll()
+      console.log(data)
+      setFactories(data)
+    } catch (error) {
+      toast.error(t('knowledge.fetchError'))
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-  const handleCreateSuccess = () => {
-    // 这里可以添加刷新素材库列表的逻辑
+  useEffect(() => {
+    fetchFactories()
+  }, [])
+
+  const handleCreateSuccess = async () => {
+    toast.success(t('knowledge.createSuccess'))
+    await fetchFactories()
+    setIsModalOpen(false)
   }
 
   return (
@@ -40,20 +52,24 @@ export default function KnowledgeCards() {
           </div>
         </div>
 
-        {/* 现有素材库卡片 */}
-        {existingKnowledgeBases.map((kb, index) => (
-          <Link key={index} href={`/${t('locale')}/material/details`}>
-            <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="text-blue-600">📁</div>
-                <h3 className="text-lg font-medium ml-2 text-black">{kb.title}</h3>
+        {isLoading ? (
+          <div className="col-span-full text-center py-4">Loading...</div>
+        ) : (
+          factories.map((factory) => (
+            <Link key={factory._id} href={`/${t('locale')}/material/details/${factory._id}`}>
+              <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-4">
+                  <div className="text-blue-600">📁</div>
+                  <h3 className="text-lg font-medium ml-2 text-black">{factory.name}</h3>
+                </div>
+                <div className="text-gray-500 text-xs">
+                  {factory.materials?.length || 0} 文档 · 
+                  {factory.description || '暂无描述'}
+                </div>
               </div>
-              <div className="text-gray-500 text-xs">
-                {kb.count} · {kb.size} · {kb.usage}
-              </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))
+        )}
       </div>
 
       <CreateMaterialModal

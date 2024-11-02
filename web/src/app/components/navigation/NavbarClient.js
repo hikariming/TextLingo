@@ -11,9 +11,6 @@ export default function NavbarClient({ currentLocale }) {
   const locale = useLocale()
   const pathname = usePathname()
 
-  console.log('Current locale:', locale);
-  console.log('Translations:', t('nav.library'));
-
   const navigation = [
     { name: t('nav.library'), href: `/${locale}/`, icon: BookOpenIcon },
     { name: t('nav.words'), href: `/${locale}/words`, icon: DocumentTextIcon },
