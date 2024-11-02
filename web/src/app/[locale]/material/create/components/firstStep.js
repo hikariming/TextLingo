@@ -1,6 +1,7 @@
 import { ArrowLeftIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { useState, useRef } from 'react'
 import { MaterialsAPI } from '@/services/api'
+import { useSearchParams } from 'next/navigation'
 
 export default function DataSourceSelector({ t, onNext }) {
   const [selectedSource, setSelectedSource] = useState('text')
@@ -10,7 +11,10 @@ export default function DataSourceSelector({ t, onNext }) {
   const fileInputRef = useRef(null)
   const [isUploaded, setIsUploaded] = useState(false)
 
-  const factoryId = new URLSearchParams(window.location.search).get('factoryId')
+  const searchParams = useSearchParams()
+  const factoryId = searchParams.get('factoryId')
+
+  console.log('factoryId', factoryId)
 
   const dataSourceOptions = [
     {

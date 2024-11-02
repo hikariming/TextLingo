@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
 from services.material_service import MaterialService
 from utils.response import success_response, error_response
-from werkzeug.utils import secure_filename
 import os
 import uuid
 from docx import Document
