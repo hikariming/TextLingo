@@ -177,13 +177,7 @@ export default function DataSourceSelector({ t, onNext }) {
         </div>
       )}
 
-      {/* 创建空素材库按钮 */}
-      <div className="mt-6">
-        <button className="text-blue-600 hover:text-blue-700 flex items-center text-sm">
-          <span className="mr-2">+</span>
-          创建一个空素材库
-        </button>
-      </div>
+  
 
       {/* 添加底部操作按钮 */}
       <div className="mt-6 flex justify-end space-x-4">
