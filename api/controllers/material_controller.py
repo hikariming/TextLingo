@@ -167,3 +167,34 @@ def delete_material(material_id):
     if result.deleted_count:
         return success_response(None, "Material deleted successfully")
     return error_response("Material not found", 404)
+
+@material_bp.route('/<material_id>/preview', methods=['GET'])
+def get_material_preview(material_id):
+    try:
+        # 获取材料信息
+        material = MaterialService.get_material_by_id(material_id)
+        if not material:
+            return error_response("Material not found", 404)
+
+        # 构建完整的文件路径
+        base_data_folder = os.path.join(os.getcwd(), 'data')
+        file_path = os.path.join(base_data_folder, material['file_path'])
+
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            return error_response("File not found", 404)
+
+        # 读取文件内容
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(2000)  # 读取前2000个字符
+            
+        # 按行分割内容并过滤掉空行
+        lines = [line.strip() for line in content.split('\n') if line.strip()]
+        
+        return success_response({
+            "preview": lines,
+            "total_length": len(content)
+        })
+        
+    except Exception as e:
+        return error_response(f"Error reading file: {str(e)}", 500)

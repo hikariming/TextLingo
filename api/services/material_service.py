@@ -31,7 +31,11 @@ class MaterialService:
 
     @staticmethod
     def get_material_by_id(material_id):
-        return mongo.db.materials.find_one({"_id": ObjectId(material_id)})
+        material = mongo.db.materials.find_one({"_id": ObjectId(material_id)})
+        if material:
+            # Convert ObjectId to string
+            material['_id'] = str(material['_id'])
+        return material
 
     @staticmethod
     def update_material(material_id, updates):

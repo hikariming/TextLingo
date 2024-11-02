@@ -10,6 +10,7 @@ export default function DataSourceSelector({ t, onNext }) {
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef(null)
   const [isUploaded, setIsUploaded] = useState(false)
+  const [materialId, setMaterialId] = useState(null)
 
   const searchParams = useSearchParams()
   const factoryId = searchParams.get('factoryId')
@@ -85,6 +86,7 @@ export default function DataSourceSelector({ t, onNext }) {
       const res = await MaterialsAPI.uploadFile(file, factoryId)
       console.log('res', res)
       setIsUploaded(true)
+      setMaterialId(res.data._id)
     } catch (error) {
       alert('文件上传失败: ' + error.message)
       setIsUploaded(false)
@@ -190,7 +192,7 @@ export default function DataSourceSelector({ t, onNext }) {
       {/* 添加底部操作按钮 */}
       <div className="mt-6 flex justify-end space-x-4">
         <button 
-          onClick={onNext}
+          onClick={() => onNext(materialId)}
           disabled={!selectedSource || (selectedSource === 'text' && !isUploaded)}
           className={`px-4 py-2 text-white rounded-md ${
             selectedSource && (selectedSource !== 'text' || isUploaded) 

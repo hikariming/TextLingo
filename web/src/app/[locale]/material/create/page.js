@@ -9,6 +9,7 @@ import Navbar from '@/app/components/navigation/Navbar'
 
 export default function TextKnowledge() {
   const [currentStep, setCurrentStep] = useState(1)
+  const [materialId, setMaterialId] = useState(null)
   const searchParams = useSearchParams()
   const factoryId = searchParams.get('factoryId')
   
@@ -25,7 +26,8 @@ export default function TextKnowledge() {
     { id: 3, title: '处理并完成', current: currentStep === 3 }
   ]
 
-  const handleNext = () => {
+  const handleNext = (id) => {
+    if (id) setMaterialId(id)
     setCurrentStep(prev => Math.min(prev + 1, 3))
   }
 
@@ -75,7 +77,13 @@ export default function TextKnowledge() {
           <div className="flex-1">
             <div className="h-full">
               {currentStep === 1 && <FirstStep onNext={handleNext} />}
-              {currentStep === 2 && <SecondStep onNext={handleNext} onPrev={handlePrev} />}
+              {currentStep === 2 && (
+                <SecondStep 
+                  onNext={handleNext} 
+                  onPrev={handlePrev} 
+                  materialId={materialId}
+                />
+              )}
               {currentStep === 3 && <ThirdStep onPrev={handlePrev} />}
             </div>
           </div>

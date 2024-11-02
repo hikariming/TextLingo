@@ -41,5 +41,29 @@ export const MaterialsAPI = {
     })
     if (!response.ok) throw new Error('Upload failed')
     return response.json()
-  }
+  },
+
+  // 获取单个素材的详细信息
+  getById: async (materialId) => {
+    const response = await fetch(`${API_BASE_URL}/materials/${materialId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) throw new Error('Failed to fetch material details')
+    return response.json()
+  },
+
+  // 获取材料预览内容
+  getPreview: async (materialId) => {
+    const response = await fetch(`${API_BASE_URL}/materials/${materialId}/preview`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) throw new Error('Failed to fetch preview')
+    return response.json()
+  },
 }

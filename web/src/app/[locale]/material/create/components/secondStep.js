@@ -1,6 +1,32 @@
 import { ArrowPathIcon, DocumentTextIcon, AcademicCapIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
+import { MaterialsAPI } from '@/services/api'
+import { useEffect, useState } from 'react'
 
-export default function TextSegmentation({ onNext, onPrev }) {
+export default function TextSegmentation({ onNext, onPrev, materialId }) {
+  const [material, setMaterial] = useState(null)
+  const [preview, setPreview] = useState([])
+  const [selectedOption, setSelectedOption] = useState('paragraph')
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const materialResponse = await MaterialsAPI.getById(materialId)
+        setMaterial(materialResponse.data)
+        
+        const previewResponse = await MaterialsAPI.getPreview(materialId)
+        setPreview(previewResponse.data.preview)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }
+    }
+
+    if (materialId) {
+      fetchData()
+    }
+  }, [materialId])
+
+  console.log('Material ID in SecondStep:', materialId)
+
   const segmentationOptions = [
     {
       id: 'paragraph',
@@ -17,8 +43,8 @@ export default function TextSegmentation({ onNext, onPrev }) {
     {
       id: 'ai',
       icon: <AcademicCapIcon className="h-5 w-5" />,
-      title: '智能分段',
-      description: '使用AI分析文本语义进行智能分段'
+      title: '智能分段(推荐)',
+      description: '使用AI分析文本语义进行智能分段，推荐使用，讲解更为细致'
     },
     {
       id: 'linebreak',
@@ -33,7 +59,6 @@ export default function TextSegmentation({ onNext, onPrev }) {
       <h1 className="text-xl font-semibold p-4 border-b">文本分段与翻译</h1>
       
       <div className="flex-1 flex">
-        {/* 左侧设置区域 - 调整宽度为固定像素 */}
         <div className="w-[520px] border-r overflow-y-auto">
           <div className="p-6">
             <h2 className="text-lg font-medium mb-4">分段方式</h2>
@@ -41,7 +66,12 @@ export default function TextSegmentation({ onNext, onPrev }) {
               {segmentationOptions.map((option) => (
                 <div
                   key={option.id}
-                  className="p-3 rounded-lg border-2 hover:border-blue-500 cursor-pointer"
+                  className={`p-3 rounded-lg border-2 cursor-pointer ${
+                    selectedOption === option.id 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'hover:border-blue-500'
+                  }`}
+                  onClick={() => setSelectedOption(option.id)}
                 >
                   <div className="flex items-center space-x-3">
                     <div className="text-gray-600">{option.icon}</div>
@@ -77,7 +107,6 @@ export default function TextSegmentation({ onNext, onPrev }) {
           </div>
         </div>
 
-        {/* 右侧预览区域 - 修改样式使其占满剩余空间 */}
         <div className="flex-1 flex flex-col h-full overflow-hidden">
           <div className="flex justify-between items-center p-6 pb-4">
             <h2 className="text-lg font-medium">分段预览</h2>
@@ -87,33 +116,23 @@ export default function TextSegmentation({ onNext, onPrev }) {
             </button>
           </div>
           
-          {/* 修改预览内容区域的样式 */}
           <div className="flex-1 overflow-y-auto px-6 pb-6">
-            <div className="space-y-4 h-full ">
-              {/* 分段预览列表 */}
-              <div className="border rounded-lg p-4">
-                <div className="flex justify-between text-sm text-gray-500 mb-2">
-                  <span>段落 1</span>
-                  <span>字数：120</span>
+            <div className="space-y-4">
+              {preview.map((text, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <div className="flex justify-between text-sm text-gray-500 mb-2">
+                    <span>段落 {index + 1}</span>
+                    <span>字数：{text.length}</span>
+                  </div>
+                  <p className="text-gray-800">{text}</p>
+                  <p className="text-gray-500 mt-2 italic">待翻译...</p>
                 </div>
-                <p className="text-gray-800">这是第一段示例文本内容...</p>
-                <p className="text-gray-500 mt-2">English translation here...</p>
-              </div>
-
-              <div className="border rounded-lg p-4">
-                <div className="flex justify-between text-sm text-gray-500 mb-2">
-                  <span>段落 2</span>
-                  <span>字数：85</span>
-                </div>
-                <p className="text-gray-800">这是第二段示例文本内容...</p>
-                <p className="text-gray-500 mt-2">English translation here...</p>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* 底部操作按钮 - 固定在底部 */}
       <div className="border-t p-4 flex justify-end space-x-4">
         <button 
           onClick={onPrev}
