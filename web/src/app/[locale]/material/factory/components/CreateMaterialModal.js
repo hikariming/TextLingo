@@ -12,9 +12,10 @@ export default function CreateMaterialModal({ isOpen, onClose, onSubmit }) {
     description: ''
   })
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     try {
-      await MaterialsAPI.create(values)
+      await MaterialsAPI.create(formData)
       onSubmit()
     } catch (error) {
       toast.error(t('knowledge.createError'))
