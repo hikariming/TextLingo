@@ -85,7 +85,7 @@ def create_material():
         filename = txt_filename
         file_type = 'txt'
         file_size = len(text_content.encode('utf-8'))
-        original_file_path = os.path.join('step0_uploaded_file', filename)  # 原文件路径
+        original_file_path = os.path.join('step0_uploaded_file', os.path.basename(docx_path))  # Keep original docx extension
         processed_file_path = os.path.join('step1_get_txt', txt_filename)   # 处理后的文件路径
         
         material = MaterialService.create_material(
@@ -99,6 +99,7 @@ def create_material():
             status="pending_segmentation",
             factory_id=factory_id
         )
+        return success_response(material, "Material created successfully")
     elif file_extension in ['txt', 'md']:
         # Save original file
         original_path = os.path.join(uploaded_folder, filename)
@@ -123,6 +124,7 @@ def create_material():
             status="pending_segmentation",
             factory_id=factory_id
         )
+        return success_response(material, "Material created successfully")
     else:
         # Save other file types in uploaded folder
         file_path = os.path.join(uploaded_folder, filename)

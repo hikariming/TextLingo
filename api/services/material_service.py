@@ -18,7 +18,10 @@ class MaterialService:
             factory_id=factory_id
         )
         result = mongo.db.materials.insert_one(material.to_dict())
-        return material
+        material_dict = material.to_dict()
+        material_dict['_id'] = str(result.inserted_id)
+        print(material_dict)
+        return material_dict
 
     @staticmethod
     def get_materials(user_id, page=1, per_page=10):

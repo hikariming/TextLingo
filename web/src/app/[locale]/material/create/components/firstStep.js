@@ -14,7 +14,6 @@ export default function DataSourceSelector({ t, onNext }) {
   const searchParams = useSearchParams()
   const factoryId = searchParams.get('factoryId')
 
-  console.log('factoryId', factoryId)
 
   const dataSourceOptions = [
     {
@@ -83,7 +82,8 @@ export default function DataSourceSelector({ t, onNext }) {
     }
 
     try {
-      await MaterialsAPI.uploadFile(file, factoryId)
+      const res = await MaterialsAPI.uploadFile(file, factoryId)
+      console.log('res', res)
       setIsUploaded(true)
     } catch (error) {
       alert('文件上传失败: ' + error.message)
