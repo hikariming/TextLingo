@@ -76,10 +76,12 @@ export default function MaterialCards() {
                         {factory.description || '暂无描述'}
                       </div>
                       <div className="flex gap-2 mt-6 pt-2 border-t">
-                        <button className="flex items-center justify-center gap-1 text-xs text-gray-600 hover:text-blue-600 flex-1 py-0.5">
-                          <ArrowUpTrayIcon className="w-3.5 h-3.5" />
-                          导入
-                        </button>
+                        <Link href={`/${t('locale')}/material/create?factoryId=${factory.id}`} className="flex-1">
+                          <button className="flex items-center justify-center gap-1 text-xs text-gray-600 hover:text-blue-600 w-full py-0.5">
+                            <ArrowUpTrayIcon className="w-3.5 h-3.5" />
+                            导入
+                          </button>
+                        </Link>
                         <div className="w-px bg-gray-200"></div>
                         <button className="flex items-center justify-center gap-1 text-xs text-gray-600 hover:text-blue-600 flex-1 py-0.5">
                           <Cog6ToothIcon className="w-3.5 h-3.5" />

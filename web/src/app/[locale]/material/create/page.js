@@ -1,5 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import FirstStep from './components/firstStep'
 import SecondStep from './components/secondStep'
 import ThirdStep from './components/thirdStep'
@@ -8,7 +9,16 @@ import Navbar from '@/app/components/navigation/Navbar'
 
 export default function TextKnowledge() {
   const [currentStep, setCurrentStep] = useState(1)
+  const searchParams = useSearchParams()
+  const factoryId = searchParams.get('factoryId')
   
+  useEffect(() => {
+    if (factoryId) {
+      // 这里可以用 factoryId 做一些初始化操作
+      console.log('Factory ID:', factoryId)
+    }
+  }, [factoryId])
+
   const steps = [
     { id: 1, title: '选择数据源', current: currentStep === 1 },
     { id: 2, title: '文本分段与翻译', current: currentStep === 2 },
