@@ -1,5 +1,5 @@
 from datetime import datetime
-from mongoengine import Document, StringField, IntField, DateTimeField, ObjectIdField, ReferenceField, ListField
+from mongoengine import Document, StringField, IntField, DateTimeField, ObjectIdField, ReferenceField, ListField, CASCADE
 
 class Material(Document):
     def __init__(self, title, file_type, file_size, file_path, user_id, original_filename=None, 

@@ -6,6 +6,9 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
   const [material, setMaterial] = useState(null)
   const [preview, setPreview] = useState([])
   const [selectedOption, setSelectedOption] = useState('paragraph')
+  const [isLoading, setIsLoading] = useState(false)
+  const [segments, setSegments] = useState([])
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,24 +38,27 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
       description: '根据文本的段落结构进行分段'
     },
     {
-      id: 'punctuation',
-      icon: <CodeBracketIcon className="h-5 w-5" />,
-      title: '按标点符号',
-      description: '按句号(。)或英文句号(.)进行分段'
-    },
-    {
       id: 'ai',
       icon: <AcademicCapIcon className="h-5 w-5" />,
-      title: '智能分段(推荐)',
-      description: '使用AI分析文本语义进行智能分段，推荐使用，讲解更为细致'
-    },
-    {
-      id: 'linebreak',
-      icon: <CodeBracketIcon className="h-5 w-5" />,
-      title: '按换行符',
-      description: '按文本中的换行符进行分段'
+      title: '智能分段(需消耗Token)',
+      description: '使用AI分析文本语义进行智能分段，适用于比较复杂的文本，但会消耗大模型Token'
     }
   ]
+
+  const handleSegmentation = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      await MaterialsAPI.segmentMaterial(materialId, selectedOption)
+      const segmentsResponse = await MaterialsAPI.getSegments(materialId)
+      setSegments(segmentsResponse.data)
+    } catch (error) {
+      setError(error.message)
+      console.error('Error during segmentation:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="h-screen flex flex-col">
@@ -128,24 +134,36 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
         <div className="flex-1 flex flex-col h-full overflow-hidden">
           <div className="flex justify-between items-center p-6 pb-4">
             <h2 className="text-lg font-medium">分段预览</h2>
-            <button className="flex items-center text-blue-600 hover:text-blue-700">
-              <ArrowPathIcon className="h-4 w-4 mr-1" />
-              重新分段
+            <button 
+              className="flex items-center text-blue-600 hover:text-blue-700"
+              onClick={handleSegmentation}
+              disabled={isLoading}
+            >
+              <ArrowPathIcon className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+              {isLoading ? '分段中...' : '重新分段'}
             </button>
           </div>
           
           <div className="flex-1 overflow-y-auto px-6 pb-6">
             <div className="space-y-4">
-              {preview.map((text, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <div className="flex justify-between text-sm text-gray-500 mb-2">
-                    <span>段落 {index + 1}</span>
-                    <span>字数：{text.length}</span>
+              {segments.length > 0 ? (
+                segments.map((segment, index) => (
+                  <div key={segment.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between text-sm text-gray-500 mb-2">
+                      <span>段落 {index + 1}</span>
+                      <span>字数：{segment.original.length}</span>
+                    </div>
+                    <p className="text-gray-800">{segment.original}</p>
+                    <p className="text-gray-500 mt-2 italic">
+                      {segment.translation || '待翻译...'}
+                    </p>
                   </div>
-                  <p className="text-gray-800">{text}</p>
-                  <p className="text-gray-500 mt-2 italic">待翻译...</p>
+                ))
+              ) : (
+                <div className="text-center text-gray-500 mt-8">
+                  {isLoading ? '正在分段处理中...' : '点击"重新分段"开始处理文本'}
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
