@@ -9,6 +9,7 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
   const [isLoading, setIsLoading] = useState(false)
   const [segments, setSegments] = useState([])
   const [error, setError] = useState(null)
+  const [isSegmented, setIsSegmented] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,10 +49,12 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
   const handleSegmentation = async () => {
     setIsLoading(true)
     setError(null)
+    setIsSegmented(false)
     try {
       await MaterialsAPI.segmentMaterial(materialId, selectedOption)
       const segmentsResponse = await MaterialsAPI.getSegments(materialId)
       setSegments(segmentsResponse.data)
+      setIsSegmented(true)
     } catch (error) {
       setError(error.message)
       console.error('Error during segmentation:', error)
@@ -118,7 +121,12 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
             </button>
             <button 
               onClick={onNext}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              disabled={!isSegmented}
+              className={`px-4 py-2 text-white rounded-md ${
+                isSegmented 
+                  ? 'bg-blue-600 hover:bg-blue-700' 
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
             >
               下一步
             </button>
@@ -133,14 +141,14 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
 
         <div className="flex-1 flex flex-col h-full overflow-hidden">
           <div className="flex justify-between items-center p-6 pb-4">
-            <h2 className="text-lg font-medium">分段预览</h2>
+            <h2 className="text-lg font-medium">分段结果</h2>
             <button 
               className="flex items-center text-blue-600 hover:text-blue-700"
               onClick={handleSegmentation}
               disabled={isLoading}
             >
               <ArrowPathIcon className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-              {isLoading ? '分段中...' : '重新分段'}
+              {isLoading ? '分段中...' : '开始分段'}
             </button>
           </div>
           

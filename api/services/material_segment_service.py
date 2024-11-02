@@ -3,6 +3,11 @@ import re
 
 class MaterialSegmentService:
     @staticmethod
+    def delete_segments_by_material_id(material_id):
+        """删除指定材料的所有分段"""
+        MaterialSegment.objects(material_id=material_id).delete()
+
+    @staticmethod
     def segment_text(material_id, text, segmentation_type='paragraph'):
         """
         将文本按照不同方式分段
@@ -12,6 +17,9 @@ class MaterialSegmentService:
         - linebreak: 按换行符分段 (\n)
         - ai: 智能分段 (TODO)
         """
+        # 首先删除该材料的所有现有分段
+        MaterialSegmentService.delete_segments_by_material_id(material_id)
+        
         processed_segments = []
         is_new_paragraph_flags = []  # 新增一个列表来跟踪每个段落是否是新段落
         
