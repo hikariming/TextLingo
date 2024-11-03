@@ -8,16 +8,7 @@ def create_app():
     app = Flask(__name__)
     
     # 统一的 CORS 配置
-    CORS(app, resources={
-        r"/api/*": {  # 匹配所有 /api 路由
-            "origins": ["*"],
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization", "Accept"],
-            "expose_headers": ["Content-Type", "Authorization"],
-            "supports_credentials": True
-        }
-    })
-    
+    CORS(app)
     
     # 从YAML文件加载配置
     with open('config.yml', 'r') as file:

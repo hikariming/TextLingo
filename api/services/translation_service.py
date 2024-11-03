@@ -146,36 +146,48 @@ class TranslationService:
                 try:
                     # 翻译原文
                     translation = await self._translate_text(segment.original, material.target_language)
-                    self._log_to_file("gptlog", 'translation', {
-                        'segment_id': str(segment.id),
-                        'original': segment.original,
-                        'translation': translation
-                    })
-                    
                     update_data = {"translation": translation}
                     
                     # 如果开启深度讲解，添加语法和词汇解释
                     if material.enable_deep_explanation:
                         grammar_points = await self._analyze_grammar(segment.original)
-                        self._log_to_file("gptlog", 'grammar', {
-                            'segment_id': str(segment.id),
-                            'original': segment.original,
-                            'grammar_points': grammar_points
-                        })
-                        
                         vocabulary_items = await self._analyze_vocabulary(segment.original)
-                        self._log_to_file("gptlog", 'vocabulary', {
-                            'segment_id': str(segment.id),
-                            'original': segment.original,
-                            'vocabulary_items': vocabulary_items
-                        })
                         
+                        # 创建 GrammarItem 和 VocabularyItem 对象
+                        grammar_items = [
+                            GrammarItem(
+                                name=point['name'],
+                                explanation=point['explanation']
+                            ) for point in grammar_points
+                        ]
+                        
+                        vocab_items = [
+                            VocabularyItem(
+                                word=item['word'],
+                                reading=item.get('reading', ''),  # 使用 get 方法处理可选字段
+                                meaning=item['meaning']
+                            ) for item in vocabulary_items
+                        ]
+                        
+                        # 更新数据
                         update_data.update({
-                            "grammar": grammar_points,
-                            "vocabulary": vocabulary_items
+                            "grammar": grammar_items,
+                            "vocabulary": vocab_items
                         })
-
-                    segment.update(**update_data)
+                    
+                    # 使用 modify 方法进行原子更新
+                    await asyncio.to_thread(
+                        lambda: MaterialSegment.objects(id=segment.id).modify(
+                            **{f"set__{k}": v for k, v in update_data.items()},
+                            upsert=False
+                        )
+                    )
+                    
+                    self._log_to_file("gptlog", 'translation', {
+                        'segment_id': str(segment.id),
+                        'original': segment.original,
+                        'translation': translation
+                    })
                     
                 except Exception as e:
                     self._log_to_file("gptlog", 'error', {
@@ -247,7 +259,8 @@ class TranslationService:
                 - 对日语文本：解释重要语法模式、助词和句子结构，按照日语能力考的语法点分类
                 - 对英语文本：解释句子结构、时态和短语，按照托福雅思的语法点分类
                 - 每个语法点需包含名称和解释两个字段
-                - 确保返回的是合法的JSON格式"""},
+                - 确保返回的是合法的JSON格式，用```json ```包裹
+                - 讲解使用的语言为 {target_language} """},
                 {"role": "user", "content": text}
             ]
         )
@@ -286,7 +299,8 @@ class TranslationService:
                 要求：
                 - 对日语词汇：提供单词、假名读音和中文含义
                 - 对英语词汇：提供单词和中文含义（reading字段留空）
-                - 确保返回的是合法的JSON格式"""},
+                - 确保返回的是合法的JSON格式，用```json ```包裹
+                - 讲解使用的语言为 {target_language} """},
                 {"role": "user", "content": text}
             ]
         )
