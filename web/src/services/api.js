@@ -94,4 +94,32 @@ export const MaterialsAPI = {
     }
     return response.json()
   },
+
+  // 开始翻译
+  startTranslation: async (materialId, settings) => {
+    const response = await fetch(`${API_BASE_URL}/materials/${materialId}/translate`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify(settings)
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || 'Failed to start translation')
+    }
+    return response.json()
+  },
+
+  // 更新材料设置
+  updateMaterial: async (materialId, data) => {
+    const response = await fetch(`${API_BASE_URL}/materials/${materialId}`, {
+      method: 'PUT',
+      headers: defaultHeaders,
+      body: JSON.stringify(data)
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || 'Failed to update material')
+    }
+    return response.json()
+  }
 }

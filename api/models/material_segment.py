@@ -29,7 +29,7 @@ class MaterialSegment(Document):
     grammar: 语法解释列表
     vocabulary: 词汇解释列表
     """
-    material_id = StringField(required=True)  # 只存储 ID
+    material_id = StringField(required=True)  # Keep as StringField but ensure it's properly handled
     original = StringField(required=True)  # 原文内容
     translation = StringField(default="")  # 翻译内容，改为默认空字符串
     is_new_paragraph = BooleanField(default=False)  # 是否新段落标记
@@ -54,7 +54,7 @@ class MaterialSegment(Document):
 
     def to_dict(self):
         return {
-            "id": str(self.id),
+            "_id": str(self.id),  # Changed from "id" to "_id" to match MongoDB convention
             "material_id": self.material_id,
             "original": self.original,
             "translation": self.translation,

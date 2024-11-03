@@ -1,12 +1,17 @@
 from flask import Blueprint, request, jsonify
 from services.material_service import MaterialService
+from services.translation_service import TranslationService
 from utils.response import success_response, error_response
 import os
 import uuid
 from docx import Document
 import io
+from flask import current_app
+import asyncio
+from bson.objectid import ObjectId
+import traceback
 
-material_bp = Blueprint('material', __name__, url_prefix='/api/materials')
+material_bp = Blueprint('material', __name__)
 
 ALLOWED_EXTENSIONS = {'txt', 'md', 'docx' }
 MAX_FILE_SIZE = 15 * 1024 * 1024  # 15MB
@@ -198,3 +203,43 @@ def get_material_preview(material_id):
         
     except Exception as e:
         return error_response(f"Error reading file: {str(e)}", 500)
+
+@material_bp.route('/<material_id>/translate', methods=['POST', 'OPTIONS'])
+def start_translation(material_id):
+    try:
+        if not ObjectId.is_valid(material_id):
+            return error_response("Invalid material ID format", 400)
+            
+        data = request.get_json()
+        target_language = data.get('target_language', 'zh-CN')
+        enable_deep_explanation = data.get('enable_deep_explanation', False)
+        
+        # 更新材料状态
+        MaterialService.update_material(material_id, {
+            'status': 'translating',
+            'target_language': target_language,
+            'enable_deep_explanation': enable_deep_explanation,
+            'translation_status': 'processing'
+        })
+        
+        translation_service = TranslationService()
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(translation_service.translate_material(material_id))
+        loop.close()
+        
+        return success_response(None, "Translation started successfully")
+    except ValueError as ve:
+        print("ValueError occurred:")
+        print(f"Error message: {str(ve)}")
+        print("Traceback:")
+        print(traceback.format_exc())
+        return error_response(str(ve), 400)
+    except Exception as e:
+        print("Unexpected error occurred:")
+        print(f"Error type: {type(e).__name__}")
+        print(f"Error message: {str(e)}")
+        print("Traceback:")
+        print(traceback.format_exc())
+        return error_response(f"Failed to start translation: {str(e)}", 500)

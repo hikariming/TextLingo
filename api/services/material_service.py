@@ -31,19 +31,32 @@ class MaterialService:
 
     @staticmethod
     def get_material_by_id(material_id):
-        material = mongo.db.materials.find_one({"_id": ObjectId(material_id)})
-        if material:
-            # Convert ObjectId to string
-            material['_id'] = str(material['_id'])
-        return material
+        if not material_id:
+            return None
+        try:
+            material = mongo.db.materials.find_one({"_id": ObjectId(material_id)})
+            if material:
+                # Convert ObjectId to string
+                material['_id'] = str(material['_id'])
+            return material
+        except:
+            return None
 
     @staticmethod
     def update_material(material_id, updates):
-        updates['updated_at'] = datetime.utcnow()
-        return mongo.db.materials.update_one(
-            {"_id": ObjectId(material_id)},
-            {"$set": updates}
-        )
+        if not material_id:
+            return None
+        try:
+            updates['updated_at'] = datetime.utcnow()
+            if 'status' in updates:
+                updates['translation_status'] = updates.get('translation_status', 'processing')
+            
+            return mongo.db.materials.update_one(
+                {"_id": ObjectId(material_id)},
+                {"$set": updates}
+            )
+        except:
+            return None
 
     @staticmethod
     def delete_material(material_id):

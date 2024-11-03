@@ -10,6 +10,9 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
   const [segments, setSegments] = useState([])
   const [error, setError] = useState(null)
   const [isSegmented, setIsSegmented] = useState(false)
+  const [targetLanguage, setTargetLanguage] = useState('zh-CN')
+  const [enableDeepExplanation, setEnableDeepExplanation] = useState(false)
+  const [isTranslating, setIsTranslating] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +66,23 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
     }
   }
 
+  const handleStartTranslation = async () => {
+    setIsTranslating(true)
+    setError(null)
+    try {
+      await MaterialsAPI.startTranslation(materialId, {
+        target_language: targetLanguage,
+        enable_deep_explanation: enableDeepExplanation
+      })
+      onNext()
+    } catch (error) {
+      setError(error.message)
+      console.error('Error starting translation:', error)
+    } finally {
+      setIsTranslating(false)
+    }
+  }
+
   return (
     <div className="h-screen flex flex-col">
       <h1 className="text-xl font-semibold p-4 border-b">文本分段与翻译</h1>
@@ -98,29 +118,40 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
                 <h2 className="text-lg font-medium mb-4">翻译设置</h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">目标语言</label>
-                    <select className="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                      <option>简体中文</option>
-                      <option>English</option>
-                      <option>日本語</option>
+                    <label className="block text-sm font-medium text-gray-700">翻译后语言</label>
+                    <select 
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                      value={targetLanguage}
+                      onChange={(e) => setTargetLanguage(e.target.value)}
+                    >
+                      <option value="zh-CN">简体中文</option>
+                      <option value="en">English</option>
+                      <option value="ja">日本語</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">是否开启全篇深度讲解功能</label>
-                    <select className="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                      <option>开启</option>
-                      <option>关闭</option>
+                    <label className="block text-sm font-medium text-gray-700">
+                      是否开启全篇深度讲解功能
+                    </label>
+                    <select 
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                      value={enableDeepExplanation}
+                      onChange={(e) => setEnableDeepExplanation(e.target.value === 'true')}
+                    >
+                      <option value="true">开启</option>
+                      <option value="false">关闭</option>
                     </select>
                   </div>
                   <div className="border-t p-4 flex justify-end space-x-4">
             <button 
               onClick={onPrev}
               className="px-4 py-2 border rounded-md hover:bg-gray-50"
+              disabled={isTranslating}
             >
               上一步
             </button>
             <button 
-              onClick={onNext}
+              onClick={handleStartTranslation}
               disabled={!isSegmented}
               className={`px-4 py-2 text-white rounded-md ${
                 isSegmented 
@@ -128,7 +159,7 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
             >
-              下一步
+              开始翻译
             </button>
           </div>
                 </div>

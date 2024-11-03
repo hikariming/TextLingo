@@ -31,10 +31,10 @@ def create_app():
     from controllers.materials_factory_controller import materials_factory_bp
     from controllers.material_segment_controller import material_segment_bp
     
-    app.register_blueprint(material_bp)
-    app.register_blueprint(user_bp)
+    app.register_blueprint(user_bp, url_prefix='/api')
+    app.register_blueprint(material_bp, url_prefix='/api')
     app.register_blueprint(materials_factory_bp, url_prefix='/api')
-    app.register_blueprint(material_segment_bp)
+    app.register_blueprint(material_segment_bp, url_prefix='/api')
     
     return app
 
