@@ -10,7 +10,7 @@ def create_app():
     # 统一的 CORS 配置
     CORS(app, resources={
         r"/api/*": {  # 匹配所有 /api 路由
-            "origins": ["http://localhost:3000"],
+            "origins": ["*"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization", "Accept"],
             "expose_headers": ["Content-Type", "Authorization"],
