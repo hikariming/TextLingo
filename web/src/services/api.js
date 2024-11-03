@@ -118,5 +118,25 @@ export const MaterialsAPI = {
       throw new Error(error.message || 'Failed to update material')
     }
     return response.json()
-  }
+  },
+
+  // 获取所有材料列表
+  getAllMaterials: async () => {
+    const response = await fetch(`${API_BASE_URL}/materials`, {
+      method: 'GET',
+      headers: defaultHeaders
+    })
+    if (!response.ok) throw new Error('Failed to fetch materials')
+    return response.json()
+  },
+
+  // 获取指定工厂的材料列表
+  getMaterialsByFactory: async (factoryId) => {
+    const response = await fetch(`${API_BASE_URL}/materials-factory/${factoryId}/materials`, {
+      method: 'GET',
+      headers: defaultHeaders
+    })
+    if (!response.ok) throw new Error('Failed to fetch factory materials')
+    return response.json()
+  },
 }

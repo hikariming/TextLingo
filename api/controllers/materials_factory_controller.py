@@ -33,6 +33,16 @@ def delete_factory(factory_id):
     MaterialsFactoryService.delete_factory(factory_id)
     return '', 204
 
+@materials_factory_bp.route('/materials-factory/<factory_id>/materials', methods=['GET'])
+def get_factory_materials(factory_id):
+    materials = MaterialsFactoryService.get_factory_materials(factory_id)
+    if materials is None:
+        return jsonify({'error': 'Factory not found'}), 404
+    
+    return jsonify({
+        'materials': [material.to_dict() for material in materials]
+    })
+
 @materials_factory_bp.route('/materials-factory/<factory_id>/materials', methods=['POST'])
 def add_material_to_factory(factory_id):
     data = request.get_json()
