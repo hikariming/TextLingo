@@ -74,7 +74,10 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
         target_language: targetLanguage,
         enable_deep_explanation: enableDeepExplanation
       })
-      onNext()
+      onNext({
+        targetLanguage,
+        enableDeepExplanation
+      })
     } catch (error) {
       setError(error.message)
       console.error('Error starting translation:', error)

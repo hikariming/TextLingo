@@ -3,7 +3,7 @@ import { useState, useRef } from 'react'
 import { MaterialsAPI } from '@/services/api'
 import { useSearchParams } from 'next/navigation'
 
-export default function DataSourceSelector({ t, onNext }) {
+export default function DataSourceSelector({ onNext }) {
   const [selectedSource, setSelectedSource] = useState('text')
   const [inputText, setInputText] = useState('')
   const [webUrl, setWebUrl] = useState('')
@@ -142,6 +142,12 @@ export default function DataSourceSelector({ t, onNext }) {
     </div>
   )
 
+  const handleNext = () => {
+    onNext({
+      materialId: materialId
+    })
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* 返回按钮 */}
@@ -205,7 +211,7 @@ export default function DataSourceSelector({ t, onNext }) {
       {/* 添加底部操作按钮 */}
       <div className="mt-6 flex justify-end space-x-4">
         <button 
-          onClick={() => onNext(materialId)}
+          onClick={handleNext}
           disabled={!selectedSource || (selectedSource === 'text' && !isUploaded)}
           className={`px-4 py-2 text-white rounded-md ${
             selectedSource && (selectedSource !== 'text' || isUploaded) 

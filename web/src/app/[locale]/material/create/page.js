@@ -10,6 +10,10 @@ import Navbar from '@/app/components/navigation/Navbar'
 export default function TextKnowledge() {
   const [currentStep, setCurrentStep] = useState(1)
   const [materialId, setMaterialId] = useState(null)
+  const [translationConfig, setTranslationConfig] = useState({
+    targetLanguage: 'zh-CN',
+    enableDeepExplanation: false
+  })
   const searchParams = useSearchParams()
   const factoryId = searchParams.get('factoryId')
   
@@ -26,8 +30,21 @@ export default function TextKnowledge() {
     { id: 3, title: '处理并完成', current: currentStep === 3 }
   ]
 
-  const handleNext = (id) => {
-    if (id) setMaterialId(id)
+  const handleNext = (data) => {
+    console.log('handleNext received data:', data)
+    
+    if (data?.materialId) {
+      console.log('Setting materialId:', data.materialId)
+      setMaterialId(data.materialId)
+    }
+    
+    if (data?.targetLanguage !== undefined) {
+      setTranslationConfig({
+        targetLanguage: data.targetLanguage,
+        enableDeepExplanation: data.enableDeepExplanation
+      })
+    }
+    
     setCurrentStep(prev => Math.min(prev + 1, 3))
   }
 
@@ -76,7 +93,11 @@ export default function TextKnowledge() {
           {/* 右侧内容区 */}
           <div className="flex-1">
             <div className="h-full">
-              {currentStep === 1 && <FirstStep onNext={handleNext} />}
+              {currentStep === 1 && (
+                <FirstStep 
+                  onNext={handleNext}
+                />
+              )}
               {currentStep === 2 && (
                 <SecondStep 
                   onNext={handleNext} 
@@ -84,7 +105,13 @@ export default function TextKnowledge() {
                   materialId={materialId}
                 />
               )}
-              {currentStep === 3 && <ThirdStep onPrev={handlePrev} />}
+              {currentStep === 3 && (
+                <ThirdStep 
+                  onPrev={handlePrev}
+                  targetLanguage={translationConfig.targetLanguage}
+                  enableDeepExplanation={translationConfig.enableDeepExplanation}
+                />
+              )}
             </div>
           </div>
         </div>

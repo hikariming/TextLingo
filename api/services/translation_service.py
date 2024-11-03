@@ -49,6 +49,10 @@ class TranslationService:
             base_url=config['llm_base_url']
         )
         self.model = config['llm_model']
+
+        print(f"LLM API Key: {config['llm_api_key']}")
+        print(f"LLM Base URL: {config['llm_base_url']}")
+        print(f"LLM Model: {self.model}")
         
         # 创建日志目录
         self.log_dir = os.path.join(os.getcwd(), 'data', 'step3_ai_exp')
@@ -66,47 +70,76 @@ class TranslationService:
                 asyncio.set_event_loop(self._loop)
         return self._loop
 
-    def _log_to_file(self, material_id: str, step: str, content: dict):
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{material_id}_{step}_{timestamp}.json"
+    def _log_to_file(self, material_id: str, log_type: str, content: dict):
+        """
+        统一的日志记录方法
+        log_type: 'translation' 或 'error' 或 'response'
+        """
+        # 根据日志类型确定文件名
+        filename = f"{material_id}_{log_type}.json"
         filepath = os.path.join(self.log_dir, filename)
         
+        # 读取现有日志（如果存在）
+        existing_logs = []
+        if os.path.exists(filepath):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                try:
+                    existing_logs = json.load(f)
+                except json.JSONDecodeError:
+                    existing_logs = []
+        
+        # 添加时间戳到内容中
+        content['timestamp'] = datetime.now().isoformat()
+        
+        # 将新日志添加到列表中
+        existing_logs.append(content)
+        
+        # 写入更新后的日志
         with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(content, f, ensure_ascii=False, indent=2)
+            json.dump(existing_logs, f, ensure_ascii=False, indent=2)
 
     def translate_material(self, material_id: str):
         """同步版本的翻译方法"""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        # 使用 with_event_loop 装饰器的逻辑来确保正确的事件循环处理
+        ensure_event_loop()
+        loop = asyncio.get_event_loop()
         try:
             return loop.run_until_complete(self._async_translate_material(material_id))
+        except Exception as e:
+            print(f"Translation error: {str(e)}")  # 添加错误日志
+            raise
         finally:
-            loop.close()
+            # 不要关闭事件循环，只清理当前任务
+            loop.stop()
+            loop.run_forever()
 
     async def _async_translate_material(self, material_id: str):
-        """原来的 translate_material 方法的内容移到这里"""
+        """异步翻译方法"""
         try:
             if not ObjectId.is_valid(material_id):
                 raise ValueError("Invalid material ID format")
             
             material_obj_id = ObjectId(material_id)
             
-            # 使用 modify 直接更新文档，并返回更新后的文档
-            material = Material.objects(id=material_obj_id).modify(
-                set__translation_status="processing",
-                new=True,  # 返回更新后的文档
-                upsert=False  # 如果文档不存在，不创建新文档
+            # 添加更多调试信息
+            print(f"Starting translation for material: {material_id}")
+            
+            material = await asyncio.to_thread(
+                lambda: Material.objects(id=material_obj_id).modify(
+                    set__translation_status="processing",
+                    new=True,
+                    upsert=False
+                )
             )
             
-            # 添加详细的调试信息
-            print(f"Material ID: {material_id}")
-            print(f"Material Object ID: {material_obj_id}")
-            print(f"Retrieved Material: {material.to_dict() if material else None}")
+            print(f"Material retrieved and status updated")
             
-            if not material:
-                raise ValueError(f"Material not found with id: {material_id}")
-
-            segments = MaterialSegment.objects(material_id=str(material_obj_id))
+            # 获取段落也使用 asyncio.to_thread
+            segments = await asyncio.to_thread(
+                lambda: list(MaterialSegment.objects(material_id=str(material_obj_id)))
+            )
+            
+            print(f"Found {len(segments)} segments to translate")
             
             for segment in segments:
                 try:
@@ -175,6 +208,9 @@ class TranslationService:
             raise e
 
     async def _translate_text(self, text: str, target_language: str) -> str:
+        print(f"\n[Translation] Input text: {text[:100]}...")
+        print(f"[Translation] Target language: {target_language}")
+        
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[
@@ -182,9 +218,14 @@ class TranslationService:
                 {"role": "user", "content": text}
             ]
         )
-        return response.choices[0].message.content
+        translated_text = response.choices[0].message.content
+        
+        print(f"[Translation] Result: {translated_text[:100]}...")
+        return translated_text
 
     async def _analyze_grammar(self, text: str) -> List[str]:
+        print(f"\n[Grammar Analysis] Input text: {text[:100]}...")
+        
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[
@@ -209,10 +250,13 @@ class TranslationService:
         )
         # 解析JSON响应
         grammar_data = json.loads(response.choices[0].message.content)
+        print(f"[Grammar Analysis] Found {len(grammar_data['grammar_points'])} grammar points")
         return [GrammarItem(name=item["name"], explanation=item["explanation"]) 
                 for item in grammar_data["grammar_points"]]
 
     async def _analyze_vocabulary(self, text: str) -> List[dict]:
+        print(f"\n[Vocabulary Analysis] Input text: {text[:100]}...")
+        
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[
@@ -237,6 +281,7 @@ class TranslationService:
         )
         # 解析JSON响应
         vocab_data = json.loads(response.choices[0].message.content)
+        print(f"[Vocabulary Analysis] Found {len(vocab_data['vocabulary_items'])} vocabulary items")
         return [VocabularyItem(
                     word=item["word"],
                     reading=item.get("reading", ""),
