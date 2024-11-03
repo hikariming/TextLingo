@@ -1,6 +1,13 @@
 'use client'
 
-export default function ThirdStep({ onPrev }) {
+export default function ThirdStep({ onPrev, targetLanguage, enableDeepExplanation }) {
+  // 语言显示映射
+  const languageMap = {
+    'zh-CN': '简体中文',
+    'en': 'English',
+    'ja': '日本語'
+  }
+
   return (
     <div className="p-6">
       {/* 标题部分 */}
@@ -24,29 +31,28 @@ export default function ThirdStep({ onPrev }) {
         {/* 处理状态信息 */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-gray-700">嵌入已完成</span>
-            <span className="text-green-600">✓</span>
+            <span className="text-gray-700">翻译任务</span>
+            <span className="text-green-600">已提交 ✓</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-700">分段规则</span>
-            <span className="text-gray-600">自动</span>
+            <span className="text-gray-700">目标语言</span>
+            <span className="text-gray-600">{languageMap[targetLanguage]}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-700">分段长度</span>
-            <span className="text-gray-600">500</span>
+            <span className="text-gray-700">深度讲解</span>
+            <span className="text-gray-600">{enableDeepExplanation ? '已开启' : '未开启'}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">文本预定义与清洗</span>
-            <span className="text-gray-600">自动</span>
-          </div>
+
         </div>
       </div>
 
       {/* 下一步提示 */}
       <div className="bg-blue-50 p-6 rounded-lg mb-8">
-        <h3 className="text-lg font-medium mb-2">🤔接下来做什么</h3>
+        <h3 className="text-lg font-medium mb-2">🤔 翻译进行中</h3>
         <p className="text-gray-600">
-          文档目前已开始自动翻译，这需要一定的时间，您可目前可前往素材库详情页面查看翻译进度，也可直接前往阅读页面查看该文档的部分翻译。
+          翻译任务已成功提交！系统正在将文档翻译为{languageMap[targetLanguage]}
+          {enableDeepExplanation && '，并进行深度讲解'}。
+          您可以前往素材库详情页面查看翻译进度，或直接前往阅读页面查看已完成的部分翻译内容。
         </p>
       </div>
 
