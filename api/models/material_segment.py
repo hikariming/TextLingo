@@ -10,6 +10,14 @@ from mongoengine import (
     DateTimeField
 )
 
+class GrammarItem(EmbeddedDocument):
+    """语法项
+    name: 语法点名称
+    explanation: 语法解释
+    """
+    name = StringField(required=True)
+    explanation = StringField(required=True)
+
 class VocabularyItem(EmbeddedDocument):
     """词汇项
     word: 单词/词组原文
@@ -33,8 +41,8 @@ class MaterialSegment(Document):
     original = StringField(required=True)  # 原文内容
     translation = StringField(default="")  # 翻译内容，改为默认空字符串
     is_new_paragraph = BooleanField(default=False)  # 是否新段落标记
-    grammar = ListField(StringField())  # 语法解释列表
-    vocabulary = ListField(EmbeddedDocumentField(VocabularyItem))  # 词汇列表
+    grammar = ListField(EmbeddedDocumentField(GrammarItem))  # 修改为使用 GrammarItem
+    vocabulary = ListField(EmbeddedDocumentField(VocabularyItem))
     
     # 时间戳
     created_at = DateTimeField(default=datetime.utcnow)
@@ -59,7 +67,10 @@ class MaterialSegment(Document):
             "original": self.original,
             "translation": self.translation,
             "is_new_paragraph": self.is_new_paragraph,
-            "grammar": self.grammar,
+            "grammar": [{
+                "name": g.name,
+                "explanation": g.explanation
+            } for g in self.grammar],
             "vocabulary": [{
                 "word": v.word,
                 "reading": v.reading,

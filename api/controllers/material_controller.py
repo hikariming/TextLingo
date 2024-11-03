@@ -10,6 +10,8 @@ from flask import current_app
 import asyncio
 from bson.objectid import ObjectId
 import traceback
+from threading import Thread
+import json
 
 material_bp = Blueprint('material', __name__)
 
@@ -206,15 +208,34 @@ def get_material_preview(material_id):
 
 @material_bp.route('/materials/<material_id>/translate', methods=['POST', 'OPTIONS'])
 def start_translation(material_id):
+    # 处理 OPTIONS 预检请求
+    if request.method == 'OPTIONS':
+        response = current_app.make_default_options_response()
+        # 添加必要的 CORS 头
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response
+
     try:
         if not ObjectId.is_valid(material_id):
             return error_response("Invalid material ID format", 400)
             
-        data = request.get_json()
+        # 检查 Content-Type
+        if not request.is_json:
+            data = request.get_data()
+            try:
+                # 尝试手动解析 JSON
+                data = json.loads(data)
+            except:
+                # 如果没有数据，使用默认值
+                data = {}
+        else:
+            data = request.get_json()
+
         target_language = data.get('target_language', 'zh-CN')
         enable_deep_explanation = data.get('enable_deep_explanation', False)
         
-        # 更新材料状态
+        # 更新材料态
         MaterialService.update_material(material_id, {
             'status': 'translating',
             'target_language': target_language,
@@ -222,11 +243,25 @@ def start_translation(material_id):
             'translation_status': 'processing'
         })
         
-        # 创建异步任务
-        translation_service = TranslationService()
-        asyncio.get_event_loop().create_task(translation_service.translate_material(material_id))
+        # 创建新线程来处理翻译任务
+        def run_translation():
+            translation_service = TranslationService()
+            try:
+                translation_service.translate_material(material_id)
+            except Exception as e:
+                print(f"Translation error in thread: {str(e)}")
+                # 更新失败状态
+                MaterialService.update_material(material_id, {
+                    'translation_status': 'failed',
+                    'status': 'translation_failed'
+                })
+        
+        thread = Thread(target=run_translation)
+        thread.daemon = True  # 设置为守护线程
+        thread.start()
         
         return success_response(None, "Translation started successfully")
     except Exception as e:
         print(f"Error starting translation: {str(e)}")
+        print(traceback.format_exc())  # 打印完整的错误堆栈
         return error_response(f"Failed to start translation: {str(e)}", 500)

@@ -7,6 +7,36 @@ from datetime import datetime
 import yaml
 import os
 import json
+import asyncio
+from functools import wraps
+import threading
+
+def ensure_event_loop():
+    """确保当前线程有事件循环"""
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        # 如果当前线程没有事件循环，创建一个新的
+        asyncio.set_event_loop(asyncio.new_event_loop())
+
+def with_event_loop(f):
+    """装饰器：确保异步函数在事件循环中运行"""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # 如果当前线程没有事件循环，创建一个新的
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        try:
+            return loop.run_until_complete(f(*args, **kwargs))
+        finally:
+            # 清理事件循环
+            if not loop.is_closed():
+                loop.close()
+    return wrapper
 
 class TranslationService:
     def __init__(self):
@@ -24,6 +54,18 @@ class TranslationService:
         self.log_dir = os.path.join(os.getcwd(), 'data', 'step3_ai_exp')
         os.makedirs(self.log_dir, exist_ok=True)
 
+        self._loop = None
+
+    def _get_loop(self):
+        """获取当前线程的事件循环"""
+        if self._loop is None or self._loop.is_closed():
+            try:
+                self._loop = asyncio.get_event_loop()
+            except RuntimeError:
+                self._loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self._loop)
+        return self._loop
+
     def _log_to_file(self, material_id: str, step: str, content: dict):
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"{material_id}_{step}_{timestamp}.json"
@@ -32,11 +74,21 @@ class TranslationService:
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(content, f, ensure_ascii=False, indent=2)
 
-    async def translate_material(self, material_id: str):
+    def translate_material(self, material_id: str):
+        """同步版本的翻译方法"""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(self._async_translate_material(material_id))
+        finally:
+            loop.close()
+
+    async def _async_translate_material(self, material_id: str):
+        """原来的 translate_material 方法的内容移到这里"""
         try:
             if not ObjectId.is_valid(material_id):
                 raise ValueError("Invalid material ID format")
-                
+            
             material_obj_id = ObjectId(material_id)
             
             # 使用 modify 直接更新文档，并返回更新后的文档
@@ -136,35 +188,57 @@ class TranslationService:
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": """Analyze the grammar points in the following text. 
-                For Japanese text, explain key grammar patterns, particles, and sentence structures.
-                For English text, explain sentence structures, tenses, and phrases.
-                Return a list of explanations, each focusing on one grammar point."""},
+                {"role": "system", "content": """请分析以下文本中的语法点。
+                对于每个语法点，请按照以下JSON格式返回：
+                {
+                    "grammar_points": [
+                        {
+                            "name": "语法点名称",
+                            "explanation": "详细解释"
+                        }
+                    ]
+                }
+                
+                要求：
+                - 对日语文本：解释重要语法模式、助词和句子结构，按照日语能力考的语法点分类
+                - 对英语文本：解释句子结构、时态和短语，按照托福雅思的语法点分类
+                - 每个语法点需包含名称和解释两个字段
+                - 确保返回的是合法的JSON格式"""},
                 {"role": "user", "content": text}
             ]
         )
-        return response.choices[0].message.content.split('\n')
+        # 解析JSON响应
+        grammar_data = json.loads(response.choices[0].message.content)
+        return [GrammarItem(name=item["name"], explanation=item["explanation"]) 
+                for item in grammar_data["grammar_points"]]
 
     async def _analyze_vocabulary(self, text: str) -> List[dict]:
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": """Identify important vocabulary in the text. For each word:
-                - For Japanese: provide word, reading (in hiragana), and meaning
-                - For English: provide word and meaning
-                Format: word|reading|meaning (reading can be empty for English words)"""},
+                {"role": "system", "content": """请识别文本中的重要词汇。
+                请按照以下JSON格式返回：
+                {
+                    "vocabulary_items": [
+                        {
+                            "word": "单词/词组原文",
+                            "reading": "读音（假名）如果不是日语词汇，请留空",
+                            "meaning": "词义解释"
+                        }
+                    ]
+                }
+                
+                要求：
+                - 对日语词汇：提供单词、假名读音和中文含义
+                - 对英语词汇：提供单词和中文含义（reading字段留空）
+                - 确保返回的是合法的JSON格式"""},
                 {"role": "user", "content": text}
             ]
         )
-        vocab_lines = response.choices[0].message.content.split('\n')
-        vocab_items = []
-        for line in vocab_lines:
-            if '|' in line:
-                parts = line.split('|')
-                if len(parts) >= 2:
-                    vocab_items.append({
-                        "word": parts[0].strip(),
-                        "reading": parts[1].strip() if len(parts) > 2 else "",
-                        "meaning": parts[-1].strip()
-                    })
-        return vocab_items
+        # 解析JSON响应
+        vocab_data = json.loads(response.choices[0].message.content)
+        return [VocabularyItem(
+                    word=item["word"],
+                    reading=item.get("reading", ""),
+                    meaning=item["meaning"]
+                ) for item in vocab_data["vocabulary_items"]]

@@ -6,11 +6,13 @@ from mongoengine import connect
 
 def create_app():
     app = Flask(__name__)
-    # 配置CORS，允许所有来源
+    # 更新 CORS 配置
     CORS(app, resources={r"/*": {
         "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": "*"
+        "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+        "expose_headers": ["Content-Type"],
+        "supports_credentials": True
     }})
     
     # 从YAML文件加载配置
