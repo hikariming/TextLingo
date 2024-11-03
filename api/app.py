@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from extensions import mongo
 from flask_cors import CORS
 import yaml
@@ -6,15 +6,18 @@ from mongoengine import connect
 
 def create_app():
     app = Flask(__name__)
-    # 修改 CORS 配置
-    CORS(app, 
-         resources={r"/api/*": {  # 修改为 /api/* 以匹配所有 API 路由
-             "origins": ["*"],  # 明确指定允许的源
-             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-             "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
-             "expose_headers": ["Content-Type"],
-             "supports_credentials": True
-         }})
+    
+    # 统一的 CORS 配置
+    CORS(app, resources={
+        r"/api/*": {  # 匹配所有 /api 路由
+            "origins": ["http://localhost:3000"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization", "Accept"],
+            "expose_headers": ["Content-Type", "Authorization"],
+            "supports_credentials": True
+        }
+    })
+    
     
     # 从YAML文件加载配置
     with open('config.yml', 'r') as file:
@@ -38,6 +41,10 @@ def create_app():
     app.register_blueprint(material_bp, url_prefix='/api')
     app.register_blueprint(materials_factory_bp, url_prefix='/api')
     app.register_blueprint(material_segment_bp, url_prefix='/api')
+    
+    @app.route('/api/test', methods=['GET'])
+    def test_cors():
+        return jsonify({"message": "CORS test successful"})
     
     return app
 

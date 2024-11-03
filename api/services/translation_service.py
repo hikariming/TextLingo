@@ -2,7 +2,7 @@ from bson import ObjectId
 from openai import AsyncOpenAI
 from typing import List
 from models.material import Material
-from models.material_segment import MaterialSegment, VocabularyItem
+from models.material_segment import MaterialSegment, VocabularyItem, GrammarItem
 from datetime import datetime
 import yaml
 import os
@@ -10,6 +10,7 @@ import json
 import asyncio
 from functools import wraps
 import threading
+import re
 
 def ensure_event_loop():
     """确保当前线程有事件循环"""
@@ -145,7 +146,7 @@ class TranslationService:
                 try:
                     # 翻译原文
                     translation = await self._translate_text(segment.original, material.target_language)
-                    self._log_to_file(material_id, 'translation', {
+                    self._log_to_file("gptlog", 'translation', {
                         'segment_id': str(segment.id),
                         'original': segment.original,
                         'translation': translation
@@ -156,14 +157,14 @@ class TranslationService:
                     # 如果开启深度讲解，添加语法和词汇解释
                     if material.enable_deep_explanation:
                         grammar_points = await self._analyze_grammar(segment.original)
-                        self._log_to_file(material_id, 'grammar', {
+                        self._log_to_file("gptlog", 'grammar', {
                             'segment_id': str(segment.id),
                             'original': segment.original,
                             'grammar_points': grammar_points
                         })
                         
                         vocabulary_items = await self._analyze_vocabulary(segment.original)
-                        self._log_to_file(material_id, 'vocabulary', {
+                        self._log_to_file("gptlog", 'vocabulary', {
                             'segment_id': str(segment.id),
                             'original': segment.original,
                             'vocabulary_items': vocabulary_items
@@ -171,19 +172,13 @@ class TranslationService:
                         
                         update_data.update({
                             "grammar": grammar_points,
-                            "vocabulary": [
-                                VocabularyItem(
-                                    word=item["word"],
-                                    reading=item.get("reading", ""),
-                                    meaning=item["meaning"]
-                                ) for item in vocabulary_items
-                            ]
+                            "vocabulary": vocabulary_items
                         })
 
                     segment.update(**update_data)
                     
                 except Exception as e:
-                    self._log_to_file(material_id, 'error', {
+                    self._log_to_file("gptlog", 'error', {
                         'segment_id': str(segment.id),
                         'error': str(e),
                         'timestamp': datetime.now().isoformat()
@@ -197,7 +192,7 @@ class TranslationService:
             )
 
         except Exception as e:
-            self._log_to_file(material_id, 'error', {
+            self._log_to_file("gptlog", 'error', {
                 'error': str(e),
                 'timestamp': datetime.now().isoformat()
             })
@@ -220,10 +215,18 @@ class TranslationService:
         )
         translated_text = response.choices[0].message.content
         
+        # 记录原始响应
+        self._log_to_file("gptlog", 'response', {
+            'type': 'translation',
+            'input': text,
+            'target_language': target_language,
+            'raw_response': response.model_dump()
+        })
+        
         print(f"[Translation] Result: {translated_text[:100]}...")
         return translated_text
 
-    async def _analyze_grammar(self, text: str) -> List[str]:
+    async def _analyze_grammar(self, text: str) -> List[GrammarItem]:
         print(f"\n[Grammar Analysis] Input text: {text[:100]}...")
         
         response = await self.client.chat.completions.create(
@@ -248,11 +251,19 @@ class TranslationService:
                 {"role": "user", "content": text}
             ]
         )
-        # 解析JSON响应
-        grammar_data = json.loads(response.choices[0].message.content)
+        
+        # 从响应中提取JSON内容
+        content = response.choices[0].message.content
+        # 使用正则表达式提取JSON部分
+        json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
+        if json_match:
+            grammar_data = json.loads(json_match.group(1))
+        else:
+            # 如果没有找到JSON格式，尝试直接解析整个内容
+            grammar_data = json.loads(content)
+            
         print(f"[Grammar Analysis] Found {len(grammar_data['grammar_points'])} grammar points")
-        return [GrammarItem(name=item["name"], explanation=item["explanation"]) 
-                for item in grammar_data["grammar_points"]]
+        return grammar_data['grammar_points']
 
     async def _analyze_vocabulary(self, text: str) -> List[dict]:
         print(f"\n[Vocabulary Analysis] Input text: {text[:100]}...")
@@ -279,11 +290,16 @@ class TranslationService:
                 {"role": "user", "content": text}
             ]
         )
-        # 解析JSON响应
-        vocab_data = json.loads(response.choices[0].message.content)
+        
+        # 从响应中提取JSON内容
+        content = response.choices[0].message.content
+        # 使用正则表达式提取JSON部分
+        json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
+        if json_match:
+            vocab_data = json.loads(json_match.group(1))
+        else:
+            # 如果没有找到JSON格式，尝试直接解析整个内容
+            vocab_data = json.loads(content)
+            
         print(f"[Vocabulary Analysis] Found {len(vocab_data['vocabulary_items'])} vocabulary items")
-        return [VocabularyItem(
-                    word=item["word"],
-                    reading=item.get("reading", ""),
-                    meaning=item["meaning"]
-                ) for item in vocab_data["vocabulary_items"]]
+        return vocab_data['vocabulary_items']

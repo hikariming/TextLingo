@@ -206,16 +206,8 @@ def get_material_preview(material_id):
     except Exception as e:
         return error_response(f"Error reading file: {str(e)}", 500)
 
-@material_bp.route('/materials/<material_id>/translate', methods=['POST', 'OPTIONS'])
+@material_bp.route('/materials/<material_id>/translate', methods=['POST'])
 def start_translation(material_id):
-    # 处理 OPTIONS 预检请求
-    if request.method == 'OPTIONS':
-        response = current_app.make_default_options_response()
-        # 添加必要的 CORS 头
-        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-        return response
-
     try:
         if not ObjectId.is_valid(material_id):
             return error_response("Invalid material ID format", 400)
