@@ -9,38 +9,15 @@ export default function ReadingMaterials({
   onMaterialSelect 
 }) {
   const [materials, setMaterials] = useState([])
-  const [factories, setFactories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedFactory, setSelectedFactory] = useState(null)
 
-  // 获取工厂列表
-  useEffect(() => {
-    const fetchFactories = async () => {
-      try {
-        const response = await MaterialsAPI.getAll()
-        setFactories(response)
-        // 如果有工厂,默认选择第一个
-        if (response.length > 0) {
-          setSelectedFactory(response[0].id)
-        }
-      } catch (err) {
-        console.error('Failed to fetch factories:', err)
-        setError('Failed to load factories')
-      }
-    }
-
-    fetchFactories()
-  }, [])
-
-  // 当选择的工厂改变时,获取该工厂的材料
+  // 直接获取材料列表
   useEffect(() => {
     const fetchMaterials = async () => {
-      if (!selectedFactory) return
-
       try {
         setLoading(true)
-        const response = await MaterialsAPI.getMaterialsByFactory(selectedFactory)
+        const response = await MaterialsAPI.getMaterialsByFactory(window.location.pathname.split('/').pop())
         setMaterials(response.materials || [])
       } catch (err) {
         console.error('Failed to fetch materials:', err)
@@ -51,7 +28,7 @@ export default function ReadingMaterials({
     }
 
     fetchMaterials()
-  }, [selectedFactory])
+  }, [])
 
   if (loading) {
     return (
@@ -81,28 +58,10 @@ export default function ReadingMaterials({
 
   return (
     <nav className="w-64 border-r border-neutral-200 bg-slate-50 p-4">
-      {/* 工厂选择器 */}
-      <select
-        className="w-full mb-4 p-2 rounded border border-gray-300"
-        value={selectedFactory || ''}
-        onChange={(e) => setSelectedFactory(e.target.value)}
-      >
-        <option value="">Select Factory</option>
-        {factories.map((factory) => (
-          <option key={factory.id} value={factory.id}>
-            {factory.name}
-          </option>
-        ))}
-      </select>
-
       <h2 className="mb-4 text-lg font-semibold text-gray-900">Reading Materials</h2>
       
       {materials.length === 0 ? (
-        <p className="text-gray-500 text-sm">
-          {selectedFactory 
-            ? 'No materials available in this factory' 
-            : 'Please select a factory'}
-        </p>
+        <p className="text-gray-500 text-sm">No materials available</p>
       ) : (
         <ul className="space-y-2">
           {materials.map((material) => (
