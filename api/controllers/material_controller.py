@@ -27,7 +27,7 @@ def secure_chinese_filename(filename):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@material_bp.route('/', methods=['POST'])
+@material_bp.route('/materials', methods=['POST'])
 def create_material():
     if 'file' not in request.files:
         return error_response("No file part", 400)
@@ -138,7 +138,7 @@ def create_material():
 
     return success_response(material.to_dict(), "Material created successfully")
 
-@material_bp.route('/', methods=['GET'])
+@material_bp.route('/materials', methods=['GET'])
 def get_materials():
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 10))
@@ -151,14 +151,14 @@ def get_materials():
     
     return success_response(materials)
 
-@material_bp.route('/<material_id>', methods=['GET'])
+@material_bp.route('/materials/<material_id>', methods=['GET'])
 def get_material(material_id):
     material = MaterialService.get_material_by_id(material_id)
     if not material:
         return error_response("Material not found", 404)
     return success_response(material)
 
-@material_bp.route('/<material_id>', methods=['PUT'])
+@material_bp.route('/materials/<material_id>', methods=['PUT'])
 def update_material(material_id):
     data = request.get_json()
     result = MaterialService.update_material(material_id, data)
@@ -166,14 +166,14 @@ def update_material(material_id):
         return success_response(None, "Material updated successfully")
     return error_response("Material not found", 404)
 
-@material_bp.route('/<material_id>', methods=['DELETE'])
+@material_bp.route('/materials/<material_id>', methods=['DELETE'])
 def delete_material(material_id):
     result = MaterialService.delete_material(material_id)
     if result.deleted_count:
         return success_response(None, "Material deleted successfully")
     return error_response("Material not found", 404)
 
-@material_bp.route('/<material_id>/preview', methods=['GET'])
+@material_bp.route('/materials/<material_id>/preview', methods=['GET'])
 def get_material_preview(material_id):
     try:
         # 获取材料信息
@@ -204,7 +204,7 @@ def get_material_preview(material_id):
     except Exception as e:
         return error_response(f"Error reading file: {str(e)}", 500)
 
-@material_bp.route('/<material_id>/translate', methods=['POST', 'OPTIONS'])
+@material_bp.route('/materials/<material_id>/translate', methods=['POST', 'OPTIONS'])
 def start_translation(material_id):
     try:
         if not ObjectId.is_valid(material_id):
@@ -222,24 +222,11 @@ def start_translation(material_id):
             'translation_status': 'processing'
         })
         
+        # 创建异步任务
         translation_service = TranslationService()
-        
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(translation_service.translate_material(material_id))
-        loop.close()
+        asyncio.get_event_loop().create_task(translation_service.translate_material(material_id))
         
         return success_response(None, "Translation started successfully")
-    except ValueError as ve:
-        print("ValueError occurred:")
-        print(f"Error message: {str(ve)}")
-        print("Traceback:")
-        print(traceback.format_exc())
-        return error_response(str(ve), 400)
     except Exception as e:
-        print("Unexpected error occurred:")
-        print(f"Error type: {type(e).__name__}")
-        print(f"Error message: {str(e)}")
-        print("Traceback:")
-        print(traceback.format_exc())
+        print(f"Error starting translation: {str(e)}")
         return error_response(f"Failed to start translation: {str(e)}", 500)

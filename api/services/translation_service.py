@@ -5,6 +5,8 @@ from models.material import Material
 from models.material_segment import MaterialSegment, VocabularyItem
 from datetime import datetime
 import yaml
+import os
+import json
 
 class TranslationService:
     def __init__(self):
@@ -17,6 +19,19 @@ class TranslationService:
             base_url=config['llm_base_url']
         )
         self.model = config['llm_model']
+        
+        # 创建日志目录
+        self.log_dir = os.path.join(os.getcwd(), 'data', 'step3_ai_exp')
+        os.makedirs(self.log_dir, exist_ok=True)
+
+    def _log_to_file(self, material_id: str, step: str, content: dict):
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{material_id}_{step}_{timestamp}.json"
+        filepath = os.path.join(self.log_dir, filename)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(content, f, ensure_ascii=False, indent=2)
+
     async def translate_material(self, material_id: str):
         try:
             if not ObjectId.is_valid(material_id):
@@ -42,33 +57,53 @@ class TranslationService:
             segments = MaterialSegment.objects(material_id=str(material_obj_id))
             
             for segment in segments:
-                # 翻译原文
-                translation = await self._translate_text(
-                    segment.original,
-                    material.target_language
-                )
-                
-                update_data = {
-                    "translation": translation
-                }
-                
-                # 如果开启深度讲解，添加语法和词汇解释
-                if material.enable_deep_explanation:
-                    grammar_points = await self._analyze_grammar(segment.original)
-                    vocabulary_items = await self._analyze_vocabulary(segment.original)
-                    
-                    update_data.update({
-                        "grammar": grammar_points,
-                        "vocabulary": [
-                            VocabularyItem(
-                                word=item["word"],
-                                reading=item.get("reading", ""),
-                                meaning=item["meaning"]
-                            ) for item in vocabulary_items
-                        ]
+                try:
+                    # 翻译原文
+                    translation = await self._translate_text(segment.original, material.target_language)
+                    self._log_to_file(material_id, 'translation', {
+                        'segment_id': str(segment.id),
+                        'original': segment.original,
+                        'translation': translation
                     })
+                    
+                    update_data = {"translation": translation}
+                    
+                    # 如果开启深度讲解，添加语法和词汇解释
+                    if material.enable_deep_explanation:
+                        grammar_points = await self._analyze_grammar(segment.original)
+                        self._log_to_file(material_id, 'grammar', {
+                            'segment_id': str(segment.id),
+                            'original': segment.original,
+                            'grammar_points': grammar_points
+                        })
+                        
+                        vocabulary_items = await self._analyze_vocabulary(segment.original)
+                        self._log_to_file(material_id, 'vocabulary', {
+                            'segment_id': str(segment.id),
+                            'original': segment.original,
+                            'vocabulary_items': vocabulary_items
+                        })
+                        
+                        update_data.update({
+                            "grammar": grammar_points,
+                            "vocabulary": [
+                                VocabularyItem(
+                                    word=item["word"],
+                                    reading=item.get("reading", ""),
+                                    meaning=item["meaning"]
+                                ) for item in vocabulary_items
+                            ]
+                        })
 
-                segment.update(**update_data)
+                    segment.update(**update_data)
+                    
+                except Exception as e:
+                    self._log_to_file(material_id, 'error', {
+                        'segment_id': str(segment.id),
+                        'error': str(e),
+                        'timestamp': datetime.now().isoformat()
+                    })
+                    raise e
 
             # 最终状态更新
             Material.objects(id=material_obj_id).modify(
@@ -76,10 +111,11 @@ class TranslationService:
                 upsert=False
             )
 
-        except ValueError as ve:
-            raise ValueError(str(ve))
         except Exception as e:
-            # 发生错误时更新状态
+            self._log_to_file(material_id, 'error', {
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            })
             Material.objects(id=material_obj_id).modify(
                 set__translation_status="failed",
                 upsert=False

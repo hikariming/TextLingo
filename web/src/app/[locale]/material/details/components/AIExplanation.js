@@ -125,7 +125,10 @@ export default function AIExplanation({ selectedSentence, content, selectedMater
                     <div key={index} className="rounded-md bg-white p-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium text-gray-900">{vocab.word}（{vocab.reading}）</p>
+                          <p className="font-medium text-gray-900">
+                            {vocab.word}
+                            {vocab.reading && `（${vocab.reading}）`}
+                          </p>
                           <p className="text-sm text-gray-600">{vocab.meaning}</p>
                         </div>
                         <button 
@@ -150,7 +153,10 @@ export default function AIExplanation({ selectedSentence, content, selectedMater
                   <ul className="text-sm text-gray-600 space-y-2">
                     {selectedContent?.grammar.map((point, index) => (
                       <li key={index} className="flex justify-between items-start gap-2">
-                        <span>• {point}</span>
+                        <div>
+                          <p className="font-medium text-gray-900">{point.name}</p>
+                          <p className="text-sm text-gray-600">{point.explanation}</p>
+                        </div>
                         <button 
                           className="group relative p-1 hover:bg-gray-100 rounded-full flex-shrink-0"
                           aria-label="添加到语法笔记"

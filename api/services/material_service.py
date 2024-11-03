@@ -17,47 +17,37 @@ class MaterialService:
             status=status,
             factory_id=factory_id
         )
-        result = mongo.db.materials.insert_one(material.to_dict())
-        material_dict = material.to_dict()
-        material_dict['_id'] = str(result.inserted_id)
-        print(material_dict)
-        return material_dict
+        material.save()
+        return material.to_dict()
 
     @staticmethod
     def get_materials(user_id, page=1, per_page=10):
         skip = (page - 1) * per_page
-        materials = mongo.db.materials.find({"user_id": user_id}).skip(skip).limit(per_page)
-        return list(materials)
+        materials = Material.objects(user_id=user_id).skip(skip).limit(per_page)
+        return [material.to_dict() for material in materials]
 
     @staticmethod
     def get_material_by_id(material_id):
-        if not material_id:
-            return None
         try:
-            material = mongo.db.materials.find_one({"_id": ObjectId(material_id)})
-            if material:
-                # Convert ObjectId to string
-                material['_id'] = str(material['_id'])
-            return material
+            material = Material.objects(id=material_id).first()
+            return material.to_dict() if material else None
         except:
             return None
 
     @staticmethod
     def update_material(material_id, updates):
-        if not material_id:
-            return None
         try:
             updates['updated_at'] = datetime.utcnow()
-            if 'status' in updates:
-                updates['translation_status'] = updates.get('translation_status', 'processing')
-            
-            return mongo.db.materials.update_one(
-                {"_id": ObjectId(material_id)},
-                {"$set": updates}
-            )
+            material = Material.objects(id=material_id).first()
+            if material:
+                for key, value in updates.items():
+                    setattr(material, key, value)
+                material.save()
+                return True
+            return False
         except:
             return None
 
     @staticmethod
     def delete_material(material_id):
-        return mongo.db.materials.delete_one({"_id": ObjectId(material_id)})
+        return Material.objects(id=material_id).delete()

@@ -21,10 +21,10 @@ export default function TranslationLearningPage() {
         translation: "开始奔跑的下午也...",
         isNewParagraph: true,
         grammar: [
-          "「走り出す」是复合动词，由「走る」（跑）和「出す」（开始）组成，表示「开始跑」。",
-          "「走り出した」是「走り出す」的た形，表示过去完成的动作。",
-          "「午後」是名词，表示「下午」。",
-          "「も」是助词，表示「也」，用于强调或添加信息。"
+          { name: "走り出す", explanation: "复合动词，由「走る」（跑）和「出す」（开始）组成，表示「开始跑」" },
+          { name: "走り出した", explanation: "「走り出す」的た形，表示过去完成的动作" },
+          { name: "午後", explanation: "名词，表示「下午」" },
+          { name: "も", explanation: "助词，表示「也」，用于强调或添加信息" }
         ],
         vocabulary: [
           { word: "走り出す", reading: "はしりだす", meaning: "开始跑" },
@@ -36,9 +36,9 @@ export default function TranslationLearningPage() {
         translation: "重叠交织的日子也...",
         isNewParagraph: true,
         grammar: [
-          "「重ね合う」是复合动词，由「重ねる」��叠加）和「合う」（相互）组成，表示相互叠加或重叠的意思。这里使用了连体形。",
-          "「日々」（ひび）是名词，表示「日子」或「时光」。",
-          "「も」是助词，表示「也」或「即使」的意思，用于强调或包含。"
+          { name: "重ね合う", explanation: "复合动词，由「重ねる」（叠加）和「合う」（相互）组成，表示相互叠加或重叠的意思。这里使用了连体形" },
+          { name: "日々", explanation: "名词，表示「日子」或「时光」" },
+          { name: "も", explanation: "助词，表示「也」或「即使」的意思，用于强调或包含" }
         ],
         vocabulary: [
           { word: "重ね合う", reading: "かさねあう", meaning: "重叠，叠加" },
@@ -50,11 +50,11 @@ export default function TranslationLearningPage() {
         translation: "难以避免地，一切都将迎来终结。",
         isNewParagraph: true,
         grammar: [
-          "「避けがたく」是容词「避けがたい」的连用形，表示「难以避免」。",
-          "「全て」是副词，表示「全部、一切」。",
-          "「終わり」是名词，意为「结束」。",
-          "「が」是主格助词，标示主语。",
-          "「来る」是动词，表示「来到」，这里用于表示抽象的「发生」。"
+          { name: "避けがたく", explanation: "容词「避けがたい」的连用形，表示「难以避免」" },
+          { name: "全て", explanation: "副词，表示「全部、一切」" },
+          { name: "終わり", explanation: "名词，意为「结束」" },
+          { name: "が", explanation: "主格助词，标示主语" },
+          { name: "来る", explanation: "动词，表示「来到」，这里用于表示抽象的「发生」" }
         ],
         vocabulary: [
           { word: "避けがたい", reading: "さけがたい", meaning: "难以避免的" },
@@ -67,11 +67,11 @@ export default function TranslationLearningPage() {
         translation: "那一天的闪耀光芒也...",
         isNewParagraph: true,
         grammar: [
-          "「あの」是指示形容词，表示「那个」。",
-          "「日」（ひ）是名词，表示「日子」。",
-          "「の」是格助词，表示所属关系。",
-          "「きらめき」是名词，由动词「きらめく」（闪耀）转化而来。",
-          "「も」是助词，表示「也」，用于强调或列举。"
+          { name: "あの", explanation: "指示形容词，表示「那个」" },
+          { name: "日", explanation: "名词，表示「日子」" },
+          { name: "の", explanation: "格助词，表示所属关系" },
+          { name: "きらめき", explanation: "名词，由动词「きらめく」（闪耀）转化而来" },
+          { name: "も", explanation: "助词，表示「也」，用于强调或列举" }
         ],
         vocabulary: [
           { word: "あの", reading: "あの", meaning: "那个" },
@@ -84,9 +84,9 @@ export default function TranslationLearningPage() {
         translation: "淡淡的心动也...",
         isNewParagraph: true,
         grammar: [
-          "「淡い」是形容词，表示「淡薄的、浅淡的」。",
-          "「ときめき」是名词，意为「心跳加速、心动」。",
-          "「も」是助词，表示「也」，用于增加或强调。"
+          { name: "淡い", explanation: "形容词，表示「淡薄的、浅淡的」" },
+          { name: "ときめき", explanation: "名词，意为「心跳加速、心动」" },
+          { name: "も", explanation: "助词，表示「也」，用于增加或强调" }
         ],
         vocabulary: [
           { word: "淡い", reading: "あわい", meaning: "淡薄的、浅淡的" },
@@ -98,9 +98,10 @@ export default function TranslationLearningPage() {
         translation: "把这个那个都放在某处后再回来。",
         isNewParagraph: true,
         grammar: [
-          "「あれも」和「これも」是并列结构，表示「这个也...那个也...」。「も」是助词，表示强调和包含。",
-          "「どこか」是不定代词，表示「某处」。",
-          "「置いてくる」是复合动词，由「置く」（放置）和「くる」（来）组成。"
+          { name: "あれも", explanation: "并列结构，表示「这个也...那个也...」" },
+          { name: "も", explanation: "助词，表示强调和包含" },
+          { name: "どこか", explanation: "不定代词，表示「某处」" },
+          { name: "置いてくる", explanation: "复合动词，由「置く」（放置）和「くる」（来）组成" }
         ],
         vocabulary: [
           { word: "あれ", reading: "あれ", meaning: "那个" },
@@ -117,9 +118,9 @@ export default function TranslationLearningPage() {
         translation: "中国庞大的经济面临着同样巨大的信心危机，而且不断增长的准确信息缺失只会让情况变得更糟。",
         isNewParagraph: false,
         grammar: [
-          "这是一个复合句，使用破折号连接两个相关的陈述",
-          "giant作为形容词表示'巨大的'",
-          "deficit of 表示'缺乏'"
+          { name: "这是一个复合句", explanation: "使用破折号连接两个相关的陈述" },
+          { name: "giant作为形容词表示'巨大的'", explanation: "" },
+          { name: "deficit of 表示'缺乏'", explanation: "" }
         ],
         vocabulary: [
           { word: "giant", meaning: "巨大的" },
@@ -132,9 +133,9 @@ export default function TranslationLearningPage() {
         translation: "中国庞大的经济面临着同样巨大的信心危机，而且不断增长的准确信息缺失只会让情况变得更糟。",
         isNewParagraph: true,
         grammar: [
-          "这是一个复合句，使用破折号连接两个相关的陈述",
-          "giant作为形容词表示'巨大的'",
-          "deficit of 表示'缺乏'"
+          { name: "这是一个复合句", explanation: "使用破折号连接两个相关的陈述" },
+          { name: "giant作为形容词表示'巨大的'", explanation: "" },
+          { name: "deficit of 表示'缺乏'", explanation: "" }
         ],
         vocabulary: [
           { word: "giant", meaning: "巨大的" },
@@ -147,8 +148,8 @@ export default function TranslationLearningPage() {
         translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
         isNewParagraph: false,
         grammar: [
-          "Even as 表示让步关系",
-          "wrestle with 表示'与...搏斗、应对'"
+          { name: "Even as 表示让步关系", explanation: "" },
+          { name: "wrestle with 表示'与...搏斗、应对'", explanation: "" }
         ],
         vocabulary: [
           { word: "wrestle", meaning: "搏斗，应对" },
@@ -160,8 +161,8 @@ export default function TranslationLearningPage() {
         translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
         isNewParagraph: false,
         grammar: [
-          "Even as 表示让步关系",
-          "wrestle with 表示'与...搏斗、应对'"
+          { name: "Even as 表示让步关系", explanation: "" },
+          { name: "wrestle with 表示'与...搏斗、应对'", explanation: "" }
         ],
         vocabulary: [
           { word: "wrestle", meaning: "搏斗，应对" },
@@ -173,8 +174,8 @@ export default function TranslationLearningPage() {
         translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
         isNewParagraph: true,
         grammar: [
-          "Even as 表示让步关系",
-          "wrestle with 表示'与...搏斗、应对'"
+          { name: "Even as 表示让步关系", explanation: "" },
+          { name: "wrestle with 表示'与...搏斗、应对'", explanation: "" }
         ],
         vocabulary: [
           { word: "wrestle", meaning: "搏斗，应对" },
@@ -186,8 +187,8 @@ export default function TranslationLearningPage() {
         translation: "即使在国家正在应对房地产崩盘的同时，服务业部门在8月份的某项指标上也出现了放缓。",
         isNewParagraph: false,
         grammar: [
-          "Even as 表示让步关系",
-          "wrestle with 表示'与...搏斗、应对'"
+          { name: "Even as 表示让步关系", explanation: "" },
+          { name: "wrestle with 表示'与...搏斗、应对'", explanation: "" }
         ],
         vocabulary: [
           { word: "wrestle", meaning: "搏斗，应对" },

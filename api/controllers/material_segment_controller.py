@@ -5,9 +5,9 @@ from services.material_service import MaterialService
 from utils.response import success_response, error_response
 import os
 
-material_segment_bp = Blueprint('material_segment', __name__, url_prefix='/api/material-segments')
+material_segment_bp = Blueprint('material_segment', __name__)
 
-@material_segment_bp.route('/segment-material/<material_id>', methods=['POST', 'OPTIONS'])
+@material_segment_bp.route('/material-segments/segment-material/<material_id>', methods=['POST', 'OPTIONS'])
 @cross_origin()
 def segment_material(material_id):
     if request.method == 'OPTIONS':
@@ -72,7 +72,7 @@ def segment_material(material_id):
         print(f"Unexpected error: {str(e)}")
         return error_response(f"Error segmenting material: {str(e)}", 500)
 
-@material_segment_bp.route('/material/<material_id>', methods=['GET', 'OPTIONS'])
+@material_segment_bp.route('/material-segments/material/<material_id>', methods=['GET', 'OPTIONS'])
 @cross_origin()
 def get_material_segments(material_id):
     if request.method == 'OPTIONS':
@@ -93,7 +93,7 @@ def get_material_segments(material_id):
     except Exception as e:
         return error_response(f"Error fetching segments: {str(e)}", 500)
 
-@material_segment_bp.route('/<segment_id>', methods=['PUT'])
+@material_segment_bp.route('/material-segments/<segment_id>', methods=['PUT'])
 def update_segment(segment_id):
     try:
         data = request.get_json()
@@ -103,7 +103,7 @@ def update_segment(segment_id):
     except Exception as e:
         return error_response(f"Error updating segment: {str(e)}", 500)
 
-@material_segment_bp.route('/<segment_id>', methods=['DELETE'])
+@material_segment_bp.route('/material-segments/<segment_id>', methods=['DELETE'])
 def delete_segment(segment_id):
     try:
         MaterialSegmentService.delete_segment(segment_id)
