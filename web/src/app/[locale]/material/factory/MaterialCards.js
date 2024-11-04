@@ -83,10 +83,12 @@ export default function MaterialCards() {
                           </button>
                         </Link>
                         <div className="w-px bg-gray-200"></div>
-                        <button className="flex items-center justify-center gap-1 text-xs text-gray-600 hover:text-blue-600 flex-1 py-0.5">
-                          <Cog6ToothIcon className="w-3.5 h-3.5" />
-                          管理
-                        </button>
+                        <Link href={`/${t('locale')}/material/manage/${factory.id}`} className="flex-1">
+                          <button className="flex items-center justify-center gap-1 text-xs text-gray-600 hover:text-blue-600 flex-1 py-0.5">
+                            <Cog6ToothIcon className="w-3.5 h-3.5" />
+                            管理
+                          </button>
+                        </Link>
                       </div>
                     </div>
                   </Link>
