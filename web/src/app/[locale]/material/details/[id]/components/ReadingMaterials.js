@@ -1,6 +1,6 @@
 'use client'
 
-import { BookOpenIcon } from '@heroicons/react/24/outline'
+import { BookOpenIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { MaterialsAPI } from '@/services/api'
 
@@ -57,35 +57,45 @@ export default function ReadingMaterials({
   }
 
   return (
-    <nav className="w-64 border-r border-neutral-200 bg-slate-50 p-4">
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">Reading Materials</h2>
-      
-      {materials.length === 0 ? (
-        <p className="text-gray-500 text-sm">No materials available</p>
-      ) : (
-        <ul className="space-y-2">
-          {materials.map((material) => (
-            <li key={material._id}>
-              <button
-                className={`w-full flex items-center px-4 py-2 rounded-lg text-left transition-colors
-                  ${selectedMaterial === material._id 
-                    ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-gray-900 hover:bg-gray-100'
-                  }`}
-                onClick={() => onMaterialSelect(material._id)}
-                title={material.title}
-              >
-                <BookOpenIcon className={`flex-shrink-0 mr-2 h-4 w-4 ${
-                  selectedMaterial === material._id ? 'text-blue-600' : 'text-gray-500'
-                }`} />
-                <span className="truncate">
-                  {material.title}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+    <nav className="w-64 border-r border-neutral-200 bg-slate-50 p-4 flex flex-col h-full">
+      <div className="flex-grow">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Reading Materials</h2>
+        
+        {materials.length === 0 ? (
+          <p className="text-gray-500 text-sm">No materials available</p>
+        ) : (
+          <ul className="space-y-2">
+            {materials.map((material) => (
+              <li key={material._id}>
+                <button
+                  className={`w-full flex items-center px-4 py-2 rounded-lg text-left transition-colors
+                    ${selectedMaterial === material._id 
+                      ? 'bg-white text-blue-600 shadow-sm' 
+                      : 'text-gray-900 hover:bg-gray-100'
+                    }`}
+                  onClick={() => onMaterialSelect(material._id)}
+                  title={material.title}
+                >
+                  <BookOpenIcon className={`flex-shrink-0 mr-2 h-4 w-4 ${
+                    selectedMaterial === material._id ? 'text-blue-600' : 'text-gray-500'
+                  }`} />
+                  <span className="truncate">
+                    {material.title}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <button
+        onClick={() => window.history.back()}
+        className="w-full flex items-center px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+      >
+        <ArrowLeftIcon className="flex-shrink-0 mr-2 h-4 w-4" />
+        <span>返回上一页</span>
+      </button>
     </nav>
   )
 }
