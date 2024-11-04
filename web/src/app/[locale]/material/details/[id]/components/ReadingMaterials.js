@@ -62,7 +62,7 @@ export default function ReadingMaterials({
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Reading Materials</h2>
         
         {materials.length === 0 ? (
-          <p className="text-gray-500 text-sm">No materials available</p>
+          <p className="text-gray-500 text-sm">No materials available，没有可用的文档，请先上传文档</p>
         ) : (
           <ul className="space-y-2">
             {materials.map((material) => (

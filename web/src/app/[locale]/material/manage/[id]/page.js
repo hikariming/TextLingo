@@ -31,14 +31,16 @@ export default function MaterialManagement() {
       <div className="flex flex-1 pt-16">
         {/* 左侧边栏：显示材料集信息 */}
         <div className="w-80 border-r bg-white overflow-y-auto">
-          <div className="p-4">
+          {/* <div className="p-4">
             <Link href="/materials/factory" className="text-blue-600 hover:text-blue-700 flex items-center text-sm">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               返回材料集列表
             </Link>
-          </div>
+          </div> */}
+
+          <br />
           
           {/* 材料集详情 */}
           <div className="px-4">
