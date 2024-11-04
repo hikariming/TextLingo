@@ -14,6 +14,7 @@ export default function TranslationLearningPage() {
   const [selectedSentence, setSelectedSentence] = useState(null)
   const [segments, setSegments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [materials, setMaterials] = useState([])
 
   const fetchSegments = async (materialId) => {
     try {
@@ -32,16 +33,22 @@ export default function TranslationLearningPage() {
     fetchSegments(materialId)
   }
 
-  const readingMaterials = [
-    { id: 'material1', title: '満ちてゆく 藤井风' },
-    { id: 'material2', title: 'China\'s giant economy faces an equally giant crisis of confidence—and a growing deficit of accurate information is only making things worse.' },
-  ]
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const response = await MaterialsAPI.getMaterialsByFactory(params.id)
+        setMaterials(response.materials || [])
+      } catch (error) {
+        console.error('Failed to fetch materials:', error)
+      }
+    }
+    fetchMaterials()
+  }, [params.id])
 
   return (
     <div className="flex h-screen bg-white text-gray-900">
       {/* Left Navigation */}
       <ReadingMaterials 
-        readingMaterials={readingMaterials}
         selectedMaterial={selectedMaterial}
         onMaterialSelect={handleMaterialSelect}
       />
@@ -49,9 +56,22 @@ export default function TranslationLearningPage() {
       {/* Middle Reading Area */}
       <main className="flex-1 overflow-auto p-6 bg-white">
         {loading ? (
-          <div>Loading...</div>
+          <div>加载或等待用户选择文字中😊...</div>
         ) : (
           <div>
+            {/* 修改后的标题显示 */}
+            <h1 className="text-2xl font-semibold text-gray-900 mb-4">
+              {materials.find(m => m._id === selectedMaterial)?.title || '请选择阅读材料'}
+            </h1>
+
+            <button
+              onClick={() => setShowTranslation(!showTranslation)}
+              className="mb-6 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              {showTranslation ? '隐藏翻译' : '显示翻译'}
+            </button>
+
+            {/* 原有的段落渲染代码 */}
             {(() => {
               // 按段落分组
               const paragraphs = [];
