@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '../../../../components/navigation/Navbar'
 import { MaterialsAPI } from '../../../../../services/api'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
 export default function MaterialManagement() {
   const params = useParams()
+  const router = useRouter()
   const [factory, setFactory] = useState(null)
   const [materials, setMaterials] = useState([])
   const [loading, setLoading] = useState(true)
@@ -80,6 +81,10 @@ export default function MaterialManagement() {
     }
   }
 
+  const handleResegment = (materialId) => {
+    router.push(`/${t('locale')}/material/create?materialId=${materialId}&step=2`)
+  }
+
   if (loading || !factory) {
     return <div>Loading...</div>
   }
@@ -117,7 +122,7 @@ export default function MaterialManagement() {
             <div className="mb-4">
               <Link href={`/${t('locale')}/material/create?factoryId=${params.id}`}>
                 <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
-                  添加新材料
+                  添加新阅读材料
                 </button>
               </Link>
             </div>
@@ -198,6 +203,12 @@ export default function MaterialManagement() {
                             className="text-red-500 hover:text-red-700 disabled:opacity-50"
                           >
                             删除
+                          </button>
+                          <button 
+                            onClick={() => handleResegment(material._id)}
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            重新分段
                           </button>
                           <button className="text-gray-400">...</button>
                         </div>

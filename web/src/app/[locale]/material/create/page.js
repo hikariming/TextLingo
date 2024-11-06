@@ -16,7 +16,16 @@ export default function TextKnowledge() {
   })
   const searchParams = useSearchParams()
   const factoryId = searchParams.get('factoryId')
+  const materialIdFromUrl = searchParams.get('materialId')
+  const initialStep = searchParams.get('step')
   
+  useEffect(() => {
+    if (materialIdFromUrl && initialStep) {
+      setCurrentStep(parseInt(initialStep))
+      setMaterialId(materialIdFromUrl)
+    }
+  }, [materialIdFromUrl, initialStep])
+
   useEffect(() => {
     if (factoryId) {
       // 这里可以用 factoryId 做一些初始化操作
