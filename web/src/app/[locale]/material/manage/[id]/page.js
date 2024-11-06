@@ -118,14 +118,6 @@ export default function MaterialManagement() {
         <div className="flex-1 p-6">
           <div className="mb-4 flex justify-between items-center">
             <div className="text-lg font-medium">材料列表</div>
-            <div className="flex items-center space-x-4">
-              <span className="text-amber-500 text-sm">⚠️ 3 文档无法被索引</span>
-              <button className="px-4 py-2 bg-blue-100 text-blue-600 rounded text-sm">重试</button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded flex items-center text-sm">
-                <span className="mr-1">+</span>
-                添加文件
-              </button>
-            </div>
           </div>
 
           <div className="mb-6">
