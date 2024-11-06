@@ -44,8 +44,9 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
     {
       id: 'ai',
       icon: <AcademicCapIcon className="h-5 w-5" />,
-      title: '智能分段(需消耗Token)',
-      description: '使用AI分析文本语义进行智能分段，适用于比较复杂的文本，但会消耗大模型Token'
+      title: '智能分段(开发中)',
+      description: '使用AI分析文本语义进行智能分段，适用于比较复杂的文本，但会消耗大模型Token',
+      disabled: true
     }
   ]
 
@@ -99,12 +100,14 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
                 {segmentationOptions.map((option) => (
                   <div
                     key={option.id}
-                    className={`p-3 rounded-lg border-2 cursor-pointer ${
-                      selectedOption === option.id 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'hover:border-blue-500'
+                    className={`p-3 rounded-lg border-2 ${
+                      option.disabled 
+                        ? 'cursor-not-allowed opacity-50' 
+                        : 'cursor-pointer ' + (selectedOption === option.id 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'hover:border-blue-500')
                     }`}
-                    onClick={() => setSelectedOption(option.id)}
+                    onClick={() => !option.disabled && setSelectedOption(option.id)}
                   >
                     <div className="flex items-center space-x-3">
                       <div className="text-gray-600">{option.icon}</div>
@@ -145,26 +148,33 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
                       <option value="false">关闭</option>
                     </select>
                   </div>
-                  <div className="border-t p-4 flex justify-end space-x-4">
-            <button 
-              onClick={onPrev}
-              className="px-4 py-2 border rounded-md hover:bg-gray-50"
-              disabled={isTranslating}
-            >
-              上一步
-            </button>
-            <button 
-              onClick={handleStartTranslation}
-              disabled={!isSegmented}
-              className={`px-4 py-2 text-white rounded-md ${
-                isSegmented 
-                  ? 'bg-blue-600 hover:bg-blue-700' 
-                  : 'bg-gray-400 cursor-not-allowed'
-              }`}
-            >
-              开始翻译
-            </button>
-          </div>
+                  <div className="border-t p-4 flex justify-end items-center space-x-4">
+                    <button 
+                      onClick={onPrev}
+                      className="px-4 py-2 border rounded-md hover:bg-gray-50"
+                      disabled={isTranslating}
+                    >
+                      上一步
+                    </button>
+                    <div className="relative">
+                      <button 
+                        onClick={handleStartTranslation}
+                        disabled={!isSegmented}
+                        className={`px-4 py-2 text-white rounded-md ${
+                          isSegmented 
+                            ? 'bg-blue-600 hover:bg-blue-700' 
+                            : 'bg-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        开始翻译
+                      </button>
+                      {!isSegmented && (
+                        <div className="absolute top-full left-0 text-red-500 text-sm mt-1">
+                          请先进行文本分段
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

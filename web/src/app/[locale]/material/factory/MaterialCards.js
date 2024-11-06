@@ -72,7 +72,7 @@ export default function MaterialCards() {
                         <h3 className="text-lg font-medium ml-2 text-black">{factory.name}</h3>
                       </div>
                       <div className="text-gray-500 text-xs mb-3">
-                        {factory.materials?.length || 0} 文档 · 
+                        {/* {factory.materials?.length || 0} 文档 ·  */}
                         {factory.description || '暂无描述'}
                       </div>
                       <div className="flex gap-2 mt-6 pt-2 border-t">
