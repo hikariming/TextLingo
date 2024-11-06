@@ -149,4 +149,17 @@ export const MaterialsAPI = {
     if (!response.ok) throw new Error('Failed to fetch factory details')
     return response.json()
   },
+
+  // 删除材料
+  deleteMaterial: async (materialId) => {
+    const response = await fetch(`${API_BASE_URL}/materials/${materialId}`, {
+      method: 'DELETE',
+      headers: defaultHeaders
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || 'Failed to delete material')
+    }
+    return response.json()
+  },
 }

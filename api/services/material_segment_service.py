@@ -145,3 +145,8 @@ class MaterialSegmentService:
         segment = MaterialSegment.objects.get(id=segment_id)
         segment.delete()
         return True
+
+    @staticmethod
+    def delete_segments_by_material(material_id):
+        """Delete all segments associated with a material"""
+        return MaterialSegment.objects(material_id=material_id).delete()

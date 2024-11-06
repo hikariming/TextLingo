@@ -12,6 +12,7 @@ from bson.objectid import ObjectId
 import traceback
 from threading import Thread
 import json
+from services.material_segment_service import MaterialSegmentService
 
 material_bp = Blueprint('material', __name__)
 
@@ -170,10 +171,43 @@ def update_material(material_id):
 
 @material_bp.route('/materials/<material_id>', methods=['DELETE'])
 def delete_material(material_id):
-    result = MaterialService.delete_material(material_id)
-    if result.deleted_count:
-        return success_response(None, "Material deleted successfully")
-    return error_response("Material not found", 404)
+    try:
+        # Get material info before deletion
+        material = MaterialService.get_material_by_id(material_id)
+        if not material:
+            return error_response("Material not found", 404)
+
+        # Delete associated files if they exist
+        base_data_folder = os.path.join(os.getcwd(), 'data')
+        
+        # Try to delete processed file (txt)
+        if material.get('file_path'):
+            processed_file_path = os.path.join(base_data_folder, material['file_path'])
+            try:
+                if os.path.exists(processed_file_path):
+                    os.remove(processed_file_path)
+            except Exception as e:
+                print(f"Warning: Could not delete processed file: {str(e)}")
+
+        # Try to delete original file
+        if material.get('original_file_path'):
+            original_file_path = os.path.join(base_data_folder, material['original_file_path'])
+            try:
+                if os.path.exists(original_file_path):
+                    os.remove(original_file_path)
+            except Exception as e:
+                print(f"Warning: Could not delete original file: {str(e)}")
+
+        # Delete the material from database
+        result = MaterialService.delete_material(material_id)
+        
+        if result:
+            return success_response(None, "Material and associated files deleted successfully")
+        return error_response("Material not found", 404)
+        
+    except Exception as e:
+        print(f"Error deleting material: {str(e)}")
+        return error_response(f"Error deleting material: {str(e)}", 500)
 
 @material_bp.route('/materials/<material_id>/preview', methods=['GET'])
 def get_material_preview(material_id):

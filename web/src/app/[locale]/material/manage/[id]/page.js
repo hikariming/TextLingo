@@ -10,6 +10,18 @@ export default function MaterialManagement() {
   const [factory, setFactory] = useState(null)
   const [materials, setMaterials] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
+  const filteredMaterials = materials.filter(material => {
+    const searchLower = searchQuery.toLowerCase()
+    return (
+      material.original_filename?.toLowerCase().includes(searchLower) ||
+      material.title?.toLowerCase().includes(searchLower) ||
+      material.file_type?.toLowerCase().includes(searchLower) ||
+      material.status?.toLowerCase().includes(searchLower)
+    )
+  })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,6 +61,22 @@ export default function MaterialManagement() {
       paramsId: params.id
     })
   }, [factory, materials, loading, params.id])
+
+  const handleDelete = async (materialId) => {
+    if (!confirm('确定要删除这个材料吗？')) return
+    
+    try {
+      setDeleteLoading(true)
+      await MaterialsAPI.deleteMaterial(materialId)
+      // 更新列表，移除已删除的材料
+      setMaterials(materials.filter(m => m._id !== materialId))
+    } catch (error) {
+      console.error('删除失败:', error)
+      alert('删除失败: ' + error.message)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
   if (loading || !factory) {
     return <div>Loading...</div>
@@ -124,6 +152,8 @@ export default function MaterialManagement() {
             <input
               type="text"
               placeholder="搜索"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-64 px-4 py-2 border rounded-lg bg-gray-50"
             />
           </div>
@@ -141,8 +171,8 @@ export default function MaterialManagement() {
                 </tr>
               </thead>
               <tbody>
-                {Array.isArray(materials) && materials.length > 0 ? (
-                  materials.map((material) => (
+                {Array.isArray(filteredMaterials) && filteredMaterials.length > 0 ? (
+                  filteredMaterials.map((material) => (
                     <tr key={material._id} className="border-b hover:bg-gray-50">
                       <td className="px-3 py-2">{material.original_filename || material.title}</td>
                       <td className="px-3 py-2">{material.file_type}</td>
@@ -158,9 +188,13 @@ export default function MaterialManagement() {
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex items-center space-x-2">
-                          <div className="w-8 h-4 bg-gray-200 rounded-full relative">
-                            <div className="absolute right-1 top-1 w-2 h-2 bg-white rounded-full"></div>
-                          </div>
+                          <button 
+                            onClick={() => handleDelete(material._id)}
+                            disabled={deleteLoading}
+                            className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                          >
+                            删除
+                          </button>
                           <button className="text-gray-400">...</button>
                         </div>
                       </td>
