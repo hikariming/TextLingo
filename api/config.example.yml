@@ -1,3 +1,6 @@
 mongodb:
   uri: "mongodb://username:password@localhost:27017/dbname?authSource=admin"
 secret_key: "your-secret-key-here"
+llm_api_key: "your-openai-api-key-here"
+llm_base_url: "https://api.openai.com/v1"  # 推荐使用claude
+llm_model: "gpt-4-turbo-preview"  # 推荐使用claude
