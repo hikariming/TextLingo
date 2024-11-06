@@ -189,8 +189,12 @@ export default function MaterialManagement() {
                       <td className="px-3 py-2">{new Date(material.created_at).toLocaleString()}</td>
                       <td className="px-3 py-2">
                         <span className={`${
-                          material.status === 'error' ? 'text-red-500' : 
-                          material.status === 'translating' ? 'text-amber-500' : 'text-green-500'
+                          material.status === 'translation_failed' ? 'text-red-500' :  // 失败状态 - 红色
+                          material.status === 'translating' ? 'text-amber-500' :       // 翻译中 - 琥珀色
+                          material.status === 'pending_segmentation' ? 'text-blue-500' : // 待分段 - 蓝色
+                          material.status === 'segmented' ? 'text-purple-500' :        // 已分段 - 紫色
+                          material.status === 'translated' ? 'text-green-500' :        // 已翻译 - 绿色
+                          'text-gray-500'                                             // 默认颜色
                         }`}>
                           ● {material.status}
                         </span>

@@ -200,6 +200,7 @@ class TranslationService:
             # 最终状态更新
             Material.objects(id=material_obj_id).modify(
                 set__translation_status="completed",
+                set__status="translated",
                 upsert=False
             )
 
@@ -210,6 +211,7 @@ class TranslationService:
             })
             Material.objects(id=material_obj_id).modify(
                 set__translation_status="failed",
+                set__status="translation_failed",
                 upsert=False
             )
             raise e
@@ -221,7 +223,7 @@ class TranslationService:
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": f"You are a professional translator. Translate the following text to {target_language}. Maintain the original meaning and style."},
+                {"role": "system", "content": f"You are a professional translator. Translate the following text to {target_language}. Maintain the original meaning and style.在输出中，不要有除了原文翻译外的其他元素。"},
                 {"role": "user", "content": text}
             ]
         )

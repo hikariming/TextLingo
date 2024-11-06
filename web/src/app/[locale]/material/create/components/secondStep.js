@@ -11,7 +11,7 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
   const [error, setError] = useState(null)
   const [isSegmented, setIsSegmented] = useState(false)
   const [targetLanguage, setTargetLanguage] = useState('zh-CN')
-  const [enableDeepExplanation, setEnableDeepExplanation] = useState(false)
+  const [enableDeepExplanation, setEnableDeepExplanation] = useState(true)
   const [isTranslating, setIsTranslating] = useState(false)
 
   useEffect(() => {
