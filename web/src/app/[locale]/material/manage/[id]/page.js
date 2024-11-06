@@ -1,29 +1,58 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '../../../../components/navigation/Navbar'
+import { MaterialsAPI } from '../../../../../services/api'
+import { useParams } from 'next/navigation'
 
 export default function MaterialManagement() {
-  const [factory, setFactory] = useState({
-    id: '1',
-    name: '日语学习材料集',
-    description: '包含多个日语学习材料的集合',
-    materials: ['1', '2', '3'],
-    created_at: '2024-03-15T10:00:00Z',
-    updated_at: '2024-03-15T10:00:00Z'
-  })
+  const params = useParams()
+  const [factory, setFactory] = useState(null)
+  const [materials, setMaterials] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const [materials, setMaterials] = useState([
-    {
-      _id: '1',
-      title: '反转、暴击！这些视频在海外网站火了...',
-      file_size: 4400,
-      file_type: 'pdf',
-      status: 'error',
-      created_at: '2024-08-02T09:25:00Z',
-      segments: ['seg1', 'seg2']
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log('Fetching data for factory ID:', params.id)
+        
+        const [factoryData, materialsData] = await Promise.all([
+          MaterialsAPI.getFactoryById(params.id),
+          MaterialsAPI.getMaterialsByFactory(params.id)
+        ])
+        
+        console.log('Factory data:', factoryData)
+        console.log('Materials data:', materialsData)
+        
+        setFactory(factoryData)
+        setMaterials(materialsData.materials || [])
+      } catch (error) {
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          response: error.response
+        })
+        setMaterials([])
+      } finally {
+        setLoading(false)
+      }
     }
-  ])
+
+    fetchData()
+  }, [params.id])
+
+  useEffect(() => {
+    console.log('Current state:', {
+      factory,
+      materials,
+      loading,
+      paramsId: params.id
+    })
+  }, [factory, materials, loading, params.id])
+
+  if (loading || !factory) {
+    return <div>Loading...</div>
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -111,40 +140,47 @@ export default function MaterialManagement() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b">
-                  <th className="px-2 py-2 text-left font-medium">ID</th>
                   <th className="px-2 py-2 text-left font-medium">文件名</th>
                   <th className="px-2 py-2 text-left font-medium">类型</th>
                   <th className="px-2 py-2 text-left font-medium">大小</th>
-                  <th className="px-2 py-2 text-left font-medium">段落数</th>
                   <th className="px-2 py-2 text-left font-medium">创建时间</th>
                   <th className="px-2 py-2 text-left font-medium">状态</th>
                   <th className="px-2 py-2 text-left font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>
-                {materials.map((material) => (
-                  <tr key={material._id} className="border-b hover:bg-gray-50">
-                    <td className="px-3 py-2">{material._id}</td>
-                    <td className="px-3 py-2">{material.title}</td>
-                    <td className="px-3 py-2">{material.file_type}</td>
-                    <td className="px-3 py-2">{(material.file_size / 1024).toFixed(1)}KB</td>
-                    <td className="px-3 py-2">{material.segments.length}</td>
-                    <td className="px-3 py-2">{new Date(material.created_at).toLocaleString()}</td>
-                    <td className="px-3 py-2">
-                      <span className={`${material.status === 'error' ? 'text-red-500' : 'text-green-500'}`}>
-                        ● {material.status}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-4 bg-gray-200 rounded-full relative">
-                          <div className="absolute right-1 top-1 w-2 h-2 bg-white rounded-full"></div>
+                {Array.isArray(materials) && materials.length > 0 ? (
+                  materials.map((material) => (
+                    <tr key={material._id} className="border-b hover:bg-gray-50">
+                      <td className="px-3 py-2">{material.original_filename || material.title}</td>
+                      <td className="px-3 py-2">{material.file_type}</td>
+                      <td className="px-3 py-2">{(material.file_size / 1024).toFixed(1)}KB</td>
+                      <td className="px-3 py-2">{new Date(material.created_at).toLocaleString()}</td>
+                      <td className="px-3 py-2">
+                        <span className={`${
+                          material.status === 'error' ? 'text-red-500' : 
+                          material.status === 'translating' ? 'text-amber-500' : 'text-green-500'
+                        }`}>
+                          ● {material.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-4 bg-gray-200 rounded-full relative">
+                            <div className="absolute right-1 top-1 w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+                          <button className="text-gray-400">...</button>
                         </div>
-                        <button className="text-gray-400">...</button>
-                      </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="px-3 py-4 text-center text-gray-500">
+                      暂无材料数据
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

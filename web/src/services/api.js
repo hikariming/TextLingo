@@ -139,4 +139,14 @@ export const MaterialsAPI = {
     if (!response.ok) throw new Error('Failed to fetch factory materials')
     return response.json()
   },
+
+  // 获取工厂详情
+  getFactoryById: async (factoryId) => {
+    const response = await fetch(`${API_BASE_URL}/materials-factory/${factoryId}`, {
+      method: 'GET',
+      headers: defaultHeaders
+    })
+    if (!response.ok) throw new Error('Failed to fetch factory details')
+    return response.json()
+  },
 }
