@@ -97,6 +97,25 @@ export default function DataSourceSelector({ onNext }) {
     }
   }
 
+  const handleTextSubmit = async () => {
+    if (!inputText.trim()) {
+      alert('请输入文本内容')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const res = await MaterialsAPI.uploadText(inputText, factoryId)
+      setIsUploaded(true)
+      setMaterialId(res.data._id)
+    } catch (error) {
+      alert('文本上传失败: ' + error.message)
+      setIsUploaded(false)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const textSourceJSX = (
     <div 
       className={`border-2 border-dashed rounded-lg p-6 bg-neutral-100
@@ -188,6 +207,19 @@ export default function DataSourceSelector({ onNext }) {
             className="w-full h-40 p-3 border border-gray-300 rounded-md"
             placeholder="请直接输入文本内容..."
           />
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={handleTextSubmit}
+              disabled={isUploading || !inputText.trim()}
+              className={`px-4 py-2 rounded-md ${
+                isUploading || !inputText.trim()
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              {isUploading ? '正在上传...' : '确认上传'}
+            </button>
+          </div>
         </div>
       )}
 

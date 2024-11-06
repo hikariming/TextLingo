@@ -162,4 +162,18 @@ export const MaterialsAPI = {
     }
     return response.json()
   },
+
+  // Add this new method inside MaterialsAPI
+  uploadText: async (text, factoryId) => {
+    const response = await fetch(`${API_BASE_URL}/materials/text`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify({
+        content: text,
+        factory_id: factoryId
+      })
+    })
+    if (!response.ok) throw new Error('Upload failed')
+    return response.json()
+  },
 }

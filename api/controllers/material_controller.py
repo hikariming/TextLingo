@@ -291,3 +291,58 @@ def start_translation(material_id):
         print(f"Error starting translation: {str(e)}")
         print(traceback.format_exc())  # 打印完整的错误堆栈
         return error_response(f"Failed to start translation: {str(e)}", 500)
+
+@material_bp.route('/materials/text', methods=['POST'])
+def create_material_from_text():
+    try:
+        data = request.get_json()
+        if not data or 'content' not in data or 'factory_id' not in data:
+            return error_response("Missing content or factory_id", 400)
+
+        content = data['content']
+        factory_id = data['factory_id']
+        
+        if not content.strip():
+            return error_response("Empty content", 400)
+
+        # Generate a unique filename
+        filename = f"{str(uuid.uuid4())}.txt"
+        
+        # Update data folder paths
+        base_data_folder = os.path.join(os.getcwd(), 'data')
+        uploaded_folder = os.path.join(base_data_folder, 'step0_uploaded_file')
+        txt_folder = os.path.join(base_data_folder, 'step1_get_txt')
+        
+        # Create directories if they don't exist
+        os.makedirs(uploaded_folder, exist_ok=True)
+        os.makedirs(txt_folder, exist_ok=True)
+
+        # Save original file
+        original_path = os.path.join(uploaded_folder, filename)
+        with open(original_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        # Save processed file (in this case, same as original)
+        txt_path = os.path.join(txt_folder, filename)
+        with open(txt_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+            
+        file_size = len(content.encode('utf-8'))
+        
+        material = MaterialService.create_material(
+            title=filename,
+            file_type='txt',
+            file_size=file_size,
+            file_path=os.path.join('step1_get_txt', filename),
+            original_file_path=os.path.join('step0_uploaded_file', filename),
+            original_filename=filename,
+            user_id=request.user_id if hasattr(request, 'user_id') else None,
+            status="pending_segmentation",
+            factory_id=factory_id
+        )
+        
+        return success_response(material, "Material created successfully")
+        
+    except Exception as e:
+        print(f"Error creating material from text: {str(e)}")
+        return error_response(f"Failed to create material: {str(e)}", 500)
