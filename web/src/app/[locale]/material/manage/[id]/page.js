@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Navbar from '../../../../components/navigation/Navbar'
 import { MaterialsAPI } from '../../../../../services/api'
 import { useParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 export default function MaterialManagement() {
   const params = useParams()
@@ -12,6 +13,7 @@ export default function MaterialManagement() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const t = useTranslations('app')
 
   const filteredMaterials = materials.filter(material => {
     const searchLower = searchQuery.toLowerCase()
@@ -113,9 +115,11 @@ export default function MaterialManagement() {
             </div>
 
             <div className="mb-4">
-              <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
-                添加新材料
-              </button>
+              <Link href={`/${t('locale')}/material/create?factoryId=${params.id}`}>
+                <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+                  添加新材料
+                </button>
+              </Link>
             </div>
 
             <div className="border-t pt-4">
