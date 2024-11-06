@@ -132,19 +132,19 @@ export default function MaterialManagement() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="text-xs text-gray-500">处理中</div>
-                  <div className="text-lg font-medium">3</div>
+                  <div className="text-lg font-medium text-gray-400">开发中</div>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="text-xs text-gray-500">已完成</div>
-                  <div className="text-lg font-medium">12</div>
+                  <div className="text-lg font-medium text-gray-400">开发中</div>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="text-xs text-gray-500">出错</div>
-                  <div className="text-lg font-medium text-red-500">1</div>
+                  <div className="text-lg font-medium text-gray-400">开发中</div>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="text-xs text-gray-500">总字数</div>
-                  <div className="text-lg font-medium">5.2k</div>
+                  <div className="text-lg font-medium text-gray-400">开发中</div>
                 </div>
               </div>
             </div>
