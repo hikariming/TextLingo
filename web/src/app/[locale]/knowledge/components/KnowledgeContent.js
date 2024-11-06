@@ -21,7 +21,7 @@ export default function KnowledgeContent({ initialKnowledge }) {
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-6 text-center text-black">已保存的知识</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center text-black">已保存的知识(该功能还在开发中！)</h1>
       
       {/* 搜索框 */}
       <div className="relative mb-6">
