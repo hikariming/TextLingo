@@ -12,6 +12,7 @@ export default function DataSourceSelector({ onNext }) {
   const [isUploaded, setIsUploaded] = useState(false)
   const [materialId, setMaterialId] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [inputTitle, setInputTitle] = useState('')
 
   const searchParams = useSearchParams()
   const factoryId = searchParams.get('factoryId')
@@ -102,10 +103,20 @@ export default function DataSourceSelector({ onNext }) {
       alert('请输入文本内容')
       return
     }
+    
+    if (!inputTitle.trim()) {
+      alert('请输入标题')
+      return
+    }
 
     setIsUploading(true)
     try {
-      const res = await MaterialsAPI.uploadText(inputText, factoryId)
+      const uploaddata = {
+        content: inputText,
+        title: inputTitle,
+        factory_id: factoryId
+      }
+      const res = await MaterialsAPI.uploadText(uploaddata)
       setIsUploaded(true)
       setMaterialId(res.data._id)
     } catch (error) {
@@ -201,26 +212,45 @@ export default function DataSourceSelector({ onNext }) {
 
       {selectedSource === 'input' && (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-neutral-100">
-          <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            className="w-full h-40 p-3 border border-gray-300 rounded-md"
-            placeholder="请直接输入文本内容..."
-          />
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={handleTextSubmit}
-              disabled={isUploading || !inputText.trim()}
-              className={`px-4 py-2 rounded-md ${
-                isUploading || !inputText.trim()
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              {isUploading ? '正在上传...' : '确认上传'}
-            </button>
-          </div>
+          <div className="mb-4">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                标题
+            </label>
+            <input
+                id="title"
+                type="text"
+                value={inputTitle}
+                onChange={(e) => setInputTitle(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md"
+                placeholder="请输入标题..."
+            />
         </div>
+        <div>
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+                内容
+            </label>
+            <textarea
+                id="content"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                className="w-full h-40 p-3 border border-gray-300 rounded-md"
+                placeholder="请直接输入文本内容..."
+            />
+        </div>
+        <div className="mt-4 flex justify-end">
+            <button
+                onClick={handleTextSubmit}
+                disabled={isUploading || !inputText.trim() || !inputTitle.trim()}
+                className={`px-4 py-2 rounded-md ${
+                    isUploading || !inputText.trim() || !inputTitle.trim()
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+            >
+                {isUploading ? '正在上传...' : '确认上传'}
+            </button>
+        </div>
+      </div>
       )}
 
       {selectedSource === 'web' && (

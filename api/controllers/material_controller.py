@@ -296,17 +296,21 @@ def start_translation(material_id):
 def create_material_from_text():
     try:
         data = request.get_json()
-        if not data or 'content' not in data or 'factory_id' not in data:
-            return error_response("Missing content or factory_id", 400)
+        if not data or 'content' not in data or 'factory_id' not in data or 'title' not in data:
+            return error_response("Missing required fields: content, factory_id, or title", 400)
 
         content = data['content']
         factory_id = data['factory_id']
+        title = data['title'].strip()
         
         if not content.strip():
             return error_response("Empty content", 400)
+            
+        if not title:
+            return error_response("Empty title", 400)
 
-        # Generate a unique filename
-        filename = f"{str(uuid.uuid4())}.txt"
+        # 使用标题作为文件名（添加.txt后缀）
+        filename = f"{title}.txt"
         
         # Update data folder paths
         base_data_folder = os.path.join(os.getcwd(), 'data')
@@ -330,7 +334,7 @@ def create_material_from_text():
         file_size = len(content.encode('utf-8'))
         
         material = MaterialService.create_material(
-            title=filename,
+            title=title,  # 使用用户提供的标题
             file_type='txt',
             file_size=file_size,
             file_path=os.path.join('step1_get_txt', filename),

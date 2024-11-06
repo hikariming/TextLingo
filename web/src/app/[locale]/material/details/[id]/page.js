@@ -5,6 +5,8 @@ import React, { useState, useEffect } from 'react'
 import AIExplanation from './components/AIExplanation'
 import ReadingMaterials from './components/ReadingMaterials'
 import { MaterialsAPI } from '@/services/api'  // 修正导入路径
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import Link from 'next/link'
 
 
 export default function TranslationLearningPage() {
@@ -57,6 +59,22 @@ export default function TranslationLearningPage() {
       <main className="flex-1 overflow-auto p-6 bg-white">
         {loading ? (
           <div>加载或等待用户选择文字中😊...</div>
+        ) : segments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full">
+            <ExclamationTriangleIcon className="h-12 w-12 text-yellow-500 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              该材料尚未进行分段和翻译
+            </h2>
+            <p className="text-gray-600 mb-4">
+              请先完成材料的分段和翻译设置
+            </p>
+            <Link 
+              href={`/${params.locale}/material/create?materialId=${selectedMaterial}&step=2`}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              前往分段设置
+            </Link>
+          </div>
         ) : (
           <div>
             {/* 修改后的标题显示 */}
