@@ -1,5 +1,6 @@
 {
   "app": {
+    "locale": "en",
     "nav": {
       "library": "Text Library",
       "words": "Words",
@@ -18,6 +19,21 @@
     "common": {
       "cancel": "Cancel",
       "create": "Create"
+    },
+    "material": {
+      "loading": "Loading...",
+      "noDescription": "No description",
+      "actions": {
+        "import": "Import",
+        "manage": "Manage"
+      },
+      "createModal": {
+        "title": "Create Material Library",
+        "nameLabel": "Library Name",
+        "namePlaceholder": "Please enter library name",
+        "descriptionLabel": "Library Description",
+        "descriptionPlaceholder": "Please enter library description"
+      }
     }
   }
 }

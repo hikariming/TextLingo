@@ -27,24 +27,30 @@ export default function CreateMaterialModal({ isOpen, onClose, onSubmit }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold mb-4">{t('knowledge.create')}</h2>
+        <h2 className="text-xl font-bold mb-4">{t('material.createModal.title')}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">{t('knowledge.name')}</label>
+            <label className="block text-sm font-medium mb-1">
+              {t('material.createModal.nameLabel')}
+            </label>
             <input
               type="text"
               className="w-full border rounded-md p-2"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+              placeholder={t('material.createModal.namePlaceholder')}
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">{t('knowledge.description')}</label>
+            <label className="block text-sm font-medium mb-1">
+              {t('material.createModal.descriptionLabel')}
+            </label>
             <textarea
               className="w-full border rounded-md p-2"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+              placeholder={t('material.createModal.descriptionPlaceholder')}
               rows="3"
               required
             />

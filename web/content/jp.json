@@ -19,6 +19,21 @@
     "common": {
       "cancel": "キャンセル",
       "create": "作成"
+    },
+    "material": {
+      "loading": "読み込み中...",
+      "noDescription": "説明なし",
+      "actions": {
+        "import": "インポート",
+        "manage": "管理"
+      },
+      "createModal": {
+        "title": "素材ライブラリを作成",
+        "nameLabel": "ライブラリ名",
+        "namePlaceholder": "ライブラリ名を入力してください",
+        "descriptionLabel": "ライブラリの説明",
+        "descriptionPlaceholder": "ライブラリの説明を入力してください"
+      }
     }
   }
 }

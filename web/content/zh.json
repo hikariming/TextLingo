@@ -19,6 +19,21 @@
     "common": {
       "cancel": "取消",
       "create": "创建"
+    },
+    "material": {
+      "loading": "加载中...",
+      "noDescription": "暂无描述",
+      "actions": {
+        "import": "导入",
+        "manage": "管理"
+      },
+      "createModal": {
+        "title": "创建资料库",
+        "nameLabel": "资料库名称",
+        "namePlaceholder": "请输入资料库名称",
+        "descriptionLabel": "资料库描述",
+        "descriptionPlaceholder": "请输入资料库描述"
+      }
     }
   }
 }

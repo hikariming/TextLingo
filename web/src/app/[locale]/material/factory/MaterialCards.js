@@ -60,7 +60,7 @@ export default function MaterialCards() {
           ...(isLoading 
             ? [
                 <div key="loading" className="col-span-full text-center py-4">
-                  Loading...
+                  {t('material.loading')}
                 </div>
               ]
             : factories.map((factory) => (
@@ -72,21 +72,20 @@ export default function MaterialCards() {
                         <h3 className="text-lg font-medium ml-2 text-black">{factory.name}</h3>
                       </div>
                       <div className="text-gray-500 text-xs mb-3">
-                        {/* {factory.materials?.length || 0} 文档 ·  */}
-                        {factory.description || '暂无描述'}
+                        {factory.description || t('material.noDescription')}
                       </div>
                       <div className="flex gap-2 mt-6 pt-2 border-t">
                         <Link href={`/${t('locale')}/material/create?factoryId=${factory.id}`} className="flex-1">
                           <button className="flex items-center justify-center gap-1 text-xs text-gray-600 hover:text-blue-600 w-full py-0.5">
                             <ArrowUpTrayIcon className="w-3.5 h-3.5" />
-                            导入
+                            {t('material.actions.import')}
                           </button>
                         </Link>
                         <div className="w-px bg-gray-200"></div>
                         <Link href={`/${t('locale')}/material/manage/${factory.id}`} className="flex-1">
                           <button className="flex items-center justify-center gap-1 text-xs text-gray-600 hover:text-blue-600 flex-1 py-0.5">
                             <Cog6ToothIcon className="w-3.5 h-3.5" />
-                            管理
+                            {t('material.actions.manage')}
                           </button>
                         </Link>
                       </div>
