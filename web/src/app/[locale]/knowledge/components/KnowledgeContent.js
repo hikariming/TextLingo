@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { MagnifyingGlassIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 
-export default function KnowledgeContent({ initialKnowledge }) {
+export default function KnowledgeContent({ initialGrammars = [] }) {
   const [expandedItems, setExpandedItems] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -13,10 +13,9 @@ export default function KnowledgeContent({ initialKnowledge }) {
     )
   }
 
-  const filteredKnowledge = initialKnowledge.filter(item => 
+  const filteredKnowledge = initialGrammars.filter(item => 
     item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.sentence?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.translation?.toLowerCase().includes(searchTerm.toLowerCase())
+    item.explanation?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -40,9 +39,7 @@ export default function KnowledgeContent({ initialKnowledge }) {
         {filteredKnowledge.map((item) => (
           <div key={item.id} className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-black">
-                {item.type === 'grammar' ? item.title : '句子分析'}
-              </h3>
+              <h3 className="text-lg font-medium text-black">{item.title}</h3>
               <button
                 onClick={() => toggleExpand(item.id)}
                 className="text-blue-600 hover:text-blue-700"
@@ -54,39 +51,16 @@ export default function KnowledgeContent({ initialKnowledge }) {
               </button>
             </div>
 
-            {item.type === 'grammar' ? (
-              <div>
-                <p className="text-sm text-gray-600 mb-2">{item.explanation}</p>
-                {expandedItems.includes(item.id) && (
-                  <div className="mt-4">
-                    <h4 className="font-semibold mb-2 text-black">例句：</h4>
-                    {item.examples.map((example, index) => (
-                      <div key={index} className="mb-3 p-2 bg-gray-50 rounded">
-                        <p className="font-medium text-black">{example.sentence}</p>
-                        <p className="text-sm text-gray-600">{example.translation}</p>
-                        <p className="text-xs text-gray-500">{example.explanation}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div>
-                <p className="font-medium text-black">{item.sentence}</p>
-                <p className="text-sm text-gray-600 mb-2">{item.translation}</p>
-                {expandedItems.includes(item.id) && (
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-600">{item.explanation}</p>
-                    <h4 className="font-semibold mt-2 mb-1 text-black">语法要点：</h4>
-                    <ul className="list-disc list-inside text-sm text-gray-600">
-                      {item.grammarPoints?.map((point, index) => (
-                        <li key={index}>{point}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
+            <div>
+              <p className="text-sm text-gray-600 mb-2">{item.explanation}</p>
+              {expandedItems.includes(item.id) && (
+                <div className="mt-4">
+                  {item.sourceSegmentId && (
+                    <p className="text-xs text-gray-500">来源ID: {item.sourceSegmentId}</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>
