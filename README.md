@@ -1,38 +1,44 @@
 # TextLingo📕
 
-TextLingo是一款创新的外语阅读与学习工具，它让您可以使用任何感兴趣的文本内容来学习外语，将枯燥的语言学习转变为充满乐趣的阅读体验。
+TextLingo is an innovative foreign language reading and learning tool that allows you to learn foreign languages using any text content of interest, transforming boring language learning into an enjoyable reading experience.
+
+TextLingo uses AI technology to intelligently analyze texts and provides detailed grammar explanations and word definitions to help you better understand the content.
+
+[中文文档](README_cn.md)
 
 
-TextLingo通过AI技术，对文本进行智能分析，并提供详细的语法讲解、单词解释等功能，帮助您更好地理解文本内容。
+![TextLingo Main Interface](docs/img/main_page.png)
 
-![TextLingo主界面](docs/img/main_page.png)
+## Core Features
 
-## 核心特性
+- 🎯 **Smart Text Import**: One-click import of multiple formats (URL, Word, Markdown, etc.), automatic translation and learning vocabulary generation
+- 📖 **Immersive Reading Experience**:
+  - Professional reader interface design
+  - Real-time language switching
+  - Instant word lookup and grammar parsing
+- 🔍 **Deep Learning Assistance**:
+  - Intelligent word explanations
+  - Detailed grammar explanations (supports Chinese-Japanese-English translation)
+  - Context understanding support
+  - Pronunciation guidance and correction
 
-- 🎯 **智能文本导入**：支持多种格式（URL、Word、Markdown等）的一键导入，自动翻译并生成学习词汇
-- 📖 **沉浸式阅读体验**：
-  - 专业的阅读器界面设计
-  - 多语言实时切换
-  - 实时查词与语法解析
-- 🔍 **深度学习辅助**：
-  - 智能单词解释
-  - 详细语法讲解（支持中日英三语互译）
-  - 上下文理解支持
-  - 发音指导与纠正
+## Coming Soon
+- 📝 Text Intelligent Dialogue: Supports highlight learning and real-time Q&A
+- 📚 Personalized Exercise System: Targeted word and grammar practice
 
-## 即将推出
-- 📝 文本智能对话：支持划线学习与实时问答
-- 📚 个性化练习系统：针对性的单词与语法练习
+# How to Run
 
-## 支持语言
-- 🇨🇳 中文 (简体)
+Refer to [Running Documentation](api/docs/HowToRun_en.md)
+
+## Supported Languages
+- 🇨🇳 Chinese (Simplified)
 - 🇺🇸 English
-- 🇯🇵 日本語
-  - 支持假名标注
-  - 自动语法分析
-- 更多语言敬请期待，或提交pr或issue
+- 🇯🇵 Japanese
+  - Supports kana notation
+  - Automatic grammar analysis
+- More languages coming soon, or submit PR or issue
 
-## 当前版本
+## Current Version
 
-开发版v0.1.0
-运行开发版方式请查看运行文档
+Development version v0.1.0
+Please check the running documentation for how to run the development version
