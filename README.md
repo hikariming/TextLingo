@@ -2,7 +2,7 @@
 
 TextLingo is an innovative foreign language reading and learning tool that allows you to learn foreign languages using any text content of interest, transforming boring language learning into an enjoyable reading experience.
 
-TextLingo uses AI technology to intelligently analyze texts and provides detailed grammar explanations and word definitions to help you better understand the content.
+TextLingo uses AI to analyze texts and provides detailed grammar explanations and word definitions to help you better understand the content.
 
 [中文文档](README_cn.md)
 
