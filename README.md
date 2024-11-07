@@ -37,7 +37,7 @@ TextLingo uses AI technology to intelligently analyze texts and provides detaile
 
 # How to Run
 
-Refer to [Running Documentation](api/docs/HowToRun_en.md)
+Refer to [Running Documentation](docs/HowToRun_en.md)
 
 ## Supported Languages
 - 🇨🇳 Chinese (Simplified)

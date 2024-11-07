@@ -26,7 +26,7 @@ TextLingo通过AI技术，对文本进行智能分析，并提供详细的语法
 
 # 运行方式
 
-参考 [运行文档](api/docs/HowToRun_cn.md)
+参考 [运行文档](docs/HowToRun_cn.md)
 
 
 ## 支持语言
