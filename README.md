@@ -1,11 +1,11 @@
 <div align="center">
 
-<img src="/docs/logo.png" alt="TextLingo Logo" height="140">
+<img src="/docs/img/logo.png" alt="TextLingo Logo" height="140">
 
 # TextLingo📕
 <p align="center">
   <a href="https://www.python.org" target="_blank"><img src="https://img.shields.io/badge/Python-3.10-blue.svg" alt="Python"></a>
-  <a href="https://github.com/YourUsername/TextLingo/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/YourUsername/TextLingo.svg" alt="GitHub stars"></a>
+  <a href="https://github.com/hikariming/TextLingo/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/YourUsername/TextLingo.svg" alt="GitHub stars"></a>
 </p>
 
 [**English**](/README.md)｜[**中文**](/README_cn.md)
