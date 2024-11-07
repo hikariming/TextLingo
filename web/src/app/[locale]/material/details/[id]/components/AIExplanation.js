@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { ChatBubbleLeftRightIcon, StarIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { VocabularyAPI } from '@/services/api'
+import { toast } from 'react-hot-toast' // 需要安装 react-hot-toast
 
 export default function AIExplanation({ selectedSentence, content }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -11,6 +13,34 @@ export default function AIExplanation({ selectedSentence, content }) {
   const dragStartWidth = useRef(0)
   const longPressTimer = useRef(null)
   const isLongPress = useRef(false)
+  const [savedWordsMap, setSavedWordsMap] = useState({})
+
+  // 当解释内容更新时,检查所有单词的收藏状态
+  useEffect(() => {
+    const checkSavedStatus = async () => {
+      // 确保选中了句子且有词汇数据
+      const selectedSegment = content?.find(
+        segment => segment.original === selectedSentence
+      )
+      
+      if (!selectedSegment?.vocabulary?.length) return
+      
+      try {
+        // 获取当前选中段落中的所有单词
+        const wordsToCheck = selectedSegment.vocabulary.map(vocab => vocab.word)
+        
+        // 批量检查收藏状态
+        const response = await VocabularyAPI.checkSavedWords(wordsToCheck)
+        if (response.success) {
+          setSavedWordsMap(response.data)
+        }
+      } catch (error) {
+        console.error('检查收藏状态失败:', error)
+      }
+    }
+
+    checkSavedStatus()
+  }, [selectedSentence, content]) // 当选中的句子或内容变化时重新检查
 
   // 处理拖动开始
   const handleDragStart = (e) => {
@@ -74,6 +104,41 @@ export default function AIExplanation({ selectedSentence, content }) {
     segment => segment.original === selectedSentence
   )
 
+  // 处理收藏/取消收藏单词
+  const handleSaveVocabulary = async (vocab) => {
+    try {
+      if (savedWordsMap[vocab.word]) {
+        // 取消收藏
+        await VocabularyAPI.delete(savedWordsMap[vocab.word])
+        setSavedWordsMap(prev => {
+          const newMap = { ...prev }
+          delete newMap[vocab.word]
+          return newMap
+        })
+        toast.success('已取消收藏')
+      } else {
+        // 添加收藏
+        const response = await VocabularyAPI.create({
+          word: vocab.word,
+          reading: vocab.reading || '',
+          meaning: vocab.meaning,
+          source_segment_id: selectedSegment?._id
+        })
+        
+        if (response.success) {
+          setSavedWordsMap(prev => ({
+            ...prev,
+            [vocab.word]: response.data._id
+          }))
+          toast.success('单词已添加到生词本')
+        }
+      }
+    } catch (error) {
+      console.error('操作失败:', error)
+      toast.error('操作失败，请重试')
+    }
+  }
+
   return (
     <aside className={`relative flex transition-all duration-300 ease-in-out ${isCollapsed ? 'w-12' : ''}`}>
       {/* 拖动条 */}
@@ -134,11 +199,18 @@ export default function AIExplanation({ selectedSentence, content }) {
                         </div>
                         <button 
                           className="group relative p-1 hover:bg-gray-100 rounded-full"
+                          onClick={() => handleSaveVocabulary(vocab)}
                           aria-label="添加到生词本"
                         >
-                          <StarIcon className="h-5 w-5 text-gray-400 hover:text-yellow-400" />
+                          <StarIcon 
+                            className={`h-5 w-5 ${
+                              savedWordsMap[vocab.word]
+                                ? 'text-yellow-400' 
+                                : 'text-gray-400 hover:text-yellow-400'
+                            }`} 
+                          />
                           <span className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                            添加到生词本
+                            {savedWordsMap[vocab.word] ? '取消收藏' : '添加到生词本'}
                           </span>
                         </button>
                       </div>

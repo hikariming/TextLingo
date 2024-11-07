@@ -3,9 +3,8 @@ from mongoengine.errors import DoesNotExist
 
 class UserVocabularyService:
     @staticmethod
-    def create_vocabulary(user_id, word, meaning, reading=None, source_segment_id=None):
+    def create_vocabulary(word, meaning, reading=None, source_segment_id=None):
         vocabulary = UserVocabulary(
-            user_id=user_id,
             word=word,
             meaning=meaning,
             reading=reading,
@@ -22,10 +21,10 @@ class UserVocabularyService:
             return None
 
     @staticmethod
-    def list_user_vocabularies(user_id, page=1, per_page=20):
+    def list_vocabularies(page=1, per_page=20):
         skip = (page - 1) * per_page
-        vocabularies = UserVocabulary.objects(user_id=user_id).order_by('-created_at').skip(skip).limit(per_page)
-        total = UserVocabulary.objects(user_id=user_id).count()
+        vocabularies = UserVocabulary.objects.order_by('-created_at').skip(skip).limit(per_page)
+        total = UserVocabulary.objects.count()
         return {
             'items': [v.to_dict() for v in vocabularies],
             'total': total,

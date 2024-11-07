@@ -174,3 +174,67 @@ export const MaterialsAPI = {
     return response.json()
   },
 }
+
+// 在 api.js 中添加 VocabularyAPI
+export const VocabularyAPI = {
+  // 添加生词
+  create: async (data) => {
+    const response = await fetch(`${API_BASE_URL}/vocabularies`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify(data)
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || '添加生词失败')
+    }
+    return response.json()
+  },
+
+  // 获取生词列表
+  getList: async (page = 1, perPage = 20) => {
+    const response = await fetch(
+      `${API_BASE_URL}/vocabularies?page=${page}&per_page=${perPage}`,
+      {
+        method: 'GET',
+        headers: defaultHeaders
+      }
+    )
+    if (!response.ok) throw new Error('获取生词列表失败')
+    return response.json()
+  },
+
+  // 获取所有已收藏的单词
+  getAllSavedWords: async () => {
+    const response = await fetch(`${API_BASE_URL}/vocabularies`, {
+      method: 'GET',
+      headers: defaultHeaders
+    })
+    if (!response.ok) throw new Error('获取收藏单词失败')
+    return response.json()
+  },
+
+  // 删除收藏的单词
+  delete: async (vocabularyId) => {
+    const response = await fetch(`${API_BASE_URL}/vocabularies/${vocabularyId}`, {
+      method: 'DELETE',
+      headers: defaultHeaders
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || '取消收藏失败')
+    }
+    return response.json()
+  },
+
+  // 批量检查单词是否已收藏
+  checkSavedWords: async (words) => {
+    const response = await fetch(`${API_BASE_URL}/vocabularies/check`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify({ words })
+    })
+    if (!response.ok) throw new Error('检查收藏状态失败')
+    return response.json()
+  }
+}

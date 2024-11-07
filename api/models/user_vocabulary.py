@@ -1,15 +1,13 @@
 from datetime import datetime
-from mongoengine import Document, StringField, ReferenceField, DateTimeField
+from mongoengine import Document, StringField, DateTimeField
 
 class UserVocabulary(Document):
     """用户收藏的词汇
-    user_id: 用户ID
     word: 单词/词组原文
     reading: 读音
     meaning: 含义解释
     source_segment_id: 来源段落ID（可选）
     """
-    user_id = StringField(required=True)
     word = StringField(required=True)
     reading = StringField()
     meaning = StringField(required=True)
@@ -21,8 +19,7 @@ class UserVocabulary(Document):
     meta = {
         'collection': 'user_vocabularies',
         'indexes': [
-            'user_id',
-            ('user_id', 'word'),  # 复合索引，防止用户重复收藏
+            'word',  # 单词索引
             'created_at'
         ]
     }
@@ -34,11 +31,23 @@ class UserVocabulary(Document):
     def to_dict(self):
         return {
             "_id": str(self.id),
-            "user_id": self.user_id,
             "word": self.word,
             "reading": self.reading,
             "meaning": self.meaning,
             "source_segment_id": self.source_segment_id,
             "created_at": self.created_at,
             "updated_at": self.updated_at
+        }
+
+    @classmethod
+    def check_words_saved(cls, words):
+        """
+        批量检查多个单词是否已被收藏
+        :param words: 单词列表
+        :return: {word: vocabulary_id} 的字典
+        """
+        saved_words = cls.objects(word__in=words).only('word', 'id')
+        return {
+            vocab.word: str(vocab.id) 
+            for vocab in saved_words
         }
