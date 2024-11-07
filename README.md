@@ -1,11 +1,20 @@
+<div align="center">
+
+<img src="/docs/logo.png" alt="TextLingo Logo" height="140">
+
 # TextLingo📕
+<p align="center">
+  <a href="https://www.python.org" target="_blank"><img src="https://img.shields.io/badge/Python-3.10-blue.svg" alt="Python"></a>
+  <a href="https://github.com/YourUsername/TextLingo/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/YourUsername/TextLingo.svg" alt="GitHub stars"></a>
+</p>
+
+[**English**](/README.md)｜[**中文**](/README_cn.md)
+
+</div>
 
 TextLingo is an innovative foreign language reading and learning tool that allows you to learn foreign languages using any text content of interest, transforming boring language learning into an enjoyable reading experience.
 
-TextLingo uses AI to analyze texts and provides detailed grammar explanations and word definitions to help you better understand the content.
-
-[中文文档](README_cn.md)
-
+TextLingo uses AI technology to intelligently analyze texts and provides detailed grammar explanations and word definitions to help you better understand the content.
 
 ![TextLingo Main Interface](docs/img/main_page.png)
 
