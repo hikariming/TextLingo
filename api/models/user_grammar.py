@@ -2,13 +2,11 @@ from datetime import datetime
 from mongoengine import Document, StringField, ReferenceField, DateTimeField
 
 class UserGrammar(Document):
-    """用户收藏的语法点
-    user_id: 用户ID
+    """语法点
     name: 语法点名称
     explanation: 语法解释
     source_segment_id: 来源段落ID（可选）
     """
-    user_id = StringField(required=True)
     name = StringField(required=True)
     explanation = StringField(required=True)
     source_segment_id = StringField()  # 可选，记录语法点来源
@@ -19,8 +17,7 @@ class UserGrammar(Document):
     meta = {
         'collection': 'user_grammars',
         'indexes': [
-            'user_id',
-            ('user_id', 'name'),  # 复合索引，防止用户重复收藏
+            'name',  # 单独索引
             'created_at'
         ]
     }
@@ -32,7 +29,6 @@ class UserGrammar(Document):
     def to_dict(self):
         return {
             "_id": str(self.id),
-            "user_id": self.user_id,
             "name": self.name,
             "explanation": self.explanation,
             "source_segment_id": self.source_segment_id,

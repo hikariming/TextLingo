@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChatBubbleLeftRightIcon, StarIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { VocabularyAPI } from '@/services/api'
+import { GrammarAPI } from '@/services/api'
 import { toast } from 'react-hot-toast' // 需要安装 react-hot-toast
 
 export default function AIExplanation({ selectedSentence, content }) {
@@ -14,6 +15,7 @@ export default function AIExplanation({ selectedSentence, content }) {
   const longPressTimer = useRef(null)
   const isLongPress = useRef(false)
   const [savedWordsMap, setSavedWordsMap] = useState({})
+  const [savedGrammarsMap, setSavedGrammarsMap] = useState({})
 
   // 当解释内容更新时,检查所有单词的收藏状态
   useEffect(() => {
@@ -41,6 +43,29 @@ export default function AIExplanation({ selectedSentence, content }) {
 
     checkSavedStatus()
   }, [selectedSentence, content]) // 当选中的句子或内容变化时重新检查
+
+  // 添加检查语法点状态的效果
+  useEffect(() => {
+    const checkGrammarStatus = async () => {
+      const selectedSegment = content?.find(
+        segment => segment.original === selectedSentence
+      )
+      
+      if (!selectedSegment?.grammar?.length) return
+      
+      try {
+        const grammarsToCheck = selectedSegment.grammar.map(gram => gram.name)
+        const response = await GrammarAPI.checkSavedGrammars(grammarsToCheck)
+        if (response.success) {
+          setSavedGrammarsMap(response.data)
+        }
+      } catch (error) {
+        console.error('检查语法点状态失败:', error)
+      }
+    }
+
+    checkGrammarStatus()
+  }, [selectedSentence, content])
 
   // 处理拖动开始
   const handleDragStart = (e) => {
@@ -131,6 +156,40 @@ export default function AIExplanation({ selectedSentence, content }) {
             [vocab.word]: response.data._id
           }))
           toast.success('单词已添加到生词本')
+        }
+      }
+    } catch (error) {
+      console.error('操作失败:', error)
+      toast.error('操作失败，请重试')
+    }
+  }
+
+  // 添加处理保存语法点的函数
+  const handleSaveGrammar = async (grammar) => {
+    try {
+      if (savedGrammarsMap[grammar.name]) {
+        // 取消保存
+        await GrammarAPI.delete(savedGrammarsMap[grammar.name])
+        setSavedGrammarsMap(prev => {
+          const newMap = { ...prev }
+          delete newMap[grammar.name]
+          return newMap
+        })
+        toast.success('已取消保存语法点')
+      } else {
+        // 添加保存
+        const response = await GrammarAPI.create({
+          name: grammar.name,
+          explanation: grammar.explanation,
+          source_segment_id: selectedSegment?._id
+        })
+        
+        if (response.success) {
+          setSavedGrammarsMap(prev => ({
+            ...prev,
+            [grammar.name]: response.data._id
+          }))
+          toast.success('语法点已保存')
         }
       }
     } catch (error) {
@@ -232,11 +291,18 @@ export default function AIExplanation({ selectedSentence, content }) {
                         </div>
                         <button 
                           className="group relative p-1 hover:bg-gray-100 rounded-full flex-shrink-0"
+                          onClick={() => handleSaveGrammar(point)}
                           aria-label="添加到语法笔记"
                         >
-                          <StarIcon className="h-5 w-5 text-gray-400 hover:text-yellow-400" />
+                          <StarIcon 
+                            className={`h-5 w-5 ${
+                              savedGrammarsMap[point.name]
+                                ? 'text-yellow-400' 
+                                : 'text-gray-400 hover:text-yellow-400'
+                            }`}
+                          />
                           <span className="absolute -top-8 right-0 hidden group-hover:block bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                            添加到语法笔记
+                            {savedGrammarsMap[point.name] ? '取消保存' : '添加到语法笔记'}
                           </span>
                         </button>
                       </li>

@@ -238,3 +238,56 @@ export const VocabularyAPI = {
     return response.json()
   }
 }
+
+export const GrammarAPI = {
+  // 添加语法点
+  create: async (data) => {
+    const response = await fetch(`${API_BASE_URL}/grammars`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify(data)
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || '添加语法点失败')
+    }
+    return response.json()
+  },
+
+  // 获取语法点列表
+  getList: async (page = 1, perPage = 20) => {
+    const response = await fetch(
+      `${API_BASE_URL}/grammars?page=${page}&per_page=${perPage}`,
+      {
+        method: 'GET',
+        headers: defaultHeaders
+      }
+    )
+    if (!response.ok) throw new Error('获取语法点列表失败')
+    return response.json()
+  },
+
+  // 删除语法点
+  delete: async (grammarId) => {
+    const response = await fetch(`${API_BASE_URL}/grammars/${grammarId}`, {
+      method: 'DELETE',
+      headers: defaultHeaders
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || '删除语法点失败')
+    }
+    return response.json()
+  },
+
+  // 批量检查语法点是否已保存
+  checkSavedGrammars: async (names) => {
+    const response = await fetch(`${API_BASE_URL}/grammars/check`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify({ names })
+    })
+    if (!response.ok) throw new Error('检查语法点状态失败')
+    return response.json()
+  }
+}

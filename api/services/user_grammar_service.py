@@ -3,9 +3,8 @@ from mongoengine.errors import DoesNotExist
 
 class UserGrammarService:
     @staticmethod
-    def create_grammar(user_id, name, explanation, source_segment_id=None):
+    def create_grammar(name, explanation, source_segment_id=None):
         grammar = UserGrammar(
-            user_id=user_id,
             name=name,
             explanation=explanation,
             source_segment_id=source_segment_id
@@ -21,10 +20,10 @@ class UserGrammarService:
             return None
 
     @staticmethod
-    def list_user_grammars(user_id, page=1, per_page=20):
+    def list_grammars(page=1, per_page=20):
         skip = (page - 1) * per_page
-        grammars = UserGrammar.objects(user_id=user_id).order_by('-created_at').skip(skip).limit(per_page)
-        total = UserGrammar.objects(user_id=user_id).count()
+        grammars = UserGrammar.objects.order_by('-created_at').skip(skip).limit(per_page)
+        total = UserGrammar.objects.count()
         return {
             'items': [g.to_dict() for g in grammars],
             'total': total,
@@ -50,3 +49,10 @@ class UserGrammarService:
             return grammar
         except DoesNotExist:
             return None
+
+    @staticmethod
+    def check_grammars_saved(names):
+        saved_grammars = {}
+        for grammar in UserGrammar.objects(name__in=names):
+            saved_grammars[grammar.name] = str(grammar.id)
+        return saved_grammars
