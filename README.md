@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="/docs/img/logo.png" alt="TextLingo Logo" height="140">
+<!-- <img src="/docs/img/logo.png" alt="TextLingo Logo" height="140"> -->
 
 # TextLingo📕
 <p align="center">
