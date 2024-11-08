@@ -29,6 +29,7 @@ def create_app():
     from controllers.material_segment_controller import material_segment_bp
     from controllers.user_vocabulary_controller import vocabulary_bp
     from controllers.user_grammar_controller import grammar_bp
+    from controllers.setting_controller import setting_bp
     
     app.register_blueprint(user_bp, url_prefix='/api')
     app.register_blueprint(material_bp, url_prefix='/api')
@@ -36,7 +37,7 @@ def create_app():
     app.register_blueprint(material_segment_bp, url_prefix='/api')
     app.register_blueprint(vocabulary_bp, url_prefix='/api')
     app.register_blueprint(grammar_bp, url_prefix='/api')
-    
+    app.register_blueprint(setting_bp, url_prefix='/api')
     @app.route('/api/test', methods=['GET'])
     def test_cors():
         return jsonify({"message": "CORS test successful"})

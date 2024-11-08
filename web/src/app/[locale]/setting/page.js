@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import Navbar from '../../components/navigation/NavbarClient'
+import { SettingAPI } from '../../../services/api'
 
 export default function SettingPage() {
   const t = useTranslations('app.setting')
@@ -22,8 +23,7 @@ export default function SettingPage() {
 
   const fetchConfig = async () => {
     try {
-      const response = await fetch('/api/config')
-      const data = await response.json()
+      const data = await SettingAPI.getConfig()
       setConfig(data)
     } catch (error) {
       setMessage('加载配置失败')
@@ -34,18 +34,8 @@ export default function SettingPage() {
     e.preventDefault()
     setIsSaving(true)
     try {
-      const response = await fetch('/api/config', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(config),
-      })
-      if (response.ok) {
-        setMessage('保存成功')
-      } else {
-        setMessage('保存失败')
-      }
+      await SettingAPI.updateConfig(config)
+      setMessage('保存成功')
     } catch (error) {
       setMessage('保存失败')
     }
@@ -81,15 +71,27 @@ export default function SettingPage() {
 
           <div>
             <label className="block text-sm font-medium mb-2">{t('model')}</label>
-            <select
-              value={config.llm_model}
-              onChange={(e) => setConfig({...config, llm_model: e.target.value})}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
-              <option value="gpt-4">GPT-4</option>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={config.llm_model}
+                onChange={(e) => setConfig({...config, llm_model: e.target.value})}
+                className="w-2/3 p-2 border rounded-md"
+              >
+                <option value="">自定义输入</option>
+                <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (20241022)</option>
+                <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet (20240620)</option>
+                <option value="deepseek-chat">Deepseek Chat</option>
+              </select>
+              {!config.llm_model && (
+                <input
+                  type="text"
+                  placeholder="输入模型名称"
+                  value={config.llm_model}
+                  onChange={(e) => setConfig({...config, llm_model: e.target.value})}
+                  className="w-1/3 p-2 border rounded-md"
+                />
+              )}
+            </div>
           </div>
 
           <div>

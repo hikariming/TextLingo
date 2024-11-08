@@ -291,3 +291,29 @@ export const GrammarAPI = {
     return response.json()
   }
 }
+
+export const SettingAPI = {
+  // 获取配置
+  getConfig: async () => {
+    const response = await fetch(`${API_BASE_URL}/setting`, {
+      method: 'GET',
+      headers: defaultHeaders
+    })
+    if (!response.ok) throw new Error('获取配置失败')
+    return response.json()
+  },
+
+  // 更新配置
+  updateConfig: async (config) => {
+    const response = await fetch(`${API_BASE_URL}/setting`, {
+      method: 'PUT',
+      headers: defaultHeaders,
+      body: JSON.stringify(config)
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || '更新配置失败')
+    }
+    return response.json()
+  }
+}
