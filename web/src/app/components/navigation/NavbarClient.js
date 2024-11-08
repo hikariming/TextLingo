@@ -1,6 +1,6 @@
 'use client'
 
-import { Bars3Icon, BookOpenIcon, DocumentTextIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, BookOpenIcon, DocumentTextIcon, AcademicCapIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
 import LanguageSwitcher from '../LanguageSwitcher'
 import { useTranslations, useLocale } from 'next-intl'
 import { usePathname } from 'next/navigation'
@@ -15,6 +15,7 @@ export default function NavbarClient({ currentLocale }) {
     { name: t('nav.library'), href: `/${locale}/`, icon: BookOpenIcon },
     { name: t('nav.words'), href: `/${locale}/words`, icon: DocumentTextIcon },
     { name: t('nav.knowledge'), href: `/${locale}/knowledge`, icon: AcademicCapIcon },
+    { name: t('nav.setting'), href: `/${locale}/setting`, icon: Cog6ToothIcon },
   ]
 
   const isActiveLink = (href) => {

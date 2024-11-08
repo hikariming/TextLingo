@@ -5,6 +5,7 @@
       "library": "テキストライブラリ",
       "words": "単語",
       "knowledge": "知識",
+      "setting": "設定",
       "logoAlt": "会社名",
       "openMenu": "メインメニューを開く"
     },
@@ -76,6 +77,17 @@
       "selectDataSource": "データソースを選択",
       "textSegmentationAndTranslation": "テキストの分割と翻訳",
       "processAndComplete": "処理と完了"
+    },
+    "setting": {
+      "title": "モデル設定",
+      "apiKey": "APIキー",
+      "baseUrl": "APIベースURL",
+      "model": "モデル名",
+      "save": "設定を保存",
+      "saving": "保存中...",
+      "saveSuccess": "設定の保存に成功しました",
+      "saveError": "設定の保存に失敗しました",
+      "loadError": "設定の読み込みに失敗しました"
     }
   }
 }

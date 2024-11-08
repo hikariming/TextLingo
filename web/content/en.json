@@ -5,6 +5,7 @@
       "library": "Text Library",
       "words": "Words",
       "knowledge": "Knowledge",
+      "setting": "Setting",
       "logoAlt": "Company Name",
       "openMenu": "Open main menu"
     },
@@ -42,7 +43,7 @@
             "title": "Import Existing Text",
             "dragText": "Drag & drop files here, or",
             "selectFile": "Select File",
-            "supportedFormats": "Supports TXT, MARKDOWN, DOCX formats, file size不超过15MB",
+            "supportedFormats": "Supports TXT, MARKDOWN, DOCX formats, file size less than 15MB",
             "uploading": "Uploading file...",
             "sizeError": "File size must be less than 15MB",
             "typeError": "Unsupported file format",
@@ -69,6 +70,17 @@
       "selectDataSource": "Select Data Source",
       "textSegmentationAndTranslation": "Text Segmentation and Translation",
       "processAndComplete": "Process and Complete"
+    },
+    "setting": {
+      "title": "Model Settings",
+      "apiKey": "API Key",
+      "baseUrl": "API Base URL",
+      "model": "Model Name",
+      "save": "Save Settings",
+      "saving": "Saving...",
+      "saveSuccess": "Settings saved successfully",
+      "saveError": "Failed to save settings",
+      "loadError": "Failed to load settings"
     }
   }
 }

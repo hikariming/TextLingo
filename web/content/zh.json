@@ -5,6 +5,7 @@
       "library": "素材库",
       "words": "单词",
       "knowledge": "知识",
+      "setting": "设置",
       "logoAlt": "公司名称",
       "openMenu": "打开主菜单"
     },
@@ -70,6 +71,17 @@
       "selectDataSource": "选择数据源",
       "textSegmentationAndTranslation": "文本分割和翻译",
       "processAndComplete": "处理和完成"
+    },
+    "setting": {
+      "title": "模型设置",
+      "apiKey": "API Key",
+      "baseUrl": "API Base URL",
+      "model": "Model Name",
+      "save": "保存设置",
+      "saving": "保存中...",
+      "saveSuccess": "设置保存成功",
+      "saveError": "设置保存失败",
+      "loadError": "设置加载失败"
     }
   }
 }
