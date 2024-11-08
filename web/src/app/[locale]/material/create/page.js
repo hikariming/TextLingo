@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import FirstStep from './components/firstStep'
 import SecondStep from './components/secondStep'
 import ThirdStep from './components/thirdStep'
@@ -8,6 +9,7 @@ import Link from 'next/link'
 import Navbar from '@/app/components/navigation/Navbar'
 
 export default function TextKnowledge() {
+  const t = useTranslations('app')
   const [currentStep, setCurrentStep] = useState(1)
   const [materialId, setMaterialId] = useState(null)
   const [translationConfig, setTranslationConfig] = useState({
@@ -34,9 +36,9 @@ export default function TextKnowledge() {
   }, [factoryId])
 
   const steps = [
-    { id: 1, title: '选择数据源', current: currentStep === 1 },
-    { id: 2, title: '文本分段与翻译', current: currentStep === 2 },
-    { id: 3, title: '处理并完成', current: currentStep === 3 }
+    { id: 1, title: t('steps.selectDataSource'), current: currentStep === 1 },
+    { id: 2, title: t('steps.textSegmentationAndTranslation'), current: currentStep === 2 },
+    { id: 3, title: t('steps.processAndComplete'), current: currentStep === 3 }
   ]
 
   const handleNext = (data) => {
@@ -73,7 +75,7 @@ export default function TextKnowledge() {
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                创建素材库
+                {t('knowledge.create')}
               </Link>
             </div>
             

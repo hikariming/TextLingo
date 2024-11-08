@@ -6,3 +6,4 @@ api/config.yml
 !api/config.example.yml
 api/data/*
 .DS_Store
+api/textlingo/

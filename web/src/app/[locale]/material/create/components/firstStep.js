@@ -3,8 +3,10 @@ import { useState, useRef } from 'react'
 import { MaterialsAPI } from '@/services/api'
 import { useSearchParams } from 'next/navigation'
 import toast, { Toaster } from 'react-hot-toast';
+import { useTranslations } from 'next-intl'
 
 export default function DataSourceSelector({ onNext }) {
+  const t = useTranslations('app.material.create')
   const [selectedSource, setSelectedSource] = useState('text')
   const [inputText, setInputText] = useState('')
   const [webUrl, setWebUrl] = useState('')
@@ -23,18 +25,18 @@ export default function DataSourceSelector({ onNext }) {
     {
       id: 'text',
       icon: '📄',
-      title: '导入已有文本',
+      title: t('sources.existingText.title'),
       primary: true
     },
     {
       id: 'input',
       icon: 'N',
-      title: '直接输入文本'
+      title: t('sources.directInput.title')
     },
     {
       id: 'web',
       icon: '🌐',
-      title: '同步自 Web 站点(会消耗Token)'
+      title: t('sources.web.title')
     }
   ]
 
@@ -71,40 +73,31 @@ export default function DataSourceSelector({ onNext }) {
   }
 
   const handleFile = async (file) => {
-    // Check file size (15MB)
     if (file.size > 15 * 1024 * 1024) {
-      alert('文件大小不能超过15MB')
+      alert(t('sources.existingText.sizeError'))
       return
     }
 
-    // Check file type
     const extension = file.name.split('.').pop().toLowerCase()
     const allowedTypes = ['txt', 'markdown', 'pdf', 'html', 'xlsx', 'xls', 'docx', 'csv', 'md', 'htm']
     if (!allowedTypes.includes(extension)) {
-      alert('不支持的文件类型')
+      alert(t('sources.existingText.typeError'))
       return
     }
 
     setIsUploading(true)
     try {
       const res = await MaterialsAPI.uploadFile(file, factoryId)
-      console.log('res', res)
       setIsUploaded(true)
       setMaterialId(res.data._id)
-      toast.success('文件上传成功！', {
+      toast.success(t('sources.existingText.uploadSuccess'), {
         duration: 3000,
-        style: {
-          background: '#22c55e',
-          color: '#fff',
-        },
+        style: { background: '#22c55e', color: '#fff' },
       })
     } catch (error) {
-      toast.error('文件上传失败: ' + error.message, {
+      toast.error(t('sources.existingText.uploadError') + error.message, {
         duration: 3000,
-        style: {
-          background: '#ef4444',
-          color: '#fff',
-        },
+        style: { background: '#ef4444', color: '#fff' },
       })
       setIsUploaded(false)
     } finally {
@@ -114,16 +107,12 @@ export default function DataSourceSelector({ onNext }) {
 
   const handleTextSubmit = async () => {
     if (!inputText.trim()) {
-      toast.error('请输入文本内容', {
-        duration: 3000,
-      })
+      toast.error(t('sources.directInput.emptyContent'), { duration: 3000 })
       return
     }
     
     if (!inputTitle.trim()) {
-      toast.error('请输入标题', {
-        duration: 3000,
-      })
+      toast.error(t('sources.directInput.emptyTitle'), { duration: 3000 })
       return
     }
 
@@ -137,20 +126,14 @@ export default function DataSourceSelector({ onNext }) {
       const res = await MaterialsAPI.uploadText(uploaddata)
       setIsUploaded(true)
       setMaterialId(res.data._id)
-      toast.success('文本上传成功！', {
+      toast.success(t('sources.directInput.uploadSuccess'), {
         duration: 3000,
-        style: {
-          background: '#22c55e',
-          color: '#fff',
-        },
+        style: { background: '#22c55e', color: '#fff' },
       })
     } catch (error) {
-      toast.error('文本上传失败: ' + error.message, {
+      toast.error(t('sources.directInput.uploadError') + error.message, {
         duration: 3000,
-        style: {
-          background: '#ef4444',
-          color: '#fff',
-        },
+        style: { background: '#ef4444', color: '#fff' },
       })
       setIsUploaded(false)
     } finally {
@@ -185,16 +168,16 @@ export default function DataSourceSelector({ onNext }) {
             <ArrowUpTrayIcon className="mx-auto h-10 w-10 text-gray-400" />
             <div className="mt-3">
               <p className="text-gray-600 text-sm">
-                拖拽文件至此，或者{' '}
+                {t('sources.existingText.dragText')}
                 <button 
                   className="text-blue-600 hover:text-blue-700"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  选择文件
+                  {t('sources.existingText.selectFile')}
                 </button>
               </p>
               <p className="mt-2 text-xs text-gray-500">
-                已支持 TXT、MARKDOWN、DOCX，每个文件不超过15MB。
+                {t('sources.existingText.supportedFormats')}
               </p>
             </div>
           </>
@@ -212,18 +195,8 @@ export default function DataSourceSelector({ onNext }) {
   return (
     <>
       <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* 返回按钮 */}
-        {/* <div className="mb-8">
-          <button className="flex items-center text-blue-600 hover:text-blue-700">
-            <ArrowLeftIcon className="h-4 w-4 mr-2" />
-            <span>创建素材库</span>
-          </button>
-        </div> */}
+        <h1 className="text-xl font-semibold mb-6">{t('selectDataSource')}</h1>
 
-        {/* 标题 */}
-        <h1 className="text-xl font-semibold mb-6">选择数据源</h1>
-
-        {/* 数据源选项 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {dataSourceOptions.map((option) => (
             <button
@@ -239,14 +212,13 @@ export default function DataSourceSelector({ onNext }) {
           ))}
         </div>
 
-        {/* 根据选择显示不同的输入区域 */}
         {selectedSource === 'text' && textSourceJSX}
 
         {selectedSource === 'input' && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-neutral-100">
             <div className="mb-4">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                  标题
+                  {t('sources.directInput.titleLabel')}
               </label>
               <input
                   id="title"
@@ -254,19 +226,19 @@ export default function DataSourceSelector({ onNext }) {
                   value={inputTitle}
                   onChange={(e) => setInputTitle(e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md"
-                  placeholder="请输入标题..."
+                  placeholder={t('sources.directInput.titlePlaceholder')}
               />
           </div>
           <div>
               <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-                  内容
+                  {t('sources.directInput.contentLabel')}
               </label>
               <textarea
                   id="content"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   className="w-full h-40 p-3 border border-gray-300 rounded-md"
-                  placeholder="请直接输入文本内容..."
+                  placeholder={t('sources.directInput.contentPlaceholder')}
               />
           </div>
           <div className="mt-4 flex justify-end">
@@ -279,7 +251,7 @@ export default function DataSourceSelector({ onNext }) {
                           : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
               >
-                  {isUploading ? '正在上传...' : isUploaded ? '上传成功' : '确认上传'}
+                  {isUploading ? '正在上传...' : isUploaded ? '上传成功' : t('sources.directInput.confirm')}
               </button>
           </div>
         </div>
@@ -288,15 +260,12 @@ export default function DataSourceSelector({ onNext }) {
         {selectedSource === 'web' && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-neutral-100">
             <div className="text-center text-gray-500">
-              <p className="text-lg font-medium">敬请期待</p>
-              <p className="text-sm mt-2">网页导入功能正在开发中...</p>
+              <p className="text-lg font-medium">{t('sources.web.comingSoon')}</p>
+              <p className="text-sm mt-2">{t('sources.web.description')}</p>
             </div>
           </div>
         )}
 
-    
-
-        {/* 添加底部操作按钮 */}
         <div className="mt-6 flex justify-end space-x-4">
           <button 
             onClick={handleNext}
@@ -307,7 +276,7 @@ export default function DataSourceSelector({ onNext }) {
                 : 'bg-gray-400 cursor-not-allowed'
             }`}
           >
-            下一步
+            {t('next')}
           </button>
         </div>
       </div>

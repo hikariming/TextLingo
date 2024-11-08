@@ -33,7 +33,42 @@
         "namePlaceholder": "Please enter library name",
         "descriptionLabel": "Library Description",
         "descriptionPlaceholder": "Please enter library description"
+      },
+      "create": {
+        "back": "Create Material Library",
+        "selectDataSource": "Select Data Source",
+        "sources": {
+          "existingText": {
+            "title": "Import Existing Text",
+            "dragText": "Drag & drop files here, or",
+            "selectFile": "Select File",
+            "supportedFormats": "Supports TXT, MARKDOWN, DOCX formats, file size不超过15MB",
+            "uploading": "Uploading file...",
+            "sizeError": "File size must be less than 15MB",
+            "typeError": "Unsupported file format",
+            "uploadSuccess": "File uploaded successfully!",
+            "uploadError": "Failed to upload file: "
+          },
+          "directInput": {
+            "title": "Direct Input Text",
+            "titleLabel": "Title",
+            "titlePlaceholder": "Please enter title",
+            "contentLabel": "Content",
+            "contentPlaceholder": "Please enter text content"
+          },
+          "web": {
+            "title": "Sync from Web (Consumes Tokens)",
+            "comingSoon": "Coming Soon",
+            "description": "Web import feature is under development..."
+          }
+        },
+        "next": "Next"
       }
+    },
+    "steps": {
+      "selectDataSource": "Select Data Source",
+      "textSegmentationAndTranslation": "Text Segmentation and Translation",
+      "processAndComplete": "Process and Complete"
     }
   }
 }

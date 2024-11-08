@@ -33,7 +33,43 @@
         "namePlaceholder": "请输入资料库名称",
         "descriptionLabel": "资料库描述",
         "descriptionPlaceholder": "请输入资料库描述"
+      },
+      "create": {
+        "back": "创建资料库",
+        "selectDataSource": "选择数据源",
+        "sources": {
+          "existingText": {
+            "title": "导入现有文本",
+            "dragText": "将文件拖放到此处，或",
+            "selectFile": "选择文件",
+            "supportedFormats": "支持TXT、MARKDOWN、DOCX格式，文件大小不超过15MB",
+            "uploading": "文件上传中...",
+            "sizeError": "文件大小不超过15MB",
+            "typeError": "不支持的文件格式",
+            "uploadSuccess": "文件上传成功！",
+            "uploadError": "文件上传失败: "
+          },
+          "directInput": {
+            "title": "直接输入文本",
+            "titleLabel": "标题",
+            "titlePlaceholder": "请输入标题",
+            "contentLabel": "内容",
+            "contentPlaceholder": "请输入文本内容"
+          },
+          "web": {
+            "title": "从网页同步（消耗Token）",
+            "comingSoon": "敬请期待",
+            "description": "网页导入功能正在开发中..."
+          }
+        },
+        "next": "下一步"
       }
+      
+    },
+    "steps": {
+      "selectDataSource": "选择数据源",
+      "textSegmentationAndTranslation": "文本分割和翻译",
+      "processAndComplete": "处理和完成"
     }
   }
 }

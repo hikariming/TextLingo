@@ -33,7 +33,49 @@
         "namePlaceholder": "ライブラリ名を入力してください",
         "descriptionLabel": "ライブラリの説明",
         "descriptionPlaceholder": "ライブラリの説明を入力してください"
+      },
+      "create": {
+        "back": "素材ライブラリを作成",
+        "selectDataSource": "データソースを選択",
+        "sources": {
+          "existingText": {
+            "title": "既存のテキストをインポート",
+            "dragText": "ここにファイルをドラッグ＆ドロップ、または",
+            "selectFile": "ファイルを選択",
+            "supportedFormats": "TXT、MARKDOWN、DOCXをサポート。ファイルサイズは15MB以下。",
+            "uploading": "ファイルをアップロード中...",
+            "sizeError": "ファイルサイズは15MB以下にしてください",
+            "typeError": "サポートされていないファイル形式です",
+            "uploadSuccess": "ファイルのアップロードに成功しました！",
+            "uploadError": "ファイルのアップロードに失敗しました: "
+          },
+          "directInput": {
+            "title": "テキストを直接入力",
+            "titleLabel": "タイトル",
+            "titlePlaceholder": "タイトルを入力してください...",
+            "contentLabel": "内容",
+            "contentPlaceholder": "テキスト内容を直接入力してください...",
+            "uploading": "アップロード中...",
+            "uploaded": "アップロード完了",
+            "confirm": "アップロード",
+            "emptyTitle": "タイトルを入力してください",
+            "emptyContent": "テキスト内容を入力してください",
+            "uploadSuccess": "テキストのアップロードに成功しました！",
+            "uploadError": "テキストのアップロードに失敗しました: "
+          },
+          "web": {
+            "title": "Webサイトから同期（トークンを消費）",
+            "comingSoon": "お楽しみに",
+            "description": "Web インポート機能は開発中です..."
+          }
+        },
+        "next": "次へ"
       }
+    },
+    "steps": {
+      "selectDataSource": "データソースを選択",
+      "textSegmentationAndTranslation": "テキストの分割と翻訳",
+      "processAndComplete": "処理と完了"
     }
   }
 }
