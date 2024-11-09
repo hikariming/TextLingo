@@ -1,8 +1,8 @@
-import { ArrowLeftIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
+import { ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { useState, useRef } from 'react'
 import { MaterialsAPI } from '@/services/api'
 import { useSearchParams } from 'next/navigation'
-import toast, { Toaster } from 'react-hot-toast';
+import Notification from '../../../../components/Notification'
 import { useTranslations } from 'next-intl'
 
 export default function DataSourceSelector({ onNext }) {
@@ -16,6 +16,7 @@ export default function DataSourceSelector({ onNext }) {
   const [materialId, setMaterialId] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [inputTitle, setInputTitle] = useState('')
+  const [notification, setNotification] = useState(null)
 
   const searchParams = useSearchParams()
   const factoryId = searchParams.get('factoryId')
@@ -90,14 +91,14 @@ export default function DataSourceSelector({ onNext }) {
       const res = await MaterialsAPI.uploadFile(file, factoryId)
       setIsUploaded(true)
       setMaterialId(res.data._id)
-      toast.success(t('sources.existingText.uploadSuccess'), {
-        duration: 3000,
-        style: { background: '#22c55e', color: '#fff' },
+      setNotification({
+        message: t('sources.existingText.uploadSuccess'),
+        type: 'success'
       })
     } catch (error) {
-      toast.error(t('sources.existingText.uploadError') + error.message, {
-        duration: 3000,
-        style: { background: '#ef4444', color: '#fff' },
+      setNotification({
+        message: t('sources.existingText.uploadError') + error.message,
+        type: 'error'
       })
       setIsUploaded(false)
     } finally {
@@ -107,12 +108,18 @@ export default function DataSourceSelector({ onNext }) {
 
   const handleTextSubmit = async () => {
     if (!inputText.trim()) {
-      toast.error(t('sources.directInput.emptyContent'), { duration: 3000 })
+      setNotification({
+        message: t('sources.directInput.emptyContent'),
+        type: 'error'
+      })
       return
     }
     
     if (!inputTitle.trim()) {
-      toast.error(t('sources.directInput.emptyTitle'), { duration: 3000 })
+      setNotification({
+        message: t('sources.directInput.emptyTitle'),
+        type: 'error'
+      })
       return
     }
 
@@ -126,14 +133,14 @@ export default function DataSourceSelector({ onNext }) {
       const res = await MaterialsAPI.uploadText(uploaddata)
       setIsUploaded(true)
       setMaterialId(res.data._id)
-      toast.success(t('sources.directInput.uploadSuccess'), {
-        duration: 3000,
-        style: { background: '#22c55e', color: '#fff' },
+      setNotification({
+        message: t('sources.directInput.uploadSuccess'),
+        type: 'success'
       })
     } catch (error) {
-      toast.error(t('sources.directInput.uploadError') + error.message, {
-        duration: 3000,
-        style: { background: '#ef4444', color: '#fff' },
+      setNotification({
+        message: t('sources.directInput.uploadError') + error.message,
+        type: 'error'
       })
       setIsUploaded(false)
     } finally {
@@ -280,7 +287,12 @@ export default function DataSourceSelector({ onNext }) {
           </button>
         </div>
       </div>
-      <Toaster position="top-right" />
+      {notification && (
+        <Notification
+          {...notification}
+          onClose={() => setNotification(null)}
+        />
+      )}
     </>
   )
 }
