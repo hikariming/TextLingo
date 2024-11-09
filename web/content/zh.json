@@ -81,7 +81,11 @@
       "saving": "保存中...",
       "saveSuccess": "设置保存成功",
       "saveError": "设置保存失败",
-      "loadError": "设置加载失败"
+      "loadError": "设置加载失败",
+      "testing": "测试中...",
+      "test": "测试连接",
+      "customModel": "自定义输入",
+      "modelPlaceholder": "输入模型名称"
     }
   }
 }

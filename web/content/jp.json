@@ -87,7 +87,11 @@
       "saving": "保存中...",
       "saveSuccess": "設定の保存に成功しました",
       "saveError": "設定の保存に失敗しました",
-      "loadError": "設定の読み込みに失敗しました"
+      "loadError": "設定の読み込みに失敗しました",
+      "testing": "テスト中...",
+      "test": "接続テスト",
+      "customModel": "カスタム入力",
+      "modelPlaceholder": "モデル名を入力"
     }
   }
 }

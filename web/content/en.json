@@ -80,7 +80,11 @@
       "saving": "Saving...",
       "saveSuccess": "Settings saved successfully",
       "saveError": "Failed to save settings",
-      "loadError": "Failed to load settings"
+      "loadError": "Failed to load settings",
+      "testing": "Testing...",
+      "test": "Test Connection",
+      "customModel": "Custom Input",
+      "modelPlaceholder": "Enter model name"
     }
   }
 }
