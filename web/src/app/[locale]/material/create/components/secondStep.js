@@ -2,6 +2,7 @@ import { ArrowPathIcon, DocumentTextIcon, AcademicCapIcon, CodeBracketIcon } fro
 import { MaterialsAPI } from '@/services/api'
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { SettingAPI } from '@/services/api'
 
 export default function TextSegmentation({ onNext, onPrev, materialId }) {
   const [material, setMaterial] = useState(null)
@@ -14,6 +15,8 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
   const [targetLanguage, setTargetLanguage] = useState('zh-CN')
   const [enableDeepExplanation, setEnableDeepExplanation] = useState(true)
   const [isTranslating, setIsTranslating] = useState(false)
+  const [isTestingLLM, setIsTestingLLM] = useState(false)
+  const [testMessage, setTestMessage] = useState('')
 
   const t = useTranslations('app.material.create.textSegmentation')
 
@@ -90,6 +93,19 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
     }
   }
 
+  const handleTestLLM = async () => {
+    setIsTestingLLM(true)
+    setTestMessage('')
+    try {
+      const result = await SettingAPI.testLLMConnection()
+      setTestMessage(result.message)
+    } catch (error) {
+      setTestMessage(error.message)
+    } finally {
+      setIsTestingLLM(false)
+    }
+  }
+
   return (
     <div className="h-screen flex flex-col">
       <h1 className="text-xl font-semibold p-4 border-b">{t('title')}</h1>
@@ -150,6 +166,23 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
                       <option value="true">开启</option>
                       <option value="false">关闭</option>
                     </select>
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleTestLLM}
+                      disabled={isTestingLLM}
+                      className="w-full px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 disabled:bg-gray-400"
+                    >
+                      {isTestingLLM ? t('testingLLM') : t('testLLM')}
+                    </button>
+                    {testMessage && (
+                      <div className={`mt-2 p-2 rounded-md text-sm ${
+                        testMessage.includes('成功') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {testMessage}
+                      </div>
+                    )}
                   </div>
                   <div className="border-t p-4 flex justify-end items-center space-x-4">
                     <button 

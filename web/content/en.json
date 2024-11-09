@@ -108,7 +108,11 @@
           "wordCount": "{count} characters",
           "waitingTranslation": "Waiting for translation...",
           "processingSegmentation": "Processing segmentation...",
-          "clickToStartSegmentation": "Click \"Start Segmentation\" to process text"
+          "clickToStartSegmentation": "Click \"Start Segmentation\" to process text",
+          "testLLM": "Test LLM Connection",
+          "testingLLM": "Testing...",
+          "testSuccess": "LLM Connection Test Success",
+          "testFailed": "LLM Connection Test Failed"
         },
         "complete": {
           "title": "🎉 Material Library Created Successfully",
