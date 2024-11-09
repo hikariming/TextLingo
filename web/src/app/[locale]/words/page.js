@@ -36,7 +36,7 @@ export default function Component() {
       <Navbar />
       <div className="bg-slate-100 min-h-screen pt-20">
         <div className="container mx-auto p-4">
-          <h1 className="text-2xl font-bold mb-6 text-black">词汇收藏</h1>
+          <h1 className="text-2xl font-bold mb-6 text-black">词汇收藏（开发中deving....）</h1>
           <p className="text-gray-600 mb-4">背单词、复习、做题等功能还在开发中...</p>
           
           {loading ? (
