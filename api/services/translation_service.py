@@ -269,6 +269,15 @@ class TranslationService:
         
         # 从响应中提取JSON内容
         content = response.choices[0].message.content
+        
+        # 记录原始响应
+        self._log_to_file("gptlog", 'response', {
+            'type': 'grammar_analysis',
+            'input': text,
+            'raw_response': response.model_dump(),
+            'content': content  # 添加content内容到日志
+        })
+        
         # 使用正则表达式提取JSON部分
         json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
         if json_match:
@@ -286,7 +295,7 @@ class TranslationService:
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": """请识别文本中的重要词汇。
+                {"role": "system", "content": """请识别用户输入的文本中重要词汇。
                 请按照以下JSON格式返回：
                 {
                     "vocabulary_items": [
@@ -309,6 +318,15 @@ class TranslationService:
         
         # 从响应中提取JSON内容
         content = response.choices[0].message.content
+        
+        # 记录原始响应
+        self._log_to_file("gptlog", 'response', {
+            'type': 'vocabulary_analysis',
+            'input': text,
+            'raw_response': response.model_dump(),
+            'content': content  # 添加content内容到日志
+        })
+        
         # 使用正则表达式提取JSON部分
         json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
         if json_match:

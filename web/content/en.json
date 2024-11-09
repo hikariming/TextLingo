@@ -55,7 +55,14 @@
             "titleLabel": "Title",
             "titlePlaceholder": "Please enter title",
             "contentLabel": "Content",
-            "contentPlaceholder": "Please enter text content"
+            "contentPlaceholder": "Please enter text content",
+            "uploading": "Uploading...",
+            "uploaded": "Upload Complete",
+            "confirm": "Upload",
+            "emptyTitle": "Please enter a title",
+            "emptyContent": "Please enter text content",
+            "uploadSuccess": "Text uploaded successfully!",
+            "uploadError": "Failed to upload text: "
           },
           "web": {
             "title": "Sync from Web (Consumes Tokens)",
@@ -63,7 +70,42 @@
             "description": "Web import feature is under development..."
           }
         },
-        "next": "Next"
+        "next": "Next",
+        "textSegmentation": {
+          "title": "Text Segmentation and Translation",
+          "segmentationMethod": "Segmentation Method",
+          "options": {
+            "paragraph": {
+              "title": "By Natural Paragraphs",
+              "description": "Segment text based on paragraph structure"
+            },
+            "ai": {
+              "title": "Smart Segmentation (In Development)",
+              "description": "Use AI to analyze text semantics for intelligent segmentation, suitable for complex texts but consumes model tokens"
+            }
+          },
+          "translationSettings": "Translation Settings",
+          "targetLanguage": "Target Language",
+          "deepExplanation": "Enable Deep Explanation Feature",
+          "enable": "Enable",
+          "disable": "Disable",
+          "previous": "Previous",
+          "pleaseSegmentFirst": "Please segment the text first",
+          "segmentationResults": "Segmentation Results",
+          "startSegmentation": "Start Segmentation",
+          "segmenting": "Segmenting...",
+          "clickToSegment": "Click \"Start Segmentation\" to process text",
+          "segmentationOptions": "Segmentation Options",
+          "enableDeepExplanation": "Enable Deep Explanation",
+          "previousStep": "Previous",
+          "startTranslation": "Start Translation",
+          "pleaseSegmentText": "Please segment the text first",
+          "segmentResult": "Segmentation Result",
+          "wordCount": "{count} characters",
+          "waitingTranslation": "Waiting for translation...",
+          "processingSegmentation": "Processing segmentation...",
+          "clickToStartSegmentation": "Click \"Start Segmentation\" to process text"
+        }
       }
     },
     "steps": {

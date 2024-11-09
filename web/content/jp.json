@@ -70,7 +70,46 @@
             "description": "Web インポート機能は開発中です..."
           }
         },
-        "next": "次へ"
+        "next": "次へ",
+        "textSegmentation": {
+          "title": "テキスト分割と翻訳",
+          "segmentationMethod": "分割方法",
+          "options": {
+            "paragraph": {
+              "title": "段落ごとに分割",
+              "description": "テキストの段落構造に基づいて分割"
+            },
+            "ai": {
+              "title": "スマート分割（開発中）",
+              "description": "AIを使用してテキストの意味を分析し、インテリジェントに分割します"
+            }
+          },
+          "translationSettings": "翻訳設定",
+          "targetLanguage": "翻訳先言語",
+          "deepExplanation": "詳細な説明機能",
+          "enable": "有効",
+          "disable": "無効",
+          "previous": "前へ",
+          "pleaseSegmentFirst": "先にテキストを分割してください",
+          "segmentationResults": "分割結果",
+          "characterCount": "文字数",
+          "pendingTranslation": "翻訳待ち...",
+          "processingSegments": "分割処理中...",
+          "clickToSegment": "「分割開始」をクリックしてテキストを処理",
+          "segmentationOptions": "分割オプション",
+          "enableDeepExplanation": "詳細な説明を有効にする",
+          "previousStep": "前のステップ",
+          "startTranslation": "翻訳開始",
+          "pleaseSegmentText": "先にテキストを分割してください",
+          "segmentResult": "分割結果",
+          "segmenting": "分割中...",
+          "startSegmentation": "分割開始",
+          "paragraph": "段落 {index}",
+          "wordCount": "{count} 文字",
+          "waitingTranslation": "翻訳待ち...",
+          "processingSegmentation": "分割処理中...",
+          "clickToStartSegmentation": "「分割開始」をクリックしてテキストを処理"
+        }
       }
     },
     "steps": {

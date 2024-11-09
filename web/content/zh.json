@@ -55,7 +55,14 @@
             "titleLabel": "标题",
             "titlePlaceholder": "请输入标题",
             "contentLabel": "内容",
-            "contentPlaceholder": "请输入文本内容"
+            "contentPlaceholder": "请输入文本内容",
+            "uploading": "上传中...",
+            "uploaded": "上传完成",
+            "confirm": "上传",
+            "emptyTitle": "请输入标题",
+            "emptyContent": "请输入文本内容",
+            "uploadSuccess": "文本上传成功！",
+            "uploadError": "文本上传失败: "
           },
           "web": {
             "title": "从网页同步（消耗Token）",
@@ -63,9 +70,47 @@
             "description": "网页导入功能正在开发中..."
           }
         },
-        "next": "下一步"
+        "next": "下一步",
+        "textSegmentation": {
+          "title": "文本分段与翻译",
+          "segmentationMethod": "分段方式",
+          "options": {
+            "paragraph": {
+              "title": "按自然段落",
+              "description": "根据文本的段落结构进行分段"
+            },
+            "ai": {
+              "title": "智能分段(开发中)",
+              "description": "使用AI分析文本语义进行智能分段，适用于比较复杂的文本，但会消耗大模型Token"
+            }
+          },
+          "translationSettings": "翻译设置",
+          "targetLanguage": "翻译后语言",
+          "deepExplanation": "是否开启全篇深度讲解功能",
+          "enable": "开启",
+          "disable": "关闭",
+          "previous": "上一步",
+          "pleaseSegmentFirst": "请先进行文本分段",
+          "segmentationResults": "分段结果",
+          "characterCount": "字数",
+          "pendingTranslation": "待翻译...",
+          "processingSegments": "正在分段处理中...",
+          "clickToSegment": "点击\"重新分段\"开始处理文本",
+          "segmentationOptions": "分段选项",
+          "enableDeepExplanation": "开启深度解释",
+          "previousStep": "上一步",
+          "startTranslation": "开始翻译",
+          "pleaseSegmentText": "请先进行文本分段",
+          "segmentResult": "分段结果",
+          "segmenting": "分段中...",
+          "startSegmentation": "开始分段",
+          "paragraph": "段落 {index}",
+          "wordCount": "{count} 字",
+          "waitingTranslation": "等待翻译...",
+          "processingSegmentation": "正在处理分段...",
+          "clickToStartSegmentation": "点击\"开始分段\"处理文本"
+        }
       }
-      
     },
     "steps": {
       "selectDataSource": "选择数据源",
