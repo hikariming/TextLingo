@@ -1,5 +1,5 @@
 from bson import ObjectId
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAI
 from typing import List
 from models.material import Material
 from models.material_segment import MaterialSegment, VocabularyItem, GrammarItem
@@ -11,6 +11,7 @@ import asyncio
 from functools import wraps
 import threading
 import re
+from services.setting_service import SettingService
 
 def ensure_event_loop():
     """确保当前线程有事件循环"""
@@ -41,16 +42,15 @@ def with_event_loop(f):
 
 class TranslationService:
     def __init__(self):
-        # 读取配置文件
-        with open('config.yml', 'r') as file:
-            config = yaml.safe_load(file)
+        # 从数据库获取配置
+        config = SettingService.get_llm_config()
         
         self.client = AsyncOpenAI(
             api_key=config['llm_api_key'],
             base_url=config['llm_base_url']
         )
         self.model = config['llm_model']
-
+        
         print(f"LLM API Key: {config['llm_api_key']}")
         print(f"LLM Base URL: {config['llm_base_url']}")
         print(f"LLM Model: {self.model}")
@@ -299,7 +299,7 @@ class TranslationService:
                 }
                 
                 要求：
-                - 对日语词汇：提供单词、假名读音和中文含义
+                - 对日语词汇提供单词、假名读音和中文含义
                 - 对英语词汇：提供单词和中文含义（reading字段留空）
                 - 确保返回的是合法的JSON格式，用```json ```包裹
                 - 讲解使用的语言为 {target_language} """},
@@ -319,3 +319,35 @@ class TranslationService:
             
         print(f"[Vocabulary Analysis] Found {len(vocab_data['vocabulary_items'])} vocabulary items")
         return vocab_data['vocabulary_items']
+
+    @staticmethod
+    def test_llm_connection():
+        """测试LLM API连接是否正常"""
+        try:
+            config = SettingService.get_llm_config()
+            client = OpenAI(
+                api_key=config['llm_api_key'],
+                base_url=config['llm_base_url']
+            )
+            
+            # 直接发送同步请求
+            response = client.chat.completions.create(
+                model=config['llm_model'],
+                messages=[
+                    {"role": "user", "content": "Hello, this is a test message.return yes if you can understand me."}
+                ]
+            )
+            
+            return {
+                "status": "success",
+                "message": "LLM API连接测试成功",
+                "model": config['llm_model'],
+                "response": response.choices[0].message.content
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"LLM API连接测试失败: {str(e)}",
+                "error": str(e)
+            }

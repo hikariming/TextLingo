@@ -15,6 +15,7 @@ export default function SettingPage() {
 
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [isTesting, setIsTesting] = useState(false)
 
   // 加载配置
   useEffect(() => {
@@ -40,6 +41,17 @@ export default function SettingPage() {
       setMessage('保存失败')
     }
     setIsSaving(false)
+  }
+
+  const handleTest = async () => {
+    setIsTesting(true)
+    try {
+      const result = await SettingAPI.testLLMConnection()
+      setMessage(result.message)
+    } catch (error) {
+      setMessage(error.message)
+    }
+    setIsTesting(false)
   }
 
   return (
@@ -94,13 +106,22 @@ export default function SettingPage() {
             </div>
           </div>
 
-          <div>
+          <div className="flex gap-4">
             <button
               type="submit"
               disabled={isSaving}
               className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
             >
               {isSaving ? t('saving') : t('save')}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleTest}
+              disabled={isTesting}
+              className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:bg-gray-400"
+            >
+              {isTesting ? '测试中...' : '测试连接'}
             </button>
           </div>
 

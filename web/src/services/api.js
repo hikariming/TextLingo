@@ -315,5 +315,18 @@ export const SettingAPI = {
       throw new Error(error.message || '更新配置失败')
     }
     return response.json()
+  },
+
+  // 测试LLM连接
+  testLLMConnection: async () => {
+    const response = await fetch(`${API_BASE_URL}/setting/test-llm`, {
+      method: 'POST',
+      headers: defaultHeaders
+    })
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.message || '测试连接失败')
+    }
+    return data
   }
 }
