@@ -109,6 +109,22 @@
           "waitingTranslation": "等待翻译...",
           "processingSegmentation": "正在处理分段...",
           "clickToStartSegmentation": "点击\"开始分段\"处理文本"
+        },
+        "complete": {
+          "title": "🎉 素材库已创建成功",
+          "subtitle": "素材库已自动命名，您可以随时修改",
+          "libraryName": "素材库名称",
+          "translationTask": "翻译任务",
+          "submitted": "已提交 ✓",
+          "targetLanguage": "目标语言",
+          "deepExplanation": "深度解释",
+          "enabled": "已启用",
+          "disabled": "已禁用",
+          "processingTitle": "🤔 翻译处理中",
+          "processingDescription": "翻译任务已成功提交！系统正在将文档翻译成{language}{explanation}。您可以在素材库详情页查看翻译进度，或在阅读页面查看已翻译的内容。",
+          "withExplanation": "，并附带深度解释",
+          "previous": "上一步",
+          "goToDocument": "前往文档"
         }
       }
     },

@@ -109,6 +109,22 @@
           "waitingTranslation": "翻訳待ち...",
           "processingSegmentation": "分割処理中...",
           "clickToStartSegmentation": "「分割開始」をクリックしてテキストを処理"
+        },
+        "complete": {
+          "title": "🎉 素材ライブラリが作成されました",
+          "subtitle": "素材ライブラリに自動的に名前を付けました。いつでも変更可能です",
+          "libraryName": "ライブラリ名",
+          "translationTask": "翻訳タスク",
+          "submitted": "提出済み ✓",
+          "targetLanguage": "対象言語",
+          "deepExplanation": "詳細な説明",
+          "enabled": "有効",
+          "disabled": "無効",
+          "processingTitle": "🤔 翻訳処理中",
+          "processingDescription": "翻訳タスクが正常に提出されました！システムが文書を{language}に翻訳中です{explanation}。ライブラリの詳細ページで翻訳の進捗を確認するか、読書ページで翻訳済みの内容を確認できます。",
+          "withExplanation": "、詳細な説明付きで",
+          "previous": "前へ",
+          "goToDocument": "文書へ移動"
         }
       }
     },
