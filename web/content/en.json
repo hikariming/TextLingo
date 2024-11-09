@@ -112,7 +112,16 @@
           "testLLM": "Test LLM Connection",
           "testingLLM": "Testing...",
           "testSuccess": "LLM Connection Test Success",
-          "testFailed": "LLM Connection Test Failed"
+          "testFailed": "LLM Connection Test Failed",
+          "languageOptions": {
+            "zh-CN": "Simplified Chinese",
+            "en": "English",
+            "ja": "Japanese"
+          },
+          "toggleOptions": {
+            "on": "Enable",
+            "off": "Disable"
+          }
         },
         "complete": {
           "title": "🎉 Material Library Created Successfully",

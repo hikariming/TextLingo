@@ -149,9 +149,9 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
                       value={targetLanguage}
                       onChange={(e) => setTargetLanguage(e.target.value)}
                     >
-                      <option value="zh-CN">简体中文</option>
-                      <option value="en">English</option>
-                      <option value="ja">日本語</option>
+                      <option value="zh-CN">{t('languageOptions.zh-CN')}</option>
+                      <option value="en">{t('languageOptions.en')}</option>
+                      <option value="ja">{t('languageOptions.ja')}</option>
                     </select>
                   </div>
                   <div>
@@ -163,8 +163,8 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
                       value={enableDeepExplanation}
                       onChange={(e) => setEnableDeepExplanation(e.target.value === 'true')}
                     >
-                      <option value="true">开启</option>
-                      <option value="false">关闭</option>
+                      <option value="true">{t('toggleOptions.on')}</option>
+                      <option value="false">{t('toggleOptions.off')}</option>
                     </select>
                   </div>
                   <div>

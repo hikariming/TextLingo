@@ -112,7 +112,16 @@
           "testLLM": "测试大模型连接",
           "testingLLM": "测试中...",
           "testSuccess": "大模型连接测试成功",
-          "testFailed": "大模型连接测试失败"
+          "testFailed": "大模型连接测试失败",
+          "languageOptions": {
+            "zh-CN": "简体中文",
+            "en": "English",
+            "ja": "日本語"
+          },
+          "toggleOptions": {
+            "on": "开启",
+            "off": "关闭"
+          }
         },
         "complete": {
           "title": "🎉 素材库已创建成功",
@@ -143,7 +152,7 @@
       "baseUrl": "API Base URL",
       "model": "Model Name",
       "save": "保存设置",
-      "saving": "保存���...",
+      "saving": "保存...",
       "saveSuccess": "设置保存成功",
       "saveError": "设置保存失败",
       "loadError": "设置加载失败",

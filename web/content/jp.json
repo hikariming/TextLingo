@@ -112,7 +112,16 @@
           "testLLM": "大模型接続テスト",
           "testingLLM": "テスト中...",
           "testSuccess": "大模型接続テスト成功",
-          "testFailed": "大模型接続テスト失敗"
+          "testFailed": "大模型接続テスト失敗",
+          "languageOptions": {
+            "zh-CN": "簡体中文",
+            "en": "English",
+            "ja": "日本語"
+          },
+          "toggleOptions": {
+            "on": "有効",
+            "off": "無効"
+          }
         },
         "complete": {
           "title": "🎉 素材ライブラリが作成されました",
