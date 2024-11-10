@@ -1,6 +1,21 @@
 # Production Version
 
-Deploy with Docker (TBD)
+Deploy with Docker
+
+```bash
+cd docker
+docker-compose up -d
+```
+
+Access `http://127.0.0.1:3000` in browser
+
+Set the API Key, Base URL, and Model Name in the settings
+
+Recommend using the API of https://yunwu.zeabur.app/ (can use claude at a low price, super cheap!)
+
+If you pursue stability, you can use openrouter
+
+
 
 # Development Version
 

@@ -1,6 +1,23 @@
 # 正式版本
 
-使用Docker一键部署（TBD）
+使用Docker一键部署
+
+```bash
+cd docker
+docker-compose up -d
+```
+
+在浏览器中访问 `http://127.0.0.1:3000`
+
+在设置中设置大模型的API Key和Base URL以及模型名称
+
+claude3.5 sonnet 和 deepseek 模型都比较好用哦！
+
+推荐使用 https://yunwu.zeabur.app/ 的API（可以低价使用claude，超级便宜！）
+
+如果追求稳定，可以使用openrouter
+
+
 
 # 开发版本
 
