@@ -2,13 +2,15 @@ version: '3.8'
 
 services:
   api:
-    image: rqlove/textlingo-api:v0.2
+    image: rqlove/textlingo-api:v0.1
     ports:
       - "3001:3001"
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/textlingo
     depends_on:
       - mongodb
+    volumes:
+      - api_data:/app/data
     networks:
       - textlingo-network
 
@@ -36,3 +38,4 @@ networks:
 
 volumes:
   mongodb_data:
+  api_data:
