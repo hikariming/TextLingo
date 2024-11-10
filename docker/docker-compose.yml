@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  api:
+    image: rqlove/textlingo-api:v0.2
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/textlingo
+    depends_on:
+      - mongodb
+    networks:
+      - textlingo-network
+
+  web:
+    image: rqlove/textlingo-web:v0.1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - textlingo-network
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - textlingo-network
+
+networks:
+  textlingo-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

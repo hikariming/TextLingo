@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 暴露端口
-EXPOSE 5000
+EXPOSE 3001
 
 # 设置环境变量
 ENV FLASK_APP=api/app.py
