@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   api:
-    image: rqlove/textlingo-api:v0.11
+    image: rqlove/textlingo-api:v0.1
     ports:
       - "3001:3001"
     environment:
@@ -15,7 +15,7 @@ services:
       - textlingo-network
 
   web:
-    image: rqlove/textlingo-web:v0.1
+    image: rqlove/textlingo-web:v0.11
     ports:
       - "3000:3000"
     depends_on:
