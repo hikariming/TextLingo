@@ -31,6 +31,13 @@ TextLingo uses AI technology to intelligently analyze texts and provides detaile
   - Context understanding support
   - Pronunciation guidance and correction
 
+# Use Cases 🎬
+
+- 📚 Lyrics Learning: Learn Japanese through music lyrics 🎵, convenient for singing along at concerts
+- 📰 News Reading: Read Japanese and English news (The Economist, idol reports, etc.), stay updated with current events
+- 📝 Vocabulary Memorization: Memorize words through lyrics, news, and other texts
+- 📖 Grammar Practice: Practice grammar through reading foreign language materials
+
 ## Coming Soon
 - 📝 Text Intelligent Dialogue: Supports highlight learning and real-time Q&A
 - 📚 Personalized Exercise System: Targeted word and grammar practice

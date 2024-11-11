@@ -1,3 +1,11 @@
+
+# 一键安装包
+
+
+链接: https://pan.baidu.com/s/1spGINwcF1WNhbPowejgHnQ?pwd=dff6 提取码: dff6 
+
+直接使用一键安装包，里面有安装教程，非常简单。
+
 # 正式版本
 
 ## Step1: 使用Docker一键部署
