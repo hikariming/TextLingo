@@ -1,6 +1,6 @@
 # Production Version
 
-Deploy with Docker
+## Step1: Deploy with Docker
 
 ```bash
 cd docker
@@ -9,9 +9,39 @@ docker-compose up -d
 
 Access `http://127.0.0.1:3000` in browser
 
-Set the API Key, Base URL, and Model Name in the settings
+## Step2: Configure Model API Key, Base URL and Model Name in Settings
 
-Recommend using the API of https://yunwu.zeabur.app/ (can use claude at a low price, super cheap!)
+This project requires LLM and TTS services. There are multiple options available. **Please read the configuration guide carefully 😊**
+
+### 1. **Get LLM API_KEY**:
+
+| Recommended Model | Provider | base_url | Price | Effect |
+|:-----|:---------|:---------|:-----|:---------|
+| gemini-1.5-pro-002 | [Yunwu API](https://yunwu.zeabur.app/register?aff=TXMB) | https://yunwu.zeabur.app | ¥7 / 1M tokens | 🤩 |
+| claude-3-5-sonnet-20240620 | [Yunwu API](https://yunwu.zeabur.app/register?aff=TXMB) | https://yunwu.zeabur.app | ¥10 / 1M tokens | 🤩 |
+| gpt-4o | [Yunwu API](https://yunwu.zeabur.app/register?aff=TXMB) | https://yunwu.zeabur.app | ¥7 / 1M tokens | 😃 |
+
+⚠️ Note: Claude, Grok and domestic models like Deepseek are recommended. GPT-4 is not recommended.
+
+<details>
+<summary>How to get API key from Yunwu API?</summary>
+
+1. Go to [Yunwu API website](https://yunwu.zeabur.app/register?aff=TXMB)
+2. Register an account and top up
+3. Create a new key in the API key page
+4. Make sure to check `Unlimited quota` and select `Pure AZ 1.5x` channel
+</details>
+
+<details>
+<summary>Can I use other models?</summary>
+
+- ✅ OAI-Like API interfaces are supported, you can change it in Settings.
+- ⚠️ However, other models (especially smaller ones) have weak instruction following capabilities and are prone to errors during translation. Strongly not recommended. If you encounter errors, please switch models.
+</details>
+
+Claude 3.5 Sonnet and Deepseek models work well!
+
+Recommend using API from https://yunwu.zeabur.app/ (can use Claude at a low price, super cheap!)
 
 If you pursue stability, you can use openrouter
 
