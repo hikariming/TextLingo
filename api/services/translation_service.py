@@ -313,7 +313,7 @@ class TranslationService:
                 - 对英语词汇：提供单词和中文含义（reading字段留空）
                 - 确保返回的是合法的JSON格式，用```json ```包裹
                 - 讲解使用的语言为 {target_language} """},
-                {"role": "user", "content": text}
+                {"role": "user", "content": f"你需要分析的文本是括号中内容：【【【 {text} 】】】"}
             ]
         )
         
