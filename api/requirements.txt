@@ -6,3 +6,4 @@ openai
 flask-cors
 python-docx
 mongoengine
+json_repair
