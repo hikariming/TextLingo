@@ -161,7 +161,7 @@
       "customModel": "Custom Input",
       "modelPlaceholder": "Enter model name",
       "unsavedChangesWarning": "Unsaved Changes",
-      "testWithOldConfig": "You have unsaved changes. Testing will use the saved configuration.",
+      "testWithOldConfig": "You have unsaved changes. The test will use the saved configuration. To test the current configuration, please save the settings first.",
       "cancel": "Cancel",
       "continue": "Continue"
     }
