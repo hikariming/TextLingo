@@ -2,7 +2,10 @@
 # 一键安装包
 
 
-链接: https://pan.baidu.com/s/1spGINwcF1WNhbPowejgHnQ?pwd=dff6 提取码: dff6 
+
+链接：https://pan.baidu.com/s/1VQCXuhGu4rQoJ0GWo7-vcA?pwd=400t 
+提取码：400t 
+
 
 直接使用一键安装包，里面有安装教程，非常简单。
 
