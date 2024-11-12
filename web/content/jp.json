@@ -159,7 +159,11 @@
       "testing": "テスト中...",
       "test": "接続テスト",
       "customModel": "カスタム入力",
-      "modelPlaceholder": "モデル名を入力"
+      "modelPlaceholder": "モデル名を入力",
+      "unsavedChangesWarning": "未保存の変更",
+      "testWithOldConfig": "未保存の変更があります。テストは保存済みの設定で実行されます。",
+      "cancel": "キャンセル",
+      "continue": "続行"
     }
   }
 }
