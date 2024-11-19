@@ -223,7 +223,7 @@ export default function AIExplanation({ selectedSentence, content }) {
         style={{ width: isCollapsed ? 0 : width }}
         className={`overflow-hidden border-l border-neutral-200 bg-slate-50 transition-all duration-300 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}
       >
-        <div className="p-4">
+        <div className="p-4 h-[calc(100vh-4rem)] overflow-y-auto">
           <h2 className="mb-4 flex items-center text-lg font-semibold text-gray-900">
             <ChatBubbleLeftRightIcon className="mr-2 h-5 w-5 text-blue-600" />
             AI Explanation
