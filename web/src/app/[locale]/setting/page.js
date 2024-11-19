@@ -16,6 +16,8 @@ export default function SettingPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [isTesting, setIsTesting] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
   // 加载配置
   useEffect(() => {
@@ -31,12 +33,18 @@ export default function SettingPage() {
     }
   }
 
+  const updateConfig = (newConfig) => {
+    setConfig(newConfig)
+    setHasUnsavedChanges(true)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSaving(true)
     try {
       await SettingAPI.updateConfig(config)
       setMessage('保存成功')
+      setHasUnsavedChanges(false)
     } catch (error) {
       setMessage('保存失败')
     }
@@ -44,6 +52,14 @@ export default function SettingPage() {
   }
 
   const handleTest = async () => {
+    if (hasUnsavedChanges) {
+      setShowConfirmDialog(true)
+      return
+    }
+    await runTest()
+  }
+
+  const runTest = async () => {
     setIsTesting(true)
     try {
       const result = await SettingAPI.testLLMConnection()
@@ -66,7 +82,7 @@ export default function SettingPage() {
             <input
               type="text"
               value={config.llm_api_key}
-              onChange={(e) => setConfig({...config, llm_api_key: e.target.value})}
+              onChange={(e) => updateConfig({...config, llm_api_key: e.target.value})}
               className="w-full p-2 border rounded-md"
             />
           </div>
@@ -76,7 +92,7 @@ export default function SettingPage() {
             <input
               type="text"
               value={config.llm_base_url}
-              onChange={(e) => setConfig({...config, llm_base_url: e.target.value})}
+              onChange={(e) => updateConfig({...config, llm_base_url: e.target.value})}
               className="w-full p-2 border rounded-md"
             />
           </div>
@@ -86,7 +102,7 @@ export default function SettingPage() {
             <div className="flex gap-2">
               <select
                 value={config.llm_model}
-                onChange={(e) => setConfig({...config, llm_model: e.target.value})}
+                onChange={(e) => updateConfig({...config, llm_model: e.target.value})}
                 className="w-2/3 p-2 border rounded-md"
               >
                 <option value="">{t('customModel')}</option>
@@ -99,7 +115,7 @@ export default function SettingPage() {
                   type="text"
                   placeholder={t('modelPlaceholder')}
                   value={config.llm_model}
-                  onChange={(e) => setConfig({...config, llm_model: e.target.value})}
+                  onChange={(e) => updateConfig({...config, llm_model: e.target.value})}
                   className="w-1/3 p-2 border rounded-md"
                 />
               )}
@@ -134,6 +150,31 @@ export default function SettingPage() {
           )}
         </form>
       </div>
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg max-w-md">
+            <h3 className="text-lg font-semibold mb-4">{t('unsavedChangesWarning')}</h3>
+            <p className="mb-4">{t('testWithOldConfig')}</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                {t('cancel')}
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirmDialog(false)
+                  runTest()
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                {t('continue')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

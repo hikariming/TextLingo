@@ -7,6 +7,7 @@ from datetime import datetime
 import yaml
 import os
 import json
+import json_repair
 import asyncio
 from functools import wraps
 import threading
@@ -85,8 +86,8 @@ class TranslationService:
         if os.path.exists(filepath):
             with open(filepath, 'r', encoding='utf-8') as f:
                 try:
-                    existing_logs = json.load(f)
-                except json.JSONDecodeError:
+                    existing_logs = json_repair.loads(f.read())
+                except Exception:
                     existing_logs = []
         
         # 添加时间戳到内容中
@@ -281,10 +282,10 @@ class TranslationService:
         # 使用正则表达式提取JSON部分
         json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
         if json_match:
-            grammar_data = json.loads(json_match.group(1))
+            grammar_data = json_repair.loads(json_match.group(1))
         else:
             # 如果没有找到JSON格式，尝试直接解析整个内容
-            grammar_data = json.loads(content)
+            grammar_data = json_repair.loads(content)
             
         print(f"[Grammar Analysis] Found {len(grammar_data['grammar_points'])} grammar points")
         return grammar_data['grammar_points']
@@ -312,7 +313,7 @@ class TranslationService:
                 - 对英语词汇：提供单词和中文含义（reading字段留空）
                 - 确保返回的是合法的JSON格式，用```json ```包裹
                 - 讲解使用的语言为 {target_language} """},
-                {"role": "user", "content": text}
+                {"role": "user", "content": f"你需要分析的文本是括号中内容：【【【 {text} 】】】"}
             ]
         )
         
@@ -330,10 +331,10 @@ class TranslationService:
         # 使用正则表达式提取JSON部分
         json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
         if json_match:
-            vocab_data = json.loads(json_match.group(1))
+            vocab_data = json_repair.loads(json_match.group(1))
         else:
             # 如果没有找到JSON格式，尝试直接解析整个内容
-            vocab_data = json.loads(content)
+            vocab_data = json_repair.loads(content)
             
         print(f"[Vocabulary Analysis] Found {len(vocab_data['vocabulary_items'])} vocabulary items")
         return vocab_data['vocabulary_items']

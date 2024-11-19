@@ -21,7 +21,7 @@ export default function TranslationLearningPage() {
   const fetchSegments = async (materialId) => {
     try {
       setLoading(true)
-      const response = await MaterialsAPI.getSegments(materialId)
+      const response = await MaterialsAPI.getSegments(materialId, 1, 99999)
       setSegments(response.data || [])
     } catch (error) {
       console.error('Failed to fetch segments:', error)
