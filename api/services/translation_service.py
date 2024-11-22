@@ -253,7 +253,7 @@ class TranslationService:
                     "grammar_points": [
                         {
                             "name": "语法点名称",
-                            "explanation": "详细解释"
+                            "explanation": "详细解释，使用{target_language}进行讲解"
                         }
                     ]
                 }
@@ -263,7 +263,26 @@ class TranslationService:
                 - 对英语文本：解释句子结构、时态和短语，按照托福雅思的语法点分类
                 - 每个语法点需包含名称和解释两个字段
                 - 确保返回的是合法的JSON格式，用```json ```包裹
-                - 讲解使用的语言为 {target_language} """},
+                - 讲解（explanation字段）使用的语言为简体中文
+                
+                示例输入：
+                今から映画を見に行きます。
+                
+                示例输出：
+                ```json
+                {
+                    "grammar_points": [
+                        {
+                            "name": "时间点语法「今から」",
+                            "explanation": "「今から」表示"从现在开始"的意思，用于表示某个动作或事件的起始时间点。常用于描述即将发生的事情。"
+                        },
+                        {
+                            "name": "目的助词「〜に」",
+                            "explanation": "在「見に行く」中，「に」用作目的助词，表示动作的目的。这是一个常见的日语语法结构，用于表达"去做某事"。"
+                        }
+                    ]
+                }
+                ```"""},
                 {"role": "user", "content": text}
             ]
         )

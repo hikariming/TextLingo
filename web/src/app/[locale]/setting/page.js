@@ -120,6 +120,7 @@ export default function SettingPage() {
                 className="w-2/3 p-2 border rounded-md"
               >
                 <option value="">{t('customModel')}</option>
+                <option value="grok-beta">Grok Beta</option>
                 <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (20241022)</option>
                 <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet (20240620)</option>
                 <option value="deepseek-chat">Deepseek Chat</option>
