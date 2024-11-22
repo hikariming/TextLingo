@@ -56,5 +56,5 @@ Refer to [Running Documentation](docs/HowToRun_en.md)
 
 ## Current Version
 
-Development version v0.1.0
+Development version v0.1.4
 Please check the running documentation for how to run the development version
