@@ -149,9 +149,9 @@ export default function TextSegmentation({ onNext, onPrev, materialId }) {
                       value={targetLanguage}
                       onChange={(e) => setTargetLanguage(e.target.value)}
                     >
-                      <option value="zh-CN">{t('languageOptions.zh-CN')}</option>
-                      <option value="en">{t('languageOptions.en')}</option>
-                      <option value="ja">{t('languageOptions.ja')}</option>
+                      <option value="中文">{t('languageOptions.zh-CN')}</option>
+                      <option value="英语">{t('languageOptions.en')}</option>
+                      <option value="日语">{t('languageOptions.ja')}</option>
                     </select>
                   </div>
                   <div>
