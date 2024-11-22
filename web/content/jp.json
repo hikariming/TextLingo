@@ -163,7 +163,9 @@
       "unsavedChangesWarning": "未保存の変更",
       "testWithOldConfig": "保存されていない変更があります。テストは保存された設定を使用します。現在の設定をテストするには、まず設定を保存してください。　",
       "cancel": "キャンセル",
-      "continue": "続行"
+      "continue": "続行",
+      "customBaseUrl": "カスタム Base URL",
+      "baseUrlPlaceholder": "Base URL を入力"
     }
   }
 }

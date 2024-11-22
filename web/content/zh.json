@@ -163,7 +163,9 @@
       "unsavedChangesWarning": "未保存的更改",
       "testWithOldConfig": "您有未保存的更改。测试将使用已保存的配置进行，如需测试当前配置，请先保存设置。",
       "cancel": "取消",
-      "continue": "继续"
+      "continue": "继续",
+      "customBaseUrl": "自定义 Base URL",
+      "baseUrlPlaceholder": "请输入 Base URL"
     }
   }
 }

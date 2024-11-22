@@ -163,7 +163,9 @@
       "unsavedChangesWarning": "Unsaved Changes",
       "testWithOldConfig": "You have unsaved changes. The test will use the saved configuration. To test the current configuration, please save the settings first.",
       "cancel": "Cancel",
-      "continue": "Continue"
+      "continue": "Continue",
+      "customBaseUrl": "Custom Base URL",
+      "baseUrlPlaceholder": "Enter Base URL"
     }
   }
 }

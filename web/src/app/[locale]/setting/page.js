@@ -89,12 +89,26 @@ export default function SettingPage() {
 
           <div>
             <label className="block text-sm font-medium mb-2">{t('baseUrl')}</label>
-            <input
-              type="text"
-              value={config.llm_base_url}
-              onChange={(e) => updateConfig({...config, llm_base_url: e.target.value})}
-              className="w-full p-2 border rounded-md"
-            />
+            <div className="flex gap-2">
+              <select
+                value={config.llm_base_url}
+                onChange={(e) => updateConfig({...config, llm_base_url: e.target.value})}
+                className="w-2/3 p-2 border rounded-md"
+              >
+                <option value="">{t('customBaseUrl')}</option>
+                <option value="https://api.wlai.vip/v1">https://api.wlai.vip/v1</option>
+                <option value="https://api.deepseek.com">https://api.deepseek.com</option>
+              </select>
+              {!config.llm_base_url && (
+                <input
+                  type="text"
+                  placeholder={t('baseUrlPlaceholder')}
+                  value={config.llm_base_url}
+                  onChange={(e) => updateConfig({...config, llm_base_url: e.target.value})}
+                  className="w-1/3 p-2 border rounded-md"
+                />
+              )}
+            </div>
           </div>
 
           <div>
