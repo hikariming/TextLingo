@@ -147,7 +147,10 @@
       "processAndComplete": "処理と完了"
     },
     "setting": {
-      "title": "モデル設定",
+      "title": "システム設定",
+      "llmTab": "大規模言語モデル設定",
+      "vocabularyTab": "単語学習設定",
+      "llmSettings": "大規模言語モデル設定",
       "apiKey": "APIキー",
       "baseUrl": "APIベースURL",
       "model": "モデル名",
@@ -161,11 +164,21 @@
       "customModel": "カスタム入力",
       "modelPlaceholder": "モデル名を入力",
       "unsavedChangesWarning": "未保存の変更",
-      "testWithOldConfig": "保存されていない変更があります。テストは保存された設定を使用します。現在の設定をテストするには、まず設定を保存してください。　",
+      "testWithOldConfig": "保存されていない変更があります。テストは保存された設定を使用します。現在の設定をテストするには、まず設定を保存してください。",
       "cancel": "キャンセル",
       "continue": "続行",
       "customBaseUrl": "カスタム Base URL",
-      "baseUrlPlaceholder": "Base URL を入力"
+      "baseUrlPlaceholder": "Base URL を入力",
+      "vocabularySettings": "単語学習設定",
+      "dailyTarget": "1日の目標単語数",
+      "reviewInterval": "復習間隔",
+      "spacedRepetition": "間隔学習",
+      "dailyReview": "毎日復習",
+      "weeklyReview": "週次復習",
+      "difficulty": "単語の難易度",
+      "easy": "簡単",
+      "medium": "普通",
+      "hard": "難しい"
     }
   }
 }

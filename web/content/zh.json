@@ -147,12 +147,15 @@
       "processAndComplete": "处理和完成"
     },
     "setting": {
-      "title": "模型设置",
+      "title": "系统设置",
+      "llmTab": "大模型设置",
+      "vocabularyTab": "背单词设置",
+      "llmSettings": "大模型设置",
       "apiKey": "API Key",
-      "baseUrl": "API Base Url",
+      "baseUrl": "API Base URL",
       "model": "模型名称",
       "save": "保存设置",
-      "saving": "保存...",
+      "saving": "保存中...",
       "saveSuccess": "设置保存成功",
       "saveError": "设置保存失败",
       "loadError": "设置加载失败",
@@ -165,7 +168,17 @@
       "cancel": "取消",
       "continue": "继续",
       "customBaseUrl": "自定义 Base URL",
-      "baseUrlPlaceholder": "请输入 Base URL"
+      "baseUrlPlaceholder": "请输入 Base URL",
+      "vocabularySettings": "背单词设置",
+      "dailyTarget": "每日目标单词数",
+      "reviewInterval": "复习间隔",
+      "spacedRepetition": "智能间隔",
+      "dailyReview": "每日复习",
+      "weeklyReview": "每周复习",
+      "difficulty": "单词难度",
+      "easy": "简单",
+      "medium": "中等",
+      "hard": "困难"
     }
   }
 }

@@ -147,7 +147,10 @@
       "processAndComplete": "Process and Complete"
     },
     "setting": {
-      "title": "Model Settings",
+      "title": "System Settings",
+      "llmTab": "LLM Settings",
+      "vocabularyTab": "Vocabulary Settings",
+      "llmSettings": "Language Model Settings",
       "apiKey": "API Key",
       "baseUrl": "API Base URL",
       "model": "Model Name",
@@ -165,7 +168,17 @@
       "cancel": "Cancel",
       "continue": "Continue",
       "customBaseUrl": "Custom Base URL",
-      "baseUrlPlaceholder": "Enter Base URL"
+      "baseUrlPlaceholder": "Enter Base URL",
+      "vocabularySettings": "Vocabulary Settings",
+      "dailyTarget": "Daily Word Target",
+      "reviewInterval": "Review Interval",
+      "spacedRepetition": "Spaced Repetition",
+      "dailyReview": "Daily Review",
+      "weeklyReview": "Weekly Review",
+      "difficulty": "Word Difficulty",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
     }
   }
 }
