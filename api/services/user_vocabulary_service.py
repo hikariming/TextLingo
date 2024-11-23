@@ -1,5 +1,6 @@
 from models.user_vocabulary import UserVocabulary
 from mongoengine.errors import DoesNotExist
+from models.material_segment import MaterialSegment
 
 class UserVocabularyService:
     @staticmethod
@@ -48,5 +49,31 @@ class UserVocabularyService:
             vocabulary.update(**data)
             vocabulary.reload()
             return vocabulary
+        except DoesNotExist:
+            return None
+
+    @staticmethod
+    def get_vocabulary_sources(vocabulary_id):
+        try:
+            # 获取词汇信息
+            vocabulary = UserVocabulary.objects.get(id=vocabulary_id)
+            
+            # 在所有材料段落中搜索包含该单词的内容
+            segments = MaterialSegment.objects(original__contains=vocabulary.word).only(
+                'material_id', 'original', 'translation'
+            )
+            
+            # 构建返回结果
+            sources = [{
+                'material_id': str(segment.material_id),
+                'segment_id': str(segment.id),
+                'original': segment.original,
+                'translation': segment.translation
+            } for segment in segments]
+            
+            return {
+                'vocabulary': vocabulary.to_dict(),
+                'sources': sources
+            }
         except DoesNotExist:
             return None

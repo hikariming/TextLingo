@@ -1,3 +1,3 @@
 mongodb:
-  uri: "mongodb://mongodb:27017/textlingo"
+  uri: "mongodb://mymongoadmin:chathope123123love@43.139.169.225:27017/textlingo?authSource=admin"
 secret_key: "your-secret-key" 

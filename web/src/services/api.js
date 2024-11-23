@@ -236,6 +236,16 @@ export const VocabularyAPI = {
     })
     if (!response.ok) throw new Error('检查收藏状态失败')
     return response.json()
+  },
+
+  // 获取单词来源
+  getSources: async (vocabularyId) => {
+    const response = await fetch(`${API_BASE_URL}/vocabularies/${vocabularyId}/sources`, {
+      method: 'GET',
+      headers: defaultHeaders
+    })
+    if (!response.ok) throw new Error('获取单词来源失败')
+    return response.json()
   }
 }
 

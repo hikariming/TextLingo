@@ -1,14 +1,49 @@
 'use client'
 import { useState } from 'react'
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"
+import { EyeIcon, EyeSlashIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline"
+import { VocabularyAPI } from '@/services/api'
 
 function WordList({ initialWords }) {
   const [showTranslations, setShowTranslations] = useState(false)
   const [words] = useState(initialWords)
+  const [expandedWords, setExpandedWords] = useState({})
+  const [wordSources, setWordSources] = useState({})
+  const [loadingStates, setLoadingStates] = useState({})
 
   const toggleTranslations = () => {
     setShowTranslations(!showTranslations)
   }
+
+  const toggleWordSources = async (wordId) => {
+    const isCurrentlyExpanded = expandedWords[wordId];
+    
+    setExpandedWords(prevState => ({
+      ...prevState,
+      [wordId]: !isCurrentlyExpanded
+    }));
+
+    if (!isCurrentlyExpanded && !wordSources[wordId]) {
+      setLoadingStates(prevLoadingStates => ({
+        ...prevLoadingStates,
+        [wordId]: true
+      }));
+
+      try {
+        const response = await VocabularyAPI.getSources(wordId);
+        setWordSources(prevSources => ({
+          ...prevSources,
+          [wordId]: response.data.sources
+        }));
+      } catch (error) {
+        console.error('获取单词来源失败:', error);
+      } finally {
+        setLoadingStates(prevLoadingStates => ({
+          ...prevLoadingStates,
+          [wordId]: false
+        }));
+      }
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -37,7 +72,20 @@ function WordList({ initialWords }) {
             key={word.id}
             className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
           >
-            <h3 className="text-lg font-medium text-gray-900">{word.word}</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900">{word.word}</h3>
+              <button
+                onClick={() => toggleWordSources(word.id)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                {expandedWords[word.id] ? (
+                  <ChevronUpIcon className="h-5 w-5" />
+                ) : (
+                  <ChevronDownIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+            
             {showTranslations && (
               <div className="mt-2">
                 <p className="text-gray-600">{word.translation}</p>
@@ -45,6 +93,27 @@ function WordList({ initialWords }) {
                   <p className="mt-2 text-sm text-gray-500 italic">
                     例句: {word.example}
                   </p>
+                )}
+              </div>
+            )}
+
+            {/* 单词来源展示区域 */}
+            {expandedWords[word.id] && (
+              <div className="mt-4 border-t pt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">出现位置：</h4>
+                {loadingStates[word.id] ? (
+                  <p className="text-sm text-gray-500">加载中...</p>
+                ) : wordSources[word.id]?.length > 0 ? (
+                  <div className="space-y-3">
+                    {wordSources[word.id].map((source, index) => (
+                      <div key={index} className="text-sm">
+                        <p className="text-gray-800">{source.original}</p>
+                        <p className="text-gray-600 mt-1">{source.translation}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">暂无来源记录</p>
                 )}
               </div>
             )}

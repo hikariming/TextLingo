@@ -72,3 +72,13 @@ def check_saved_words():
         return success_response(saved_words)
     except Exception as e:
         return error_response(str(e), 500)
+
+@vocabulary_bp.route('/vocabularies/<vocabulary_id>/sources', methods=['GET'])
+def get_vocabulary_sources(vocabulary_id):
+    try:
+        result = UserVocabularyService.get_vocabulary_sources(vocabulary_id)
+        if not result:
+            return error_response("Vocabulary not found", 404)
+        return success_response(result)
+    except Exception as e:
+        return error_response(str(e), 500)
