@@ -3,6 +3,7 @@ from extensions import mongo
 from flask_cors import CORS
 import yaml
 from mongoengine import connect
+from models.setting import Setting
 
 def create_app():
     app = Flask(__name__)
@@ -41,6 +42,8 @@ def create_app():
     @app.route('/api/test', methods=['GET'])
     def test_cors():
         return jsonify({"message": "CORS test successful"})
+    
+    Setting.set_default_settings()
     
     return app
 

@@ -3,6 +3,7 @@ from flask import Blueprint, request
 from services.user_vocabulary_service import UserVocabularyService
 from utils.response import success_response, error_response
 from models.user_vocabulary import UserVocabulary
+from models.setting import Setting
 
 vocabulary_bp = Blueprint('vocabulary', __name__)
 
@@ -80,5 +81,74 @@ def get_vocabulary_sources(vocabulary_id):
         if not result:
             return error_response("Vocabulary not found", 404)
         return success_response(result)
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@vocabulary_bp.route('/vocabularies/review/next', methods=['GET'])
+def get_next_review_word():
+    """获取下一个要复习的单词"""
+    try:
+        vocabulary = UserVocabularyService.get_next_review_word()
+        if not vocabulary:
+            return success_response(None, "No words to review")
+        return success_response(vocabulary)
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@vocabulary_bp.route('/vocabularies/<vocabulary_id>/review', methods=['POST'])
+def process_review_result():
+    """处理复习结果"""
+    try:
+        data = request.get_json()
+        if not data or 'result' not in data:
+            return error_response("Missing review result", 400)
+
+        result = data['result']
+        vocabulary_id = data['vocabulary_id']
+        
+        if result == 'remembered':
+            vocabulary = UserVocabularyService.mark_word_remembered(vocabulary_id)
+        elif result == 'forgotten':
+            vocabulary = UserVocabularyService.mark_word_forgotten(vocabulary_id)
+        elif result == 'mastered':
+            vocabulary = UserVocabularyService.mark_word_mastered(vocabulary_id)
+        else:
+            return error_response("Invalid review result", 400)
+
+        if not vocabulary:
+            return error_response("Vocabulary not found", 404)
+            
+        return success_response(vocabulary)
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@vocabulary_bp.route('/vocabularies/review/stats', methods=['GET'])
+def get_review_stats():
+    """获取复习统计信息"""
+    try:
+        stats = UserVocabularyService.get_review_stats()
+        return success_response(stats)
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@vocabulary_bp.route('/vocabularies/review/settings', methods=['POST'])
+def update_review_settings():
+    """更新复习设置"""
+    try:
+        data = request.get_json()
+        if not data or 'daily_limit' not in data:
+            return error_response("Missing daily limit", 400)
+            
+        daily_limit = int(data['daily_limit'])
+        if daily_limit < 1:
+            return error_response("Daily limit must be positive", 400)
+            
+        Setting.set_setting(
+            'daily_review_limit',
+            str(daily_limit),
+            '每日复习单词数量限制'
+        )
+        
+        return success_response({'daily_limit': daily_limit})
     except Exception as e:
         return error_response(str(e), 500)

@@ -55,3 +55,8 @@ class Setting(Document):
             setting = cls(key=key, value=value, description=description)
             setting.save()
         return setting
+
+    @classmethod
+    def set_default_settings(cls):
+        """设置默认配置"""
+        cls.set_setting('daily_review_limit', '20', '每日复习单词数量限制')
