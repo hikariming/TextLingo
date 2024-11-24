@@ -151,7 +151,7 @@ export default function LearnPage() {
             <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
                 <div className="text-center">
                     <h2 className="text-4xl font-bold mb-6">{currentWord.word}</h2>
-                    {currentWord.reading && (
+                    {showTranslation && currentWord.reading && (
                         <p className="text-gray-500 mb-4">{currentWord.reading}</p>
                     )}
 
