@@ -96,7 +96,7 @@ def get_next_review_word():
         return error_response(str(e), 500)
 
 @vocabulary_bp.route('/vocabularies/<vocabulary_id>/review', methods=['POST'])
-def process_review_result():
+def process_review_result(vocabulary_id):
     """处理复习结果"""
     try:
         data = request.get_json()
@@ -104,7 +104,6 @@ def process_review_result():
             return error_response("Missing review result", 400)
 
         result = data['result']
-        vocabulary_id = data['vocabulary_id']
         
         if result == 'remembered':
             vocabulary = UserVocabularyService.mark_word_remembered(vocabulary_id)

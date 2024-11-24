@@ -45,7 +45,13 @@ class UserVocabulary(Document):
             "meaning": self.meaning,
             "source_segment_id": self.source_segment_id,
             "created_at": self.created_at,
-            "updated_at": self.updated_at
+            "updated_at": self.updated_at,
+            "review_stage": self.review_stage,
+            "familiarity_level": self.familiarity_level,
+            "mastered": self.mastered,
+            "review_count": self.review_count,
+            "correct_count": self.correct_count,
+            "next_review_at": self.next_review_at
         }
 
     @classmethod
@@ -80,68 +86,113 @@ class UserVocabulary(Document):
         today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = today_start + timedelta(days=1)
         
-        # 获取今日需要复习的总数
+        # 获取今日需要复习的总数（包括未复习的和今天已复习的）
         total_review = cls.objects(
-            Q(mastered=False) & 
-            (Q(next_review_at__lte=today_end) | Q(next_review_at=None))
+            (Q(mastered=False) | Q(mastered=None)) &  # 未掌握或未设置掌握状态
+            (
+                (Q(next_review_at__lte=today_end) | Q(next_review_at=None)) |  # 需要复习或未设置复习时间
+                (Q(updated_at__gte=today_start) & Q(updated_at__lt=today_end) & Q(review_count__gt=0))  # 今天已复习的
+            )
         ).count()
         
-        # 获取今日已复习数量
-        reviewed_today = cls.objects(
+        # 获取今日实际已复习数量（只统计 review_count > 0 的）
+        reviewed_words = cls.objects(
             Q(updated_at__gte=today_start) & 
             Q(updated_at__lt=today_end) &
-            Q(review_count__gt=0)
-        ).count()
-        
-        # 计算今日正确率
-        today_reviews = cls.objects(
-            Q(updated_at__gte=today_start) & 
-            Q(updated_at__lt=today_end)
+            Q(review_count__gt=0)  # 确保只统计真正复习过的单词
         )
         
+        reviewed_count = reviewed_words.count()
+        
+        # 计算今日正确率
         total_attempts = 0
         correct_attempts = 0
-        for vocab in today_reviews:
-            total_attempts += vocab.review_count
-            correct_attempts += vocab.correct_count
+        for vocab in reviewed_words:
+            total_attempts += 1
+            if vocab.correct_count and vocab.correct_count > 0:
+                correct_attempts += 1
             
         accuracy_rate = (correct_attempts / total_attempts * 100) if total_attempts > 0 else 0
         
         return {
             "total_review": total_review,
-            "reviewed_count": reviewed_today,
-            "remaining_count": max(0, total_review - reviewed_today),
+            "reviewed_count": reviewed_count,
+            "remaining_count": max(0, total_review - reviewed_count),
             "accuracy_rate": round(accuracy_rate, 2)
         }
 
     @classmethod
     def get_next_review_words(cls, limit=None):
         """获取待复习单词列表"""
+        print("开始获取待复习单词")
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        
         # 获取每日复习数量设置
         from models.setting import Setting
         daily_limit = Setting.get_setting('daily_review_limit', '20')
         daily_limit = int(daily_limit)
+        print(f"每日复习限制: {daily_limit}")
+        
+        # 获取今日已复习数量
+        reviewed_today = cls.objects(
+            Q(updated_at__gte=today_start) &
+            Q(review_count__gt=0)  # 确保是真实复习过的
+        ).count()
+        print(f"今日已复习数量: {reviewed_today}")
+        
+        # 计算剩余可复习数量
+        remaining_limit = daily_limit - reviewed_today
+        print(f"剩余可复习数量: {remaining_limit}")
+        
+        if remaining_limit <= 0:
+            print("已达到每日限制")
+            return []
         
         # 如果指定了limit，使用较小的值
         if limit:
-            daily_limit = min(int(limit), daily_limit)
-            
-        query = Q(mastered=False) & (
-            Q(next_review_at__lte=datetime.utcnow()) |
-            Q(next_review_at=None)
+            remaining_limit = min(int(limit), remaining_limit)
+        
+        # 统一查询条件
+        base_query = (
+            (Q(mastered=False) | Q(mastered=None)) &  # 未掌握或未设置掌握状态
+            (
+                Q(updated_at__lt=today_start) |  # 今天未复习
+                Q(updated_at=None) |             # 或未设置更新时间
+                Q(review_stage=0) |              # 或是新单词
+                Q(review_stage=None)             # 或未设置复习阶段
+            )
         )
         
-        # 获取今日已复习数量
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        reviewed_today = cls.objects(
-            Q(updated_at__gte=today_start) &
-            Q(review_count__gt=0)
-        ).count()
+        # 分步检查查询条件，使用相同的 base_query
+        print("检查数据库中的单词状态：")
         
-        # 如果今日已达到限制，返回空列表
-        if reviewed_today >= daily_limit:
-            return []
-            
-        # 返回剩余可复习的单词
-        remaining_limit = daily_limit - reviewed_today
-        return cls.objects(query).limit(remaining_limit)
+        # 1. 检查未掌握的单词数量
+        unmastered_count = cls.objects(Q(mastered=False) | Q(mastered=None)).count()
+        print(f"未掌握的单词数量: {unmastered_count}")
+        
+        # 2. 检查今天未复习的单词数量
+        not_reviewed_today = cls.objects(
+            Q(updated_at__lt=today_start) | Q(updated_at=None)
+        ).count()
+        print(f"今天未复习的单词数量: {not_reviewed_today}")
+        
+        # 3. 检查需要复习的单词数量 - 使用相同的 base_query
+        need_review = cls.objects(base_query).count()
+        print(f"需要复习的单词数量: {need_review}")
+        
+        # 使用相同的查询条件获取单词
+        words = cls.objects(base_query).limit(remaining_limit)
+        found_count = words.count()
+        print(f"最终找到待复习单词数量: {found_count}")
+        
+        # 如果没找到单词，打印一些额外信息
+        if found_count == 0:
+            print("没有找到待复习单词，检查第一个未掌握的单词：")
+            first_word = cls.objects(Q(mastered=False) | Q(mastered=None)).first()
+            if first_word:
+                print(f"单词: {first_word.word}")
+                print(f"更新时间: {first_word.updated_at}")
+                print(f"下次复习时间: {first_word.next_review_at}")
+                print(f"复习阶段: {first_word.review_stage}")
+        
+        return words

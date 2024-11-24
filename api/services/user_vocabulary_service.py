@@ -11,7 +11,8 @@ class UserVocabularyService:
             word=word,
             meaning=meaning,
             reading=reading,
-            source_segment_id=source_segment_id
+            source_segment_id=source_segment_id,
+            next_review_at=datetime.utcnow()
         )
         vocabulary.save()
         return vocabulary
@@ -83,7 +84,31 @@ class UserVocabularyService:
     @staticmethod
     def get_review_stats():
         """获取复习统计信息"""
+        # 先修复历史数据
+        UserVocabularyService.fix_historical_data()
         return UserVocabulary.get_today_review_stats()
+
+    @staticmethod
+    def fix_historical_data():
+        """修复历史数据中的 N/A 值"""
+        # 找出所有包含 N/A 值的记录
+        vocabularies = UserVocabulary.objects(
+            Q(review_count=None) |
+            Q(correct_count=None) |
+            Q(review_stage=None) |
+            Q(familiarity_level=None) |
+            Q(mastered=None)
+        )
+        
+        # 修复每条记录
+        for vocab in vocabularies:
+            vocab.review_count = vocab.review_count or 0
+            vocab.correct_count = vocab.correct_count or 0
+            vocab.review_stage = vocab.review_stage or 0
+            vocab.familiarity_level = vocab.familiarity_level or 0
+            vocab.mastered = False if vocab.mastered is None else vocab.mastered
+            vocab.next_review_at = vocab.next_review_at or datetime.utcnow()
+            vocab.save()
 
     @staticmethod
     def get_next_review_word():
@@ -95,24 +120,31 @@ class UserVocabularyService:
 
     @staticmethod
     def mark_word_remembered(vocabulary_id):
-        """标记单词为已记住"""
         try:
             vocabulary = UserVocabulary.objects.get(id=vocabulary_id)
+            
+            # 确保所有字段都有值
+            vocabulary.review_count = vocabulary.review_count or 0
+            vocabulary.correct_count = vocabulary.correct_count or 0
+            vocabulary.review_stage = vocabulary.review_stage or 0
             
             # 更新复习进度
             vocabulary.review_count += 1
             vocabulary.correct_count += 1
             vocabulary.review_stage = min(vocabulary.review_stage + 1, 5)
             
+            # 更新熟悉度 - 新逻辑
+            if vocabulary.review_stage == 5 and vocabulary.correct_count >= 6:
+                # 如果达到最高阶段（30天）且至少答对6次，设为最高熟练度并标记为已掌握
+                vocabulary.familiarity_level = 5
+                vocabulary.mastered = True
+            else:
+                # 根据当前阶段设置熟练度
+                vocabulary.familiarity_level = vocabulary.review_stage
+            
             # 计算下次复习时间
             days = UserVocabulary.get_next_review_interval(vocabulary.review_stage)
             vocabulary.next_review_at = datetime.utcnow() + timedelta(days=days)
-            
-            # 更新熟悉度
-            vocabulary.familiarity_level = min(
-                int((vocabulary.correct_count / max(vocabulary.review_count, 1)) * 5),
-                5
-            )
             
             vocabulary.save()
             return vocabulary.to_dict()
@@ -121,20 +153,19 @@ class UserVocabularyService:
 
     @staticmethod
     def mark_word_forgotten(vocabulary_id):
-        """标记单词为未记住"""
         try:
             vocabulary = UserVocabulary.objects.get(id=vocabulary_id)
             
-            # 更新复习进度
-            vocabulary.review_count += 1
-            vocabulary.review_stage = 0
-            vocabulary.next_review_at = datetime.utcnow() + timedelta(days=1)
+            # 确保所有字段都有值
+            vocabulary.review_count = vocabulary.review_count or 0
+            vocabulary.correct_count = vocabulary.correct_count or 0
             
-            # 更新熟悉度
-            vocabulary.familiarity_level = min(
-                int((vocabulary.correct_count / max(vocabulary.review_count, 1)) * 5),
-                5
-            )
+            # 更新复习进度 - 新逻辑
+            vocabulary.review_count += 1
+            vocabulary.review_stage = 0  # 重置到第一阶段
+            vocabulary.familiarity_level = 0  # 重置熟练度
+            vocabulary.mastered = False  # 取消掌握标记
+            vocabulary.next_review_at = datetime.utcnow() + timedelta(days=1)
             
             vocabulary.save()
             return vocabulary.to_dict()
