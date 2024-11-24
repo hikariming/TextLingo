@@ -280,7 +280,20 @@ export const VocabularyAPI = {
     })
     if (!response.ok) throw new Error('获取统计信息失败')
     return response.json()
-  }
+  },
+
+  // 标记单词为已掌握
+  markWordMastered: async (vocabularyId) => {
+    const response = await fetch(`${API_BASE_URL}/vocabularies/${vocabularyId}/review`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify({
+        result: 'mastered'
+      })
+    })
+    if (!response.ok) throw new Error('标记单词已掌握失败')
+    return response.json()
+  },
 }
 
 export const GrammarAPI = {

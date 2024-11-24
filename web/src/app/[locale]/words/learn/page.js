@@ -7,6 +7,8 @@ export default function LearnPage() {
     const [currentWord, setCurrentWord] = useState(null)
     const [showTranslation, setShowTranslation] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [wordSources, setWordSources] = useState(null)
+    const [loadingSources, setLoadingSources] = useState(false)
     const [stats, setStats] = useState({
         total_review: 0,
         reviewed_count: 0,
@@ -63,6 +65,17 @@ export default function LearnPage() {
     const handleUnknown = async () => {
         if (!currentWord) return
         setShowTranslation(true)
+        
+        // 加载相关例句
+        setLoadingSources(true)
+        try {
+            const response = await VocabularyAPI.getSources(currentWord._id)
+            setWordSources(response.data.sources)
+        } catch (error) {
+            console.error('加载例句失败:', error)
+        } finally {
+            setLoadingSources(false)
+        }
     }
 
     const handleNext = async () => {
@@ -74,6 +87,18 @@ export default function LearnPage() {
             setShowTranslation(false)
         } catch (error) {
             console.error('提交结果失败:', error)
+        }
+    }
+
+    const handleMastered = async () => {
+        if (!currentWord) return
+        try {
+            await VocabularyAPI.markWordMastered(currentWord._id)
+            await loadStats()
+            await loadNextWord()
+            setShowTranslation(false)
+        } catch (error) {
+            console.error('标记已掌握失败:', error)
         }
     }
 
@@ -136,6 +161,25 @@ export default function LearnPage() {
                                 <h3 className="text-xl text-gray-800 font-medium mb-2">释义</h3>
                                 <p className="text-lg text-gray-600">{currentWord.meaning}</p>
                             </div>
+
+                            {/* 添加例句显示部分 */}
+                            <div className="mt-6">
+                                <h3 className="text-xl text-gray-800 font-medium mb-2">相关例句</h3>
+                                {loadingSources ? (
+                                    <p className="text-gray-500">加载中...</p>
+                                ) : wordSources?.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {wordSources.map((source, index) => (
+                                            <div key={index} className="text-left bg-gray-50 p-4 rounded-lg">
+                                                <p className="text-gray-800">{source.original}</p>
+                                                <p className="text-gray-600 mt-2">{source.translation}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500">暂无相关例句</p>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -156,6 +200,12 @@ export default function LearnPage() {
                             className="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                         >
                             认识
+                        </button>
+                        <button
+                            onClick={handleMastered}
+                            className="px-8 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                        >
+                            已掌握
                         </button>
                     </>
                 ) : (

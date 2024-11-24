@@ -213,8 +213,21 @@ class UserVocabularyService:
         """标记单词为已掌握"""
         try:
             vocabulary = UserVocabulary.objects.get(id=vocabulary_id)
+            
+            # 确保所有字段都有值
+            vocabulary.review_count = vocabulary.review_count or 0
+            vocabulary.correct_count = vocabulary.correct_count or 0
+            
+            # 更新复习进度
+            vocabulary.review_count += 1
+            vocabulary.correct_count += 1  # 标记为已掌握时，视为正确答对
             vocabulary.mastered = True
             vocabulary.familiarity_level = 5
+            vocabulary.review_stage = 5
+            
+            # 设置一个很远的下次复习时间，确保不会再出现在复习列表中
+            vocabulary.next_review_at = datetime.utcnow() + timedelta(days=3650)  # 10年后
+            
             vocabulary.save()
             return vocabulary.to_dict()
         except DoesNotExist:

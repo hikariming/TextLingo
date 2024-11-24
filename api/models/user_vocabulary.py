@@ -92,18 +92,26 @@ class UserVocabulary(Document):
         
         # 获取今日需要复习的总数（包括未复习的和今天已复习的）
         total_review = cls.objects(
-            (Q(mastered=False) | Q(mastered=None)) &  # 未掌握或未设置掌握状态
             (
-                (Q(next_review_at__lte=today_end) | Q(next_review_at=None)) |  # 需要复习或未设置复习时间
-                (Q(updated_at__gte=today_start) & Q(updated_at__lt=today_end) & Q(review_count__gt=0))  # 今天已复习的
+                (Q(mastered=False) | Q(mastered=None)) &  # 未掌握或未设置掌握状态
+                (
+                    (Q(next_review_at__lte=today_end) | Q(next_review_at=None)) |  # 需要复习或未设置复习时间
+                    (Q(updated_at__gte=today_start) & Q(updated_at__lt=today_end))  # 今天已复习的
+                )
+            ) |
+            # 今天被标记为已掌握的单词也要计入总数
+            (
+                Q(mastered=True) & 
+                Q(updated_at__gte=today_start) & 
+                Q(updated_at__lt=today_end)
             )
         ).count()
         
-        # 获取今日实际已复习数量（只统计 review_count > 0 的）
+        # 获取今日实际已复习数量（包括已掌握的）
         reviewed_words = cls.objects(
             Q(updated_at__gte=today_start) & 
             Q(updated_at__lt=today_end) &
-            Q(review_count__gt=0)  # 确保只统计真正复习过的单词
+            (Q(review_count__gt=0) | Q(mastered=True))  # 包括复习过的和已掌握的
         )
         
         reviewed_count = reviewed_words.count()
@@ -113,7 +121,7 @@ class UserVocabulary(Document):
         correct_attempts = 0
         for vocab in reviewed_words:
             total_attempts += 1
-            if vocab.correct_count and vocab.correct_count > 0:
+            if vocab.mastered or (vocab.correct_count and vocab.correct_count > 0):
                 correct_attempts += 1
             
         accuracy_rate = (correct_attempts / total_attempts * 100) if total_attempts > 0 else 0
