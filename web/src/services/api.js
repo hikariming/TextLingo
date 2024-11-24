@@ -246,6 +246,40 @@ export const VocabularyAPI = {
     })
     if (!response.ok) throw new Error('获取单词来源失败')
     return response.json()
+  },
+
+  // 获取下一个要复习的单词
+  getNextReviewWord: async () => {
+    const response = await fetch(`${API_BASE_URL}/vocabularies/review/next`, {
+      method: 'GET',
+      headers: defaultHeaders
+    })
+    if (!response.ok) throw new Error('获取复习单词失败')
+    return response.json()
+  },
+
+  // 提交复习结果
+  submitReviewResult: async (vocabularyId, result) => {
+    const response = await fetch(`${API_BASE_URL}/vocabularies/${vocabularyId}/review`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify({
+        vocabulary_id: vocabularyId,
+        result: result // 'remembered' | 'forgotten' | 'mastered'
+      })
+    })
+    if (!response.ok) throw new Error('提交复习结果失败')
+    return response.json()
+  },
+
+  // 获取复习统计信息
+  getReviewStats: async () => {
+    const response = await fetch(`${API_BASE_URL}/vocabularies/review/stats`, {
+      method: 'GET',
+      headers: defaultHeaders
+    })
+    if (!response.ok) throw new Error('获取统计信息失败')
+    return response.json()
   }
 }
 
@@ -338,5 +372,29 @@ export const SettingAPI = {
       throw new Error(data.message || '测试连接失败')
     }
     return data
+  },
+
+  // 获取词汇配置
+  getVocabularyConfig: async () => {
+    const response = await fetch(`${API_BASE_URL}/setting/vocabulary`, {
+      method: 'GET',
+      headers: defaultHeaders
+    })
+    if (!response.ok) throw new Error('获取词汇配置失败')
+    return response.json()
+  },
+
+  // 更新词汇配置
+  updateVocabularyConfig: async (config) => {
+    const response = await fetch(`${API_BASE_URL}/setting/vocabulary`, {
+      method: 'PUT',
+      headers: defaultHeaders,
+      body: JSON.stringify(config)
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || '更新词汇配置失败')
+    }
+    return response.json()
   }
 }

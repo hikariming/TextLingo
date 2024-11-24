@@ -36,3 +36,24 @@ class SettingController:
             return jsonify(result), 200 if result["status"] == "success" else 500
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+
+    @staticmethod
+    @setting_bp.route('/setting/vocabulary', methods=['GET'])
+    def get_vocabulary_config():
+        """获取词汇相关配置"""
+        try:
+            config = SettingService.get_vocabulary_config()
+            return jsonify(config), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @staticmethod
+    @setting_bp.route('/setting/vocabulary', methods=['PUT'])
+    def update_vocabulary_config():
+        """更新词汇相关配置"""
+        try:
+            data = request.get_json()
+            config = SettingService.update_vocabulary_config(data)
+            return jsonify(config), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500

@@ -17,3 +17,18 @@ class SettingService:
         for key, value in data.items():
             Setting.set_setting(key, value)
         return data
+
+    @staticmethod
+    def get_vocabulary_config():
+        """获取词汇相关的所有配置"""
+        config = {
+            "daily_review_limit": int(Setting.get_setting("daily_review_limit", "20"))
+        }
+        return config
+
+    @staticmethod
+    def update_vocabulary_config(data):
+        """更新词汇配置"""
+        for key, value in data.items():
+            Setting.set_setting(key, str(value))
+        return data
