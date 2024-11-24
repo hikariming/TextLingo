@@ -90,25 +90,39 @@ class UserVocabularyService:
 
     @staticmethod
     def fix_historical_data():
-        """修复历史数据中的 N/A 值"""
-        # 找出所有包含 N/A 值的记录
-        vocabularies = UserVocabulary.objects(
+        """修复历史数据中的 N/A 值，使用批量更新提高效率，这个方法后续版本可以删除了，保留三个月"""
+        # 检查是否有需要修复的数据
+        needs_fix = UserVocabulary.objects(
             Q(review_count=None) |
             Q(correct_count=None) |
             Q(review_stage=None) |
             Q(familiarity_level=None) |
-            Q(mastered=None)
+            Q(mastered=None) |
+            Q(next_review_at=None)
+        ).limit(1).count()
+
+        if not needs_fix:
+            return False  # 没有需要修复的数据
+
+        # 使用批量更新
+        update_result = UserVocabulary.objects(
+            Q(review_count=None) |
+            Q(correct_count=None) |
+            Q(review_stage=None) |
+            Q(familiarity_level=None) |
+            Q(mastered=None) |
+            Q(next_review_at=None)
+        ).update(
+            set__review_count=0,
+            set__correct_count=0,
+            set__review_stage=0,
+            set__familiarity_level=0,
+            set__mastered=False,
+            set__next_review_at=datetime.utcnow(),
+            multi=True
         )
-        
-        # 修复每条记录
-        for vocab in vocabularies:
-            vocab.review_count = vocab.review_count or 0
-            vocab.correct_count = vocab.correct_count or 0
-            vocab.review_stage = vocab.review_stage or 0
-            vocab.familiarity_level = vocab.familiarity_level or 0
-            vocab.mastered = False if vocab.mastered is None else vocab.mastered
-            vocab.next_review_at = vocab.next_review_at or datetime.utcnow()
-            vocab.save()
+
+        return True  # 完成修复
 
     @staticmethod
     def get_next_review_word():
@@ -117,11 +131,15 @@ class UserVocabularyService:
         if not words:
             return None
         return words[0].to_dict()
+    
 
     @staticmethod
     def mark_word_remembered(vocabulary_id):
         try:
             vocabulary = UserVocabulary.objects.get(id=vocabulary_id)
+            print("\n=== Service Debug Info ===")
+            print(f"当前复习阶段: {vocabulary.review_stage}")
+            print(f"当前时间: {datetime.utcnow()}")
             
             # 确保所有字段都有值
             vocabulary.review_count = vocabulary.review_count or 0
@@ -131,20 +149,30 @@ class UserVocabularyService:
             # 更新复习进度
             vocabulary.review_count += 1
             vocabulary.correct_count += 1
+            
+            # 获取当前阶段的间隔天数
+            interval_days = UserVocabulary.get_next_review_interval(vocabulary.review_stage)
+            print(f"计算得到的间隔天数: {interval_days}")
+            
+            # 使用当前时间作为基准计算下次复习时间
+            now = datetime.utcnow()
+            next_review = now.replace(hour=2, minute=0, second=0, microsecond=0)
+            if now.hour >= 2:
+                next_review = next_review + timedelta(days=1)
+            
+            # 添加间隔天数
+            vocabulary.next_review_at = next_review + timedelta(days=interval_days)
+            print(f"计算后的下次复习时间: {vocabulary.next_review_at}")
+            
+            # 更新阶段（在设置下次复习时间之后）
             vocabulary.review_stage = min(vocabulary.review_stage + 1, 5)
             
-            # 更新熟悉度 - 新逻辑
+            # 更新熟悉度
             if vocabulary.review_stage == 5 and vocabulary.correct_count >= 6:
-                # 如果达到最高阶段（30天）且至少答对6次，设为最高熟练度并标记为已掌握
                 vocabulary.familiarity_level = 5
                 vocabulary.mastered = True
             else:
-                # 根据当前阶段设置熟练度
                 vocabulary.familiarity_level = vocabulary.review_stage
-            
-            # 计算下次复习时间
-            days = UserVocabulary.get_next_review_interval(vocabulary.review_stage)
-            vocabulary.next_review_at = datetime.utcnow() + timedelta(days=days)
             
             vocabulary.save()
             return vocabulary.to_dict()
@@ -165,8 +193,16 @@ class UserVocabularyService:
             vocabulary.review_stage = 0  # 重置到第一阶段
             vocabulary.familiarity_level = 0  # 重置熟练度
             vocabulary.mastered = False  # 取消掌握标记
-            vocabulary.next_review_at = datetime.utcnow() + timedelta(days=1)
             
+            # 设置下次复习时间为下一个凌晨2点
+            now = datetime.utcnow()
+            next_review = now.replace(hour=2, minute=0, second=0, microsecond=0)
+            if now.hour < 2:  # 如果当前时间在凌晨2点前，则使用当天的凌晨2点
+                next_review = next_review
+            else:  # 否则使用下一天的凌晨2点
+                next_review = next_review + timedelta(days=1)
+            
+            vocabulary.next_review_at = next_review
             vocabulary.save()
             return vocabulary.to_dict()
         except DoesNotExist:

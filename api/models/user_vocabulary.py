@@ -83,7 +83,11 @@ class UserVocabulary(Document):
     @classmethod
     def get_today_review_stats(cls):
         """获取今日复习统计信息"""
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        # 修改为凌晨2点作为一天的开始
+        now = datetime.utcnow()
+        today_start = now.replace(hour=2, minute=0, second=0, microsecond=0)
+        if now.hour < 2:  # 如果当前时间在凌晨2点前，则使用前一天的凌晨2点
+            today_start = today_start - timedelta(days=1)
         today_end = today_start + timedelta(days=1)
         
         # 获取今日需要复习的总数（包括未复习的和今天已复习的）
@@ -125,7 +129,11 @@ class UserVocabulary(Document):
     def get_next_review_words(cls, limit=None):
         """获取待复习单词列表"""
         print("开始获取待复习单词")
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        # 修改为凌晨2点作为一天的开始
+        now = datetime.utcnow()
+        today_start = now.replace(hour=2, minute=0, second=0, microsecond=0)
+        if now.hour < 2:  # 如果当前时间在凌晨2点前，则使用前一天的凌晨2点
+            today_start = today_start - timedelta(days=1)
         
         # 获取每日复习数量设置
         from models.setting import Setting
