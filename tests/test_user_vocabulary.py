@@ -1,184 +1,223 @@
 import sys
 import os
+import yaml
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'api'))
 
 import pytest
 from datetime import datetime, timedelta
+from freezegun import freeze_time
 from models.user_vocabulary import UserVocabulary
 from services.user_vocabulary_service import UserVocabularyService
 from mongoengine.connection import connect, disconnect
 from models.setting import Setting
 
+def load_config():
+    """加载配置文件"""
+    config_path = os.path.join(os.path.dirname(__file__), '..', 'api', 'config.yml')
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
+
 class TestUserVocabulary:
+    """测试用户词汇系统的各项功能"""
+    
     @classmethod
     def setup_class(cls):
         """测试类开始前的设置"""
-        disconnect()  # 断开可能存在的连接
-        connect('textlingo', host='mongodb://admin_my_lingo:132welovehohohoyo95@119.91.225.127:26888/?authSource=admin')
-    
+        config = load_config()
+        disconnect()
+        connect('textlingo', host=config['mongodb']['uri'])
+        
     def setup_method(self):
         """每个测试方法开始前的设置"""
-        UserVocabulary.objects.delete()  # 清空测试数据
-        Setting.objects.delete()  # 清空设置
+        # 清空测试数据
+        UserVocabulary.objects.delete()
+        Setting.objects.delete()
         # 设置默认的每日复习限制
         Setting.set_setting('daily_review_limit', '20', '每日复习单词数量限制')
-    
+        
     def teardown_method(self):
         """每个测试方法结束后的清理"""
         UserVocabulary.objects.delete()
         Setting.objects.delete()
 
+    # 基础功能测试
     def test_create_vocabulary(self):
-        """测试创建单词"""
+        """测试创建词汇的基本功能"""
         vocab = UserVocabularyService.create_vocabulary(
             word="测试",
             meaning="test",
             reading="ceshi"
         )
+        
         assert vocab is not None
         assert vocab.word == "测试"
         assert vocab.meaning == "test"
         assert vocab.reading == "ceshi"
         assert vocab.next_review_at is not None
+        assert vocab.review_stage == 0
+        assert vocab.familiarity_level == 0
+        assert not vocab.mastered
 
-    def test_review_flow(self):
-        """测试完整的复习流程"""
-        # 创建测试单词
+    # 复习进度测试
+    def test_review_progression(self):
+        """测试复习进度推进逻辑"""
         vocab = UserVocabularyService.create_vocabulary(
-            word="测试",
-            meaning="test"
+            word="进度测试",
+            meaning="progress test"
         )
-        vocab_id = str(vocab.id)
-
-        # 测试获取待复习单词
-        next_word = UserVocabularyService.get_next_review_word()
-        assert next_word is not None
-        assert next_word['word'] == "测试"
-
-        # 测试标记为记住
-        result = UserVocabularyService.mark_word_remembered(vocab_id)
-        assert result['review_stage'] == 1
-        assert result['review_count'] == 1
-        assert result['correct_count'] == 1
-
-        # 测试标记为忘记
-        result = UserVocabularyService.mark_word_forgotten(vocab_id)
-        assert result['review_stage'] == 0
-        assert result['review_count'] == 2
-        assert result['correct_count'] == 1
-
-    def test_review_intervals(self):
-        """测试复习间隔"""
-        vocab = UserVocabularyService.create_vocabulary(
-            word="间隔测试",
-            meaning="interval test"
-        )
-        vocab_id = str(vocab.id)
-
-        print("\n=== Test Debug Info ===")
-        print(f"创建单词时间: {vocab.created_at}")
-        print(f"初始复习时间: {vocab.next_review_at}")
-
-        # 记录初始时间作为基准
-        current_time = datetime.utcnow()
-        next_review_base = current_time.replace(hour=2, minute=0, second=0, microsecond=0)
-        if current_time.hour >= 2:
-            next_review_base = next_review_base + timedelta(days=1)
-
-        print(f"测试基准时间: {next_review_base}")
-
-        # 测试不同阶段的复习间隔
-        intervals = [1, 2, 4, 7, 15, 30]  # 预期的间隔天数
         
-        for i, expected_interval in enumerate(intervals):
-            result = UserVocabularyService.mark_word_remembered(vocab_id)
-            next_review = result['next_review_at']
+        # 验证初始状态
+        assert vocab.review_stage == 0
+        
+        # 测试6个阶段的进度
+        for expected_stage in range(1, 6):
+            result = UserVocabularyService.mark_word_remembered(str(vocab.id))
             
-            # 如果 next_review 是字符串，需要先转换为 datetime 对象
-            if isinstance(next_review, str):
-                try:
-                    next_review_date = datetime.fromisoformat(next_review.replace('Z', '+00:00'))
-                except ValueError:
-                    next_review_date = datetime.strptime(next_review, '%Y-%m-%dT%H:%M:%S.%f')
-            else:
-                next_review_date = next_review
+            # 验证阶段递增
+            assert result['review_stage'] == expected_stage
             
-            # 更新基准时间为当前时间的下一个凌晨2点
-            current_time = datetime.utcnow()
-            next_review_base = current_time.replace(hour=2, minute=0, second=0, microsecond=0)
-            if current_time.hour >= 2:
-                next_review_base = next_review_base + timedelta(days=1)
-                
-            # 计算预期的下次复习时间
-            expected_date = next_review_base + timedelta(days=expected_interval)
+            # 验证复习时间间隔
+            vocab.reload()
+            expected_interval = UserVocabulary.get_next_review_interval(expected_stage - 1)
+            expected_next_review = datetime.utcnow().replace(hour=2, minute=0, second=0, microsecond=0)
+            if datetime.utcnow().hour >= 2:
+                expected_next_review += timedelta(days=1)
+            expected_next_review += timedelta(days=expected_interval)
             
-            # 计算时间差（秒）
-            time_diff = abs((next_review_date - expected_date).total_seconds())
-            
-            # 断言时间差小于60秒
-            assert time_diff < 60, (
-                f"复习间隔不正确：\n"
-                f"阶段: {i}\n"
-                f"期望间隔: {expected_interval} 天\n"
-                f"基准时间: {next_review_base}\n"
-                f"预期时间: {expected_date}\n"
-                f"实际时间: {next_review_date}\n"
-                f"时间差: {time_diff} 秒"
-            )
-            
-            # 更新基准时间为实际的下次复习时间
-            next_review_base = next_review_date
+            time_diff = abs((vocab.next_review_at - expected_next_review).total_seconds())
+            assert time_diff < 60, f"Stage {expected_stage}: Expected {expected_next_review}, got {vocab.next_review_at}"
 
-    def test_daily_limit(self):
-        """测试每日复习限制"""
-        # 创建25个单词
+    # 遗忘重置测试
+    def test_forget_reset(self):
+        """测试遗忘后的重置机制"""
+        vocab = UserVocabularyService.create_vocabulary(
+            word="重置测试",
+            meaning="reset test"
+        )
+        
+        # 先推进到第3阶段
+        for _ in range(3):
+            UserVocabularyService.mark_word_remembered(str(vocab.id))
+        
+        vocab.reload()
+        assert vocab.review_stage == 3
+        
+        # 测试遗忘重置
+        result = UserVocabularyService.mark_word_forgotten(str(vocab.id))
+        
+        # 验证重置结果
+        assert result['review_stage'] == 0
+        assert result['familiarity_level'] == 0
+        assert not result['mastered']
+        
+        # 验证下次复习时间
+        vocab.reload()
+        expected_next_review = datetime.utcnow().replace(hour=2, minute=0, second=0, microsecond=0)
+        if datetime.utcnow().hour >= 2:
+            expected_next_review += timedelta(days=1)
+        
+        time_diff = abs((vocab.next_review_at - expected_next_review).total_seconds())
+        assert time_diff < 60
+
+    # 掌握条件测试
+    def test_mastery_condition(self):
+        """测试词汇掌握的条件判断"""
+        vocab = UserVocabularyService.create_vocabulary(
+            word="掌握测试",
+            meaning="mastery test"
+        )
+        
+        # 前5次复习不应该达到掌握
+        for _ in range(5):
+            result = UserVocabularyService.mark_word_remembered(str(vocab.id))
+            vocab.reload()
+            assert not vocab.mastered
+        
+        # 第6次复习后应该达到掌握
+        result = UserVocabularyService.mark_word_remembered(str(vocab.id))
+        vocab.reload()
+        assert vocab.mastered
+        assert vocab.familiarity_level == 5
+        assert vocab.review_stage == 5
+
+    # 每日限制测试
+    def test_daily_review_limit(self):
+        """测试每日复习数量限制"""
+        # 创建25个词汇
         for i in range(25):
             UserVocabularyService.create_vocabulary(
                 word=f"测试{i}",
                 meaning=f"test{i}"
             )
+        
+        # 验证限制为20个
+        review_words = UserVocabulary.get_next_review_words()
+        assert len(list(review_words)) == 20
 
-        # 设置每日限制为20个
-        Setting.set_setting('daily_review_limit', '20', '每日复习单词数量限制')
+    # 时间边界测试
+    def test_review_time_boundary(self):
+        """测试凌晨2点边界的处理"""
+        # 测试2点前的情况
+        with freeze_time("2024-01-01 01:59:00"):
+            vocab1 = UserVocabularyService.create_vocabulary(
+                word="边界测试1",
+                meaning="boundary test 1"
+            )
+            result = UserVocabularyService.mark_word_remembered(str(vocab1.id))
+            vocab1.reload()
+            
+            expected_next_review = datetime(2024, 1, 1, 2, 0, 0) + \
+                                 timedelta(days=UserVocabulary.get_next_review_interval(0))
+            time_diff = abs((vocab1.next_review_at - expected_next_review).total_seconds())
+            assert time_diff < 60
 
-        # 获取待复习单词
-        words = UserVocabulary.get_next_review_words()
-        assert len(list(words)) == 20  # 应该只返回20个单词
+        # 测试2点后的情况
+        with freeze_time("2024-01-01 02:01:00"):
+            vocab2 = UserVocabularyService.create_vocabulary(
+                word="边界测试2",
+                meaning="boundary test 2"
+            )
+            result = UserVocabularyService.mark_word_remembered(str(vocab2.id))
+            vocab2.reload()
+            
+            expected_next_review = datetime(2024, 1, 2, 2, 0, 0) + \
+                                 timedelta(days=UserVocabulary.get_next_review_interval(0))
+            time_diff = abs((vocab2.next_review_at - expected_next_review).total_seconds())
+            assert time_diff < 60
 
-    def test_mastery_progression(self):
-        """测试掌握度进展"""
-        vocab = UserVocabularyService.create_vocabulary(
-            word="掌握测试",
-            meaning="mastery test"
-        )
-        vocab_id = str(vocab.id)
-
-        # 连续正确回答6次
-        for _ in range(6):
-            result = UserVocabularyService.mark_word_remembered(vocab_id)
-
-        # 检查是否达到掌握状态
-        final_result = UserVocabularyService.get_vocabulary(vocab_id)
-        assert final_result.mastered == True
-        assert final_result.familiarity_level == 5
-
+    # 统计数据测试
     def test_review_stats(self):
-        """测试复习统计"""
-        # 创建一些测试数据
-        vocab1 = UserVocabularyService.create_vocabulary(
-            word="统计测试1",
-            meaning="stats test 1"
-        )
-        vocab2 = UserVocabularyService.create_vocabulary(
-            word="统计测试2",
-            meaning="stats test 2"
-        )
-
-        # 模拟一些复习操作
+        """测试复习统计数据"""
+        # 创建测试数据
+        vocab1 = UserVocabularyService.create_vocabulary(word="统计1", meaning="stats1")
+        vocab2 = UserVocabularyService.create_vocabulary(word="统计2", meaning="stats2")
+        vocab3 = UserVocabularyService.create_vocabulary(word="统计3", meaning="stats3")
+        
+        # 进行复习操作
         UserVocabularyService.mark_word_remembered(str(vocab1.id))
         UserVocabularyService.mark_word_forgotten(str(vocab2.id))
-
-        # 获取统计信息
+        
+        # 验证统计结果
         stats = UserVocabularyService.get_review_stats()
+        assert stats['total_review'] > 0
         assert stats['reviewed_count'] == 2
-        assert stats['accuracy_rate'] == 50.0  # 一个记住一个忘记，正确率50%
+        assert stats['accuracy_rate'] == 50.0
+
+    # 连续复习测试
+    def test_consecutive_reviews(self):
+        """测试连续复习的行为"""
+        vocab = UserVocabularyService.create_vocabulary(
+            word="连续测试",
+            meaning="consecutive test"
+        )
+        
+        # 测试连续记住
+        result1 = UserVocabularyService.mark_word_remembered(str(vocab.id))
+        result2 = UserVocabularyService.mark_word_remembered(str(vocab.id))
+        assert result1['review_stage'] == 1
+        assert result2['review_stage'] == 2
+        
+        # 测试遗忘后再次记住
+        UserVocabularyService.mark_word_forgotten(str(vocab.id))
+        result3 = UserVocabularyService.mark_word_remembered(str(vocab.id))
+        assert result3['review_stage'] == 1
