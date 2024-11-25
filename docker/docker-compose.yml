@@ -24,7 +24,7 @@ services:
       - textlingo-network
 
   mongodb:
-    image: mongo:latest
+    image: mongo:7.0.14
     ports:
       - "27017:27017"
     volumes:
