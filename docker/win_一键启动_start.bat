@@ -77,9 +77,9 @@ endlocal
 echo Starting to check required images...
 
 :: Check required images
-call :check_and_load_image "rqlove/textlingo-api:v0.20" "textlingo-api.tar"
+call :check_and_load_image "rqlove/textlingo-api:v0.22" "textlingo-api.tar"
 if %ERRORLEVEL% NEQ 0 goto error
-call :check_and_load_image "rqlove/textlingo-web:v0.20" "textlingo-web.tar"
+call :check_and_load_image "rqlove/textlingo-web:v0.22" "textlingo-web.tar"
 if %ERRORLEVEL% NEQ 0 goto error
 call :check_and_load_image "mongo:7.0.14" "mongo.tar"
 if %ERRORLEVEL% NEQ 0 goto error

@@ -73,8 +73,8 @@ check_and_load_image() {
 echo -e "${YELLOW}开始检查必需的镜像 / Starting to check required images...${NC}"
 
 # 检查所需的镜像
-check_and_load_image "rqlove/textlingo-api:v0.20" "textlingo-api.tar" || exit 1
-check_and_load_image "rqlove/textlingo-web:v0.20" "textlingo-web.tar" || exit 1
+check_and_load_image "rqlove/textlingo-api:v0.22" "textlingo-api.tar" || exit 1
+check_and_load_image "rqlove/textlingo-web:v0.22" "textlingo-web.tar" || exit 1
 check_and_load_image "mongo:latest" "mongo.tar" || exit 1
 
 echo -e "${YELLOW}正在启动服务 / Starting services...${NC}"
