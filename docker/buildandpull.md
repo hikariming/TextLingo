@@ -35,3 +35,8 @@ docker buildx build --platform linux/amd64 -t yourdockerhubusername/textlingo-we
 ```
 
 注意：Docker Hub 会自动处理不同架构的镜像，用户在拉取时会自动获取适合其系统架构的版本。
+
+
+docker save rqlove/textlingo-api:v0.22 -o textlingo-api.tar
+docker save rqlove/textlingo-web:v0.22 -o textlingo-web.tar
+docker save mongo:7.0.14 -o mongo.tar
