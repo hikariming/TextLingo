@@ -75,7 +75,7 @@ echo -e "${YELLOW}开始检查必需的镜像 / Starting to check required image
 # 检查所需的镜像
 check_and_load_image "rqlove/textlingo-api:v0.22" "textlingo-api.tar" || exit 1
 check_and_load_image "rqlove/textlingo-web:v0.22" "textlingo-web.tar" || exit 1
-check_and_load_image "mongo:latest" "mongo.tar" || exit 1
+check_and_load_image "mongo:7.0.14" "mongo.tar" || exit 1
 
 echo -e "${YELLOW}正在启动服务 / Starting services...${NC}"
 if docker-compose up -d; then

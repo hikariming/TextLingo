@@ -8,7 +8,7 @@ docker buildx create --name mybuilder --use
 2. 然后使用以下命令构建并推送多平台镜像：
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 \
-  -t yourdockerhubusername/textlingo-web:0.20 \
+  -t yourdockerhubusername/textlingo-web:v0.22 \
   --push \
   .
 ```
@@ -28,10 +28,10 @@ docker login
 2. 如果要单独测试某个平台的构建：
 ```bash
 # 仅构建 ARM 版本
-docker buildx build --platform linux/arm64 -t yourdockerhubusername/textlingo-web:0.20-arm64 .
+docker buildx build --platform linux/arm64 -t yourdockerhubusername/textlingo-web:v0.22-arm64 .
 
 # 仅构建 AMD64 版本
-docker buildx build --platform linux/amd64 -t yourdockerhubusername/textlingo-web:0.20-amd64 .
+docker buildx build --platform linux/amd64 -t yourdockerhubusername/textlingo-web:v0.22-amd64 .
 ```
 
 注意：Docker Hub 会自动处理不同架构的镜像，用户在拉取时会自动获取适合其系统架构的版本。
