@@ -18,6 +18,16 @@ TextLingo uses AI technology to intelligently analyze texts and provides detaile
 
 ![TextLingo Main Interface](docs/img/main_page.png)
 
+
+
+# Version Information
+
+| Version | Description | Link |
+|---------|-------------|------|
+| Web Version |  Most convenient, no installation required. Currently free, but advanced features may be charged in the future. Best used with a VPN | https://textlingo.app/zh/login |
+| Open Source Version | 🆓 Most free, completely free, requires Docker installation | https://github.com/hikariming/TextLingo |
+| iOS Version | Under development... | TBD.... |
+
 ## Core Features
 
 - 🎯 **Smart Text Import**: One-click import of multiple formats (URL, Word, Markdown, etc.), automatic translation and learning vocabulary generation
@@ -58,3 +68,4 @@ Refer to [Running Documentation](docs/HowToRun_en.md)
 
 Development version v0.1.4
 Please check the running documentation for how to run the development version
+
