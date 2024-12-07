@@ -32,7 +32,7 @@ TextLingo通过AI技术，对文本进行智能分析，并提供详细的语法
 
 | 版本 | 说明 | 链接 |
 |---------|-------------|------|
-| 网页版 | 😍最方便，无需安装。目前免费，后续高级功能可能收费，最好科学上网后使用 | https://textlingo.app/zh/login |
+| 网页版 | 😍最方便，无需安装。目前免费，后续高级功能可能收费，最好科学上网后使用 （注册码：textlingo2025） | https://textlingo.app/zh/login |
 | 开源版 | 🆓最自由，完全免费，需要使用Docker安装 | https://github.com/hikariming/TextLingo |
 | IOS版 | 挖坑开发中。。 | TBD.... |
 

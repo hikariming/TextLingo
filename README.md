@@ -24,7 +24,7 @@ TextLingo uses AI technology to intelligently analyze texts and provides detaile
 
 | Version | Description | Link |
 |---------|-------------|------|
-| Web Version |  Most convenient, no installation required. Currently free, but advanced features may be charged in the future.  | https://textlingo.app/zh/login |
+| Web Version |  Most convenient, no installation required. Currently free, but advanced features may be charged in the future. （register code: textlingo2025） | https://textlingo.app/zh/login |
 | Open Source Version | 🆓 Most free, completely free, requires Docker installation | https://github.com/hikariming/TextLingo |
 | iOS Version | Under development... | TBD.... |
 
