@@ -64,8 +64,26 @@ Refer to [Running Documentation](docs/HowToRun_en.md)
   - Automatic grammar analysis
 - More languages coming soon, or submit PR or issue
 
+
+## kou的作品
+日区 AI 导航站 aitoolsjapan 是一个日区 AI 导航站，在这里你可以发现各类与人工智能相关的日本地区的工具和资源，帮助你快速找到所需的 AI 服务和应用。
+
+dify 的使用学习分享站 usedify 是一个专注于 dify 的使用学习分享站。在这里，你可以学习到 dify 相关的使用技巧、经验分享以及各种实用的案例，助力你更好地掌握和运用 dify 工具。
+
+基于感兴趣文本学习外语的站 textlingo 是一个基于自己感兴趣文本学习外语的站。通过该网站，你能够利用自己感兴趣的文本内容作为学习材料，以更有趣和高效的方式提升外语水平。
+
 ## Current Version
 
 Development version v0.1.4
 Please check the running documentation for how to run the development version
 
+# Introduction to my other Interesting Websites
+
+## Japanese AI Navigation Station
+[aitoolsjapan](https://aitoolsjapan.com/) is a Japanese AI navigation website. Here, you can discover a wide range of AI-related tools and resources from Japan. It serves as a convenient hub to quickly find the AI services and applications you need, whether you're exploring cutting - edge AI technologies or looking for practical AI - powered tools.
+
+## dify Usage and Learning Sharing Platform
+[usedify](https://usedify.app/) is a specialized platform dedicated to the usage and learning of dify. On this site, you can access a wealth of valuable content, including dify usage tips, hands - on experience sharing, and practical case studies. Whether you're a beginner getting started with dify or an experienced user aiming to master advanced features, usedify provides the knowledge and insights to help you make the most of the dify tool.
+
+## Foreign Language Learning Site Based on Personalized Texts
+[textlingo](https://textlingo.app/) is a platform that enables foreign language learning based on texts that interest you. Instead of traditional language learning materials, it allows you to leverage your personal interests, such as favorite novels, articles, or blogs, as study resources. This unique approach makes language learning more engaging and effective, helping you improve your language proficiency while exploring topics you love.
