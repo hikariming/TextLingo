@@ -198,6 +198,7 @@
   },
   "favorites": {
     "title": "My Favorites",
+    "subtitle": "Manage your saved vocabulary and grammar",
     "vocabulary": "Vocabulary",
     "grammar": "Grammar",
     "noVocabulary": "No vocabulary favorites",
@@ -207,6 +208,14 @@
     "favorited": "Favorited",
     "favoriteWord": "Favorite word",
     "favoriteGrammar": "Favorite grammar",
-    "sourceDeleted": "(Deleted)"
+    "sourceDeleted": "(Deleted)",
+    "exportPlainText": "Export Plain Text",
+    "exportJson": "Export JSON",
+    "importJson": "Import JSON",
+    "copyToClipboard": "Copy to Clipboard",
+    "downloadTxt": "Download TXT File",
+    "copied": "Copied!",
+    "importSuccess": "Successfully imported {{count}} words",
+    "importError": "Import failed"
   }
 }

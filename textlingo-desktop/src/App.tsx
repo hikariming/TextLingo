@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { BookOpen, RotateCw } from "lucide-react";
+import { BookOpen, RotateCw, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ArticleList } from "./components/features/ArticleList";
 import { ArticleReader } from "./components/features/ArticleReader";
 import { NewArticleButton } from "./components/features/NewArticleDialog";
-import { FavoritesButton } from "./components/features/FavoritesDialog";
+import { FavoritesPage } from "./components/features/FavoritesPage";
 import { SettingsButton } from "./components/features/SettingsDialog";
 import { Button } from "./components/ui/Button";
 import type { Article, AppConfig } from "./lib/tauri";
@@ -18,6 +18,7 @@ function App() {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   // Load config and articles on mount
   useEffect(() => {
@@ -65,6 +66,20 @@ function App() {
     setSelectedArticle(null);
   };
 
+  const handleGoHome = () => {
+    setSelectedArticle(null);
+    setShowFavorites(false);
+  };
+
+  const handleToggleFavorites = () => {
+    setShowFavorites(true);
+    setSelectedArticle(null);
+  };
+
+  const handleBackFromFavorites = () => {
+    setShowFavorites(false);
+  };
+
   const handleArticleUpdate = () => {
     loadData();
   };
@@ -85,15 +100,7 @@ function App() {
     }
   };
 
-  // 从收藏夹跳转到文章
-  const handleSelectArticleById = async (articleId: string) => {
-    try {
-      const article = await invoke<Article>("get_article", { id: articleId });
-      handleSelectArticle(article);
-    } catch (e) {
-      console.error("App: Failed to get article by id:", e);
-    }
-  };
+
 
   const hasConfig = config?.model_configs && config.model_configs.length > 0 && config.active_model_id;
   const activeConfig = config?.model_configs?.find(c => c.id === config.active_model_id);
@@ -114,7 +121,7 @@ function App() {
     <div className="h-screen flex flex-col bg-background text-foreground">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm supports-[backdrop-filter]:bg-card/50">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleGoHome}>
           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground">
             <BookOpen size={20} />
           </div>
@@ -130,7 +137,16 @@ function App() {
               {t("header.configureApiKey")}
             </div>
           )}
-          <FavoritesButton onSelectArticle={handleSelectArticleById} />
+
+          <Button
+            variant={showFavorites ? "default" : "secondary"}
+            onClick={handleToggleFavorites}
+            className="gap-2"
+          >
+            <Star size={16} className={showFavorites ? "fill-current" : ""} />
+            {t("header.favorites", "收藏夹")}
+          </Button>
+
           <NewArticleButton onSave={() => handleNewArticle()} />
           <SettingsButton onSave={handleArticleUpdate} />
         </div>
@@ -147,6 +163,11 @@ function App() {
             hasNext={selectedIndex < articles.length - 1}
             hasPrev={selectedIndex > 0}
             onUpdate={handleArticleUpdate}
+          />
+        ) : showFavorites ? (
+          <FavoritesPage
+            onBack={handleBackFromFavorites}
+            onSelectArticle={handleSelectArticle}
           />
         ) : (
           <div className="h-full max-w-4xl mx-auto p-6">

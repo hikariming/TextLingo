@@ -198,6 +198,7 @@
   },
   "favorites": {
     "title": "我的收藏",
+    "subtitle": "管理您收藏的单词与语法",
     "vocabulary": "单词收藏",
     "grammar": "语法收藏",
     "noVocabulary": "暂无单词收藏",
@@ -207,6 +208,14 @@
     "favorited": "已收藏",
     "favoriteWord": "收藏单词",
     "favoriteGrammar": "收藏语法",
-    "sourceDeleted": "（已删除）"
+    "sourceDeleted": "（已删除）",
+    "exportPlainText": "导出纯文本",
+    "exportJson": "导出 JSON",
+    "importJson": "导入 JSON",
+    "copyToClipboard": "复制到剪贴板",
+    "downloadTxt": "下载 TXT 文件",
+    "copied": "已复制",
+    "importSuccess": "成功导入 {{count}} 个单词",
+    "importError": "导入失败"
   }
 }
