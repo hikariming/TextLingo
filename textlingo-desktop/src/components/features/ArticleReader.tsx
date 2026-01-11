@@ -68,6 +68,9 @@ export function ArticleReader({
   // 本地段落状态 - 用于批量处理时的局部刷新
   const [localSegments, setLocalSegments] = useState(article.segments || []);
 
+  // 字幕提取状态
+  const [isExtractingSubtitles, setIsExtractingSubtitles] = useState(false);
+
   const ANALYSIS_TYPES: { value: AnalysisType; label: string; icon: React.ReactNode }[] = [
     { value: "summary", label: t("articleReader.summary") || "Summary", icon: <FileText size={16} /> },
     { value: "key_points", label: t("articleReader.keyPoints") || "Key Points", icon: <Sparkles size={16} /> },
@@ -141,7 +144,32 @@ export function ArticleReader({
     }
   };
 
+  // 字幕提取处理函数
+  const handleExtractSubtitles = async () => {
+    if (!article.media_path) return;
 
+    setIsExtractingSubtitles(true);
+    setError(null);
+
+    try {
+      const updatedArticle = await invoke<Article>("extract_subtitles_cmd", {
+        articleId: article.id,
+      });
+
+      // 更新本地状态
+      if (updatedArticle.segments) {
+        setLocalSegments(updatedArticle.segments);
+        setContent(updatedArticle.content);
+      }
+
+      onUpdate?.();
+    } catch (err) {
+      console.error("[ArticleReader] Subtitle extraction failed:", err);
+      setError(t("subtitleExtraction.error") + ": " + String(err));
+    } finally {
+      setIsExtractingSubtitles(false);
+    }
+  };
 
 
 
@@ -612,6 +640,33 @@ export function ArticleReader({
                       </div>
                     );
                   })()}
+
+                  {/* 字幕提取按钮 - 当视频没有字幕时显示 */}
+                  {article.media_path && !hasSegments && (
+                    <div className="mb-6 max-w-3xl mx-auto p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <div className="flex-1">
+                        <p className="text-foreground font-medium">{t("subtitleExtraction.noSubtitles")}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{t("subtitleExtraction.geminiRequired")}</p>
+                      </div>
+                      <Button
+                        onClick={handleExtractSubtitles}
+                        disabled={isExtractingSubtitles}
+                        className="gap-2 shrink-0"
+                      >
+                        {isExtractingSubtitles ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            {t("subtitleExtraction.extracting")}
+                          </>
+                        ) : (
+                          <>
+                            <FileText size={16} />
+                            {t("subtitleExtraction.extractButton")}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
 
                   {hasSegments ? (
                     <div className="max-w-3xl mx-auto pb-20">

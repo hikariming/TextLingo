@@ -54,12 +54,13 @@ pub async fn import_youtube_video(app: AppHandle, url: String) -> Result<Article
             "--write-auto-sub",
             "--sub-lang", "en,zh-Hans,zh-Hant", // 首选语言
             "--convert-subs", "srt",
-            // 格式优化：
-            // 1. best[ext=mp4][vcodec^=avc1]: 最优先 - H.264编码的MP4（macOS兼容性最好，且是预合并的）
-            // 2. best[ext=mp4]: 次选 - 任意编码的预合并MP4
-            // 3. best: 最后回退
-            "-f", "best[ext=mp4][vcodec^=avc1]/best[ext=mp4]/best",
-            "--merge-output-format", "mp4", // 如需合并则输出为 MP4
+            // 格式优化 - 确保下载真正的 MP4 容器：
+            // 1. 22: YouTube 标准 720p MP4 (H.264+AAC) - 预合并，无需 FFmpeg
+            // 2. 18: YouTube 标准 360p MP4 (H.264+AAC) - 预合并，无需 FFmpeg
+            // 3. 回退到任意 mp4 格式
+            // 注意：不再使用 best[ext=mp4] 因为它可能匹配到 MPEG-TS
+            "-f", "22/18/best[ext=mp4][vcodec^=avc1]/best[ext=mp4]",
+            "--remux-video", "mp4", // 如果格式不对，重新封装为 MP4
             "-o", output_template_str,
             "--print-json",               // 获取元数据
             "--no-simulate",
@@ -104,6 +105,9 @@ pub async fn import_youtube_video(app: AppHandle, url: String) -> Result<Article
     
     // 查找实际下载的视频文件（可能是 .mp4, .webm 等）
     let video_path = find_video_file(&videos_dir, &video_id)?;
+    
+    // 验证视频格式是否能在 Mac/Win 平台播放
+    verify_video_format(&video_path)?;
     
     // 2. 查找字幕文件（可选，失败不报错）
     // yt-dlp pattern: {id}.{lang}.srt
@@ -150,6 +154,55 @@ pub async fn import_youtube_video(app: AppHandle, url: String) -> Result<Article
     };
 
     Ok(article)
+}
+
+/// 验证视频格式是否能在 Mac/Win 平台播放
+/// 检查文件是否为有效的 MP4 容器（而非 MPEG-TS 等不兼容格式）
+fn verify_video_format(path: &Path) -> Result<(), String> {
+    use std::io::Read;
+    
+    let mut file = fs::File::open(path)
+        .map_err(|e| format!("无法打开视频文件验证: {}", e))?;
+    
+    // 读取文件前 12 字节
+    let mut header = [0u8; 12];
+    file.read_exact(&mut header)
+        .map_err(|e| format!("无法读取视频文件头: {}", e))?;
+    
+    // MP4 文件格式检查：
+    // MP4 文件以 ftyp atom 开头，格式为：
+    // [4字节大小][4字节 'ftyp'][4字节品牌标识]
+    // 品牌标识常见值：isom, iso2, mp41, mp42, avc1, M4V, qt 等
+    
+    let ftyp_marker = &header[4..8];
+    
+    if ftyp_marker == b"ftyp" {
+        // 有效的 MP4/M4V/MOV 容器
+        let brand = String::from_utf8_lossy(&header[8..12]);
+        println!("[VideoVerify] 有效的 MP4 容器，品牌: {}", brand);
+        return Ok(());
+    }
+    
+    // 检查 WebM 格式 (EBML 头)
+    if header[0..4] == [0x1A, 0x45, 0xDF, 0xA3] {
+        println!("[VideoVerify] WebM 格式");
+        return Ok(());
+    }
+    
+    // 检查是否为 MPEG-TS（不兼容格式）
+    // MPEG-TS 以 0x47 同步字节开头
+    if header[0] == 0x47 {
+        // 删除无效文件
+        let _ = fs::remove_file(path);
+        return Err(
+            "视频格式不兼容：下载的是 MPEG-TS 格式，无法在 Mac/Win 播放。\n\
+             请尝试重新导入，系统将自动选择兼容格式。".to_string()
+        );
+    }
+    
+    // 其他未知格式 - 给出警告但不阻止
+    println!("[VideoVerify] 未知视频格式，可能无法播放: {:?}", &header[0..8]);
+    Ok(())
 }
 
 /// 查找实际下载的视频文件（可能是 .mp4, .webm, .mkv 等格式）

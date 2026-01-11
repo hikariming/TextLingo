@@ -224,3 +224,19 @@ pub struct ChatResponse {
     pub model: String,
     pub tokens_used: Option<u32>,
 }
+
+/// 转录片段 (用于字幕提取)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TranscriptionSegment {
+    pub speaker: Option<String>,
+    pub timestamp: String,
+    pub content: String,
+}
+
+/// 转录结果 (用于字幕提取)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TranscriptionResult {
+    pub segments: Vec<TranscriptionSegment>,
+    pub full_text: String,
+}
+

@@ -5,6 +5,7 @@ mod storage;
 mod types;
 mod video_server;
 mod youtube;
+mod subtitle_extraction;
 
 // Re-exports
 use ai_service::AIServiceCache;
@@ -52,6 +53,8 @@ pub fn run() {
             commands::delete_favorite_grammar_cmd,
             // External
             commands::import_youtube_video_cmd,
+            // 字幕提取
+            commands::extract_subtitles_cmd,
         ])
         .setup(|app| {
             // Initialize app on startup

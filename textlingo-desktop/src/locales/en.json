@@ -217,5 +217,27 @@
     "copied": "Copied!",
     "importSuccess": "Successfully imported {{count}} words",
     "importError": "Import failed"
+  },
+  "youtubeImport": {
+    "title": "Import YouTube Video",
+    "urlLabel": "Video URL",
+    "urlPlaceholder": "https://www.youtube.com/watch?v=...",
+    "import": "Import",
+    "importing": "Downloading...",
+    "processing": "Processing...",
+    "cancel": "Cancel",
+    "errors": {
+      "urlRequired": "Please enter a video URL",
+      "urlInvalid": "Invalid YouTube URL",
+      "importFailed": "Import failed"
+    }
+  },
+  "subtitleExtraction": {
+    "noSubtitles": "No subtitles found for this video.",
+    "extractButton": "Extract Subtitles",
+    "extracting": "Extracting subtitles...",
+    "success": "Subtitles extracted successfully!",
+    "error": "Failed to extract subtitles",
+    "geminiRequired": "Subtitle extraction requires a Gemini model (gemini-2.0-flash or newer). Please configure in Settings."
   }
 }

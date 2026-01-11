@@ -39,7 +39,6 @@ export function FavoritesPage({ onBack, onSelectArticle }: FavoritesPageProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("vocabulary");
     const [articles, setArticles] = useState<Map<string, Article>>(new Map());
-    const [showExportMenu, setShowExportMenu] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 

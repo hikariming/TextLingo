@@ -995,3 +995,83 @@ pub async fn import_youtube_video_cmd(
     
     Ok(article)
 }
+
+// 字幕提取
+/// 提取视频字幕
+/// 使用 Gemini 多模态 API 从视频中提取音频并转录为字幕
+#[tauri::command]
+pub async fn extract_subtitles_cmd(
+    app_handle: AppHandle,
+    article_id: String,
+) -> Result<Article, String> {
+    println!("[ExtractSubtitles] 开始提取字幕: {}", article_id);
+    
+    // 1. 加载文章
+    let article_json = load_article(&app_handle, &article_id)?;
+    let mut article: Article = serde_json::from_str(&article_json)
+        .map_err(|e| format!("Failed to parse article: {}", e))?;
+    
+    // 2. 验证是视频并获取视频路径
+    let video_path = article.media_path.as_ref()
+        .ok_or("该文章不是视频，无法提取字幕")?;
+    let video_path = std::path::Path::new(video_path);
+    
+    if !video_path.exists() {
+        return Err(format!("视频文件不存在: {:?}", video_path));
+    }
+    
+    // 3. 获取 API 配置
+    let config = load_config(&app_handle)?
+        .ok_or("未配置 API，请先在设置中配置 AI 模型")?;
+    
+    let active_config = config.get_active_config()
+        .ok_or("未设置活动模型配置，请先在设置中配置 AI 模型")?;
+    
+    // 检查是否是 Gemini 模型
+    let model = &active_config.model;
+    let provider = &active_config.api_provider;
+    let api_key = &active_config.api_key;
+    
+    // 允许的 Gemini 模型前缀
+    let is_gemini = model.contains("gemini") || 
+                    model.starts_with("google/gemini") ||
+                    provider == "google";
+    
+    if !is_gemini {
+        return Err("字幕提取需要使用 Gemini 模型。请在设置中配置 Gemini API (gemini-2.0-flash 或更新版本)".to_string());
+    }
+    
+    // 4. 调用字幕提取模块
+    let segments = crate::subtitle_extraction::extract_subtitles(
+        app_handle.clone(),
+        video_path,
+        &article_id,
+        provider,
+        api_key,
+        model,
+    ).await?;
+    
+    if segments.is_empty() {
+        return Err("未能从视频中提取到字幕内容".to_string());
+    }
+    
+    println!("[ExtractSubtitles] 提取到 {} 个字幕片段", segments.len());
+    
+    // 5. 更新文章内容
+    article.segments = segments;
+    article.content = article.segments
+        .iter()
+        .map(|s| s.text.clone())
+        .collect::<Vec<_>>()
+        .join(" ");
+    
+    // 6. 保存文章
+    let updated_json = serde_json::to_string(&article)
+        .map_err(|e| format!("Failed to serialize article: {}", e))?;
+    save_article(&app_handle, &article_id, &updated_json)?;
+    
+    println!("[ExtractSubtitles] 字幕提取完成并保存");
+    
+    Ok(article)
+}
+

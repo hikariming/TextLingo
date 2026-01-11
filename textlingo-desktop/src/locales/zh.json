@@ -231,5 +231,13 @@
       "urlInvalid": "无效的 YouTube 链接",
       "importFailed": "导入失败"
     }
+  },
+  "subtitleExtraction": {
+    "noSubtitles": "该视频没有字幕。",
+    "extractButton": "提取字幕",
+    "extracting": "正在提取字幕...",
+    "success": "字幕提取成功！",
+    "error": "字幕提取失败",
+    "geminiRequired": "字幕提取需要使用 Gemini 模型（gemini-2.0-flash 或更新版本），请在设置中配置。"
   }
 }
