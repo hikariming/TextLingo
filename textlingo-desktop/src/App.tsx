@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ArticleList } from "./components/features/ArticleList";
 import { ArticleReader } from "./components/features/ArticleReader";
 import { NewArticleButton } from "./components/features/NewArticleDialog";
+import { YouTubeImportButton } from "./components/features/YouTubeImportDialog";
 import { FavoritesPage } from "./components/features/FavoritesPage";
 import { SettingsButton } from "./components/features/SettingsDialog";
 import { Button } from "./components/ui/Button";
@@ -147,6 +148,7 @@ function App() {
             {t("header.favorites", "收藏夹")}
           </Button>
 
+          <YouTubeImportButton onSave={() => handleNewArticle()} />
           <NewArticleButton onSave={() => handleNewArticle()} />
           <SettingsButton onSave={handleArticleUpdate} />
         </div>

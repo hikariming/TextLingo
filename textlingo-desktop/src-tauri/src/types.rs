@@ -87,6 +87,7 @@ pub struct Article {
     pub title: String,
     pub content: String,
     pub source_url: Option<String>,
+    pub media_path: Option<String>,
     pub created_at: String,
     pub translated: bool,
     #[serde(default)]

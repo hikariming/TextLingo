@@ -3,7 +3,28 @@ import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
-import { BookOpen, SpellCheck, Trash2, ExternalLink, Loader2, ArrowLeft, Download, Upload, Copy, FileDown, Check } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from "../ui/DropdownMenu";
+import {
+    BookOpen,
+    SpellCheck,
+    Trash2,
+    ExternalLink,
+    Loader2,
+    ArrowLeft,
+    Download,
+    Upload,
+    Copy,
+    FileDown,
+    Check,
+    MoreHorizontal
+} from "lucide-react";
 import type { FavoriteVocabulary, FavoriteGrammar, Article } from "../../types";
 
 interface FavoritesPageProps {
@@ -105,7 +126,6 @@ export function FavoritesPage({ onBack, onSelectArticle }: FavoritesPageProps) {
         } catch (err) {
             console.error("Failed to copy to clipboard:", err);
         }
-        setShowExportMenu(false);
     };
 
     // 下载 TXT 文件
@@ -121,7 +141,6 @@ export function FavoritesPage({ onBack, onSelectArticle }: FavoritesPageProps) {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        setShowExportMenu(false);
     };
 
     // 导出 JSON 文件
@@ -187,134 +206,128 @@ export function FavoritesPage({ onBack, onSelectArticle }: FavoritesPageProps) {
         event.target.value = "";
     };
 
+    const renderImportExportButtons = () => (
+        <div className="flex items-center gap-2">
+            <input
+                type="file"
+                ref={fileInputRef}
+                accept=".json"
+                onChange={handleImportJson}
+                className="hidden"
+            />
+
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 text-primary hover:text-primary hover:bg-primary/5 border-primary/20">
+                        <MoreHorizontal size={16} />
+                        {t("favorites.actions", "管理列表")}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                    {vocabularies.length > 0 && (
+                        <>
+                            <DropdownMenuLabel>{t("favorites.exportWordList", "导出单词列表")}</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={handleCopyToClipboard} className="cursor-pointer">
+                                <Copy className="mr-2 h-4 w-4" />
+                                <div className="flex flex-col gap-0.5">
+                                    <span>{copySuccess ? t("favorites.copied", "已复制") : t("favorites.copyToClipboard", "复制到剪贴板")}</span>
+                                    <span className="text-[10px] text-muted-foreground">{t("favorites.exportWordListDesc", "导入任意背单词软件")}</span>
+                                </div>
+                                {copySuccess && <Check className="ml-auto h-4 w-4 text-green-500" />}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleDownloadTxt} className="cursor-pointer">
+                                <FileDown className="mr-2 h-4 w-4" />
+                                <div className="flex flex-col gap-0.5">
+                                    <span>{t("favorites.downloadTxt", "下载 TXT 文件")}</span>
+                                    <span className="text-[10px] text-muted-foreground">{t("favorites.exportWordListDesc", "导入任意背单词软件")}</span>
+                                </div>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuLabel>{t("favorites.backupAndShare", "备份与共享")}</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={handleExportJson} className="cursor-pointer">
+                                <Download className="mr-2 h-4 w-4" />
+                                <div className="flex flex-col gap-0.5">
+                                    <span>{t("favorites.exportJson", "导出 JSON")}</span>
+                                    <span className="text-[10px] text-muted-foreground">{t("favorites.shareDesc", "本软件之间共享")}</span>
+                                </div>
+                            </DropdownMenuItem>
+                        </>
+                    )}
+
+                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="cursor-pointer">
+                        <Upload className="mr-2 h-4 w-4" />
+                        <div className="flex flex-col gap-0.5">
+                            <span>{t("favorites.importJson", "导入 JSON")}</span>
+                            <span className="text-[10px] text-muted-foreground">{t("favorites.shareDesc", "本软件之间共享")}</span>
+                        </div>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    );
+
     return (
-        <div className="h-full max-w-4xl mx-auto p-6 flex flex-col">
-            <div className="flex items-center gap-4 mb-6">
-                <Button variant="ghost" size="icon" onClick={onBack}>
+        <div className="h-full max-w-5xl mx-auto p-8 flex flex-col bg-background/50">
+            <div className="flex items-center gap-4 mb-8">
+                <Button variant="ghost" size="icon" onClick={onBack} className="hover:bg-primary/10 hover:text-primary transition-colors">
                     <ArrowLeft size={20} />
                 </Button>
                 <div>
-                    <h2 className="text-xl font-semibold">{t("favorites.title", "我的收藏")}</h2>
-                    <p className="text-sm text-muted-foreground">{t("favorites.subtitle", "管理您收藏的单词与语法")}</p>
+                    <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                        {t("favorites.title", "我的收藏")}
+                    </h2>
+                    <p className="text-sm text-muted-foreground/80 mt-1">
+                        {t("favorites.subtitle", "管理您收藏的单词与语法")}
+                    </p>
                 </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                <TabsList className="mb-4">
-                    <TabsTrigger value="vocabulary" className="gap-2">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col space-y-6">
+                <TabsList className="w-fit bg-muted/50 border border-border/50 p-1">
+                    <TabsTrigger
+                        value="vocabulary"
+                        className="gap-2 px-4 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+                    >
                         <BookOpen size={14} />
                         {t("favorites.vocabulary", "单词收藏")}
-                        <span className="text-xs text-muted-foreground">({vocabularies.length})</span>
+                        <span className="text-xs opacity-60 ml-1 bg-primary/10 px-1.5 py-0.5 rounded-full">
+                            {vocabularies.length}
+                        </span>
                     </TabsTrigger>
-                    <TabsTrigger value="grammar" className="gap-2">
+                    <TabsTrigger
+                        value="grammar"
+                        className="gap-2 px-4 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+                    >
                         <SpellCheck size={14} />
                         {t("favorites.grammar", "语法收藏")}
-                        <span className="text-xs text-muted-foreground">({grammars.length})</span>
+                        <span className="text-xs opacity-60 ml-1 bg-primary/10 px-1.5 py-0.5 rounded-full">
+                            {grammars.length}
+                        </span>
                     </TabsTrigger>
                 </TabsList>
 
                 {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <Loader2 className="animate-spin text-muted-foreground" size={24} />
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="animate-spin text-primary" size={32} />
                     </div>
                 ) : (
-                    <div className="flex-1 overflow-y-auto pr-2">
-                        <TabsContent value="vocabulary" className="mt-0 h-full">
-                            {/* 导入/导出工具栏 */}
-                            {vocabularies.length > 0 && (
-                                <div className="flex items-center justify-end gap-2 mb-4 pb-3 border-b border-border/50">
-                                    {/* 导出纯文本下拉菜单 */}
-                                    <div className="relative">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setShowExportMenu(!showExportMenu)}
-                                            className="gap-1.5"
-                                        >
-                                            <Download size={14} />
-                                            {t("favorites.exportPlainText", "导出纯文本")}
-                                        </Button>
-                                        {showExportMenu && (
-                                            <div className="absolute right-0 top-full mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[160px]">
-                                                <button
-                                                    className="w-full px-3 py-2 text-sm text-left hover:bg-accent flex items-center gap-2"
-                                                    onClick={handleCopyToClipboard}
-                                                >
-                                                    {copySuccess ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                                                    {copySuccess ? t("favorites.copied", "已复制") : t("favorites.copyToClipboard", "复制到剪贴板")}
-                                                </button>
-                                                <button
-                                                    className="w-full px-3 py-2 text-sm text-left hover:bg-accent flex items-center gap-2"
-                                                    onClick={handleDownloadTxt}
-                                                >
-                                                    <FileDown size={14} />
-                                                    {t("favorites.downloadTxt", "下载 TXT 文件")}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* 导出 JSON */}
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={handleExportJson}
-                                        className="gap-1.5"
-                                    >
-                                        <Download size={14} />
-                                        {t("favorites.exportJson", "导出 JSON")}
-                                    </Button>
-
-                                    {/* 导入 JSON */}
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="gap-1.5"
-                                    >
-                                        <Upload size={14} />
-                                        {t("favorites.importJson", "导入 JSON")}
-                                    </Button>
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        accept=".json"
-                                        onChange={handleImportJson}
-                                        className="hidden"
-                                    />
-                                </div>
-                            )}
-
-                            {/* 空列表时也显示导入按钮 */}
-                            {vocabularies.length === 0 && (
-                                <div className="flex justify-end mb-4">
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="gap-1.5"
-                                    >
-                                        <Upload size={14} />
-                                        {t("favorites.importJson", "导入 JSON")}
-                                    </Button>
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        accept=".json"
-                                        onChange={handleImportJson}
-                                        className="hidden"
-                                    />
-                                </div>
-                            )}
+                    <div className="flex-1 overflow-y-auto pr-2 min-h-0">
+                        <TabsContent value="vocabulary" className="mt-0 h-full flex flex-col">
+                            {/* 工具栏 */}
+                            <div className="flex justify-end mb-6 pb-2 border-b border-border/40">
+                                {renderImportExportButtons()}
+                            </div>
 
                             {vocabularies.length === 0 ? (
                                 <EmptyState
-                                    icon={<BookOpen size={40} />}
+                                    icon={<BookOpen size={48} />}
                                     title={t("favorites.noVocabulary", "暂无单词收藏")}
                                     description={t("favorites.noVocabularyDesc", "在文章学习中点击单词旁的收藏按钮即可添加")}
                                 />
                             ) : (
-                                <div className="space-y-3 pb-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
                                     {vocabularies.map(vocab => (
                                         <VocabularyCard
                                             key={vocab.id}
@@ -328,15 +341,15 @@ export function FavoritesPage({ onBack, onSelectArticle }: FavoritesPageProps) {
                             )}
                         </TabsContent>
 
-                        <TabsContent value="grammar" className="mt-0 h-full">
+                        <TabsContent value="grammar" className="mt-0 h-full flex flex-col">
                             {grammars.length === 0 ? (
                                 <EmptyState
-                                    icon={<SpellCheck size={40} />}
+                                    icon={<SpellCheck size={48} />}
                                     title={t("favorites.noGrammar", "暂无语法收藏")}
                                     description={t("favorites.noGrammarDesc", "在文章学习中点击语法点旁的收藏按钮即可添加")}
                                 />
                             ) : (
-                                <div className="space-y-3 pb-6">
+                                <div className="space-y-4 pb-8">
                                     {grammars.map(grammar => (
                                         <GrammarCard
                                             key={grammar.id}
@@ -359,10 +372,12 @@ export function FavoritesPage({ onBack, onSelectArticle }: FavoritesPageProps) {
 // Empty State Component
 function EmptyState({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
     return (
-        <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
-            <div className="mb-4 opacity-50">{icon}</div>
-            <h3 className="text-lg font-medium mb-2">{title}</h3>
-            <p className="text-sm">{description}</p>
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="mb-6 p-6 rounded-full bg-muted/30 text-muted-foreground/50 border border-border/50">
+                {icon}
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">{title}</h3>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">{description}</p>
         </div>
     );
 }
@@ -380,36 +395,53 @@ function VocabularyCard({
     onGoToArticle?: () => void;
 }) {
     return (
-        <div className="bg-card border border-border p-4 rounded-lg hover:border-primary/30 transition-colors">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
-                    <div className="flex items-baseline gap-2 mb-1">
-                        <span className="font-bold text-lg text-foreground">{vocab.word}</span>
-                        {vocab.reading && (
-                            <span className="text-xs text-muted-foreground font-mono">{vocab.reading}</span>
-                        )}
-                    </div>
-                    <div className="text-sm text-foreground/90 mb-2">{vocab.meaning}</div>
-                    {vocab.usage && (
-                        <div className="text-xs text-muted-foreground italic bg-muted/30 p-2 rounded">{vocab.usage}</div>
+        <div className="group relative bg-card hover:bg-gradient-to-br hover:from-card hover:to-primary/5 border border-border/50 hover:border-primary/20 p-5 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md">
+            <div className="flex justify-between items-start mb-3">
+                <div className="flex items-baseline gap-2">
+                    <span className="font-bold text-lg text-primary">{vocab.word}</span>
+                    {vocab.reading && (
+                        <span className="text-xs text-muted-foreground/80 font-mono tracking-wide">{vocab.reading}</span>
                     )}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {onGoToArticle && article && (
-                        <Button variant="ghost" size="sm" onClick={onGoToArticle} title={article.title}>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-primary"
+                            onClick={onGoToArticle}
+                            title={article.title}
+                        >
                             <ExternalLink size={14} />
                         </Button>
                     )}
-                    <Button variant="ghost" size="sm" onClick={onDelete} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={onDelete}
+                    >
                         <Trash2 size={14} />
                     </Button>
                 </div>
             </div>
+
+            <div className="space-y-2 mb-3">
+                <div className="text-sm text-foreground/90 leading-relaxed font-medium">{vocab.meaning}</div>
+                {vocab.usage && (
+                    <div className="inline-block text-xs text-primary/80 bg-primary/5 px-2 py-1 rounded-md border border-primary/10">
+                        {vocab.usage}
+                    </div>
+                )}
+            </div>
+
             {/* Source Article */}
             {vocab.source_article_title && (
-                <div className="mt-3 pt-2 border-t border-border/50 text-xs text-muted-foreground flex items-center gap-1">
+                <div className="pt-3 mt-1 border-t border-border/30 text-[10px] text-muted-foreground/60 flex items-center gap-1.5 truncate">
                     <BookOpen size={10} />
-                    <span>来源: {article ? vocab.source_article_title : <span className="line-through opacity-70">{vocab.source_article_title} (已删除)</span>}</span>
+                    <span className="truncate">
+                        {article ? vocab.source_article_title : <span className="line-through decoration-muted-foreground/50 opacity-70">{vocab.source_article_title} (已删除)</span>}
+                    </span>
                 </div>
             )}
         </div>
@@ -429,31 +461,53 @@ function GrammarCard({
     onGoToArticle?: () => void;
 }) {
     return (
-        <div className="relative pl-4 border-l-2 border-primary/50 bg-card border-y border-r border-border p-4 rounded-r-lg hover:border-r-primary/30 hover:border-y-primary/30 transition-colors">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
-                    <h5 className="font-semibold text-sm text-foreground mb-1">{grammar.point}</h5>
+        <div className="group relative bg-card hover:bg-primary/[0.02] border border-border/60 hover:border-primary/20 p-5 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md">
+            <div className="absolute left-0 top-4 bottom-4 w-1 bg-primary/40 rounded-r-lg group-hover:bg-primary transition-colors"></div>
+
+            <div className="pl-4 flex items-start justify-between gap-4">
+                <div className="flex-1 space-y-2">
+                    <h5 className="font-bold text-base text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                        {grammar.point}
+                    </h5>
                     <p className="text-sm text-muted-foreground leading-relaxed">{grammar.explanation}</p>
                     {grammar.example && (
-                        <div className="text-xs text-muted-foreground mt-2 italic bg-muted/30 p-2 rounded">例: {grammar.example}</div>
+                        <div className="bg-muted/30 p-3 rounded-lg border border-border/50 text-sm text-foreground/80 italic relative mt-3">
+                            <span className="absolute top-2 left-2 text-primary/10 font-serif text-4xl leading-none">"</span>
+                            <span className="relative z-10">{grammar.example}</span>
+                        </div>
                     )}
                 </div>
-                <div className="flex items-center gap-1">
+
+                <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {onGoToArticle && article && (
-                        <Button variant="ghost" size="sm" onClick={onGoToArticle} title={article.title}>
-                            <ExternalLink size={14} />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-primary"
+                            onClick={onGoToArticle}
+                            title={article.title}
+                        >
+                            <ExternalLink size={16} />
                         </Button>
                     )}
-                    <Button variant="ghost" size="sm" onClick={onDelete} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                        <Trash2 size={14} />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={onDelete}
+                    >
+                        <Trash2 size={16} />
                     </Button>
                 </div>
             </div>
+
             {/* Source Article */}
             {grammar.source_article_title && (
-                <div className="mt-3 pt-2 border-t border-border/50 text-xs text-muted-foreground flex items-center gap-1">
+                <div className="pl-4 mt-4 pt-3 border-t border-border/30 text-[10px] text-muted-foreground/60 flex items-center gap-1.5">
                     <BookOpen size={10} />
-                    <span>来源: {article ? grammar.source_article_title : <span className="line-through opacity-70">{grammar.source_article_title} (已删除)</span>}</span>
+                    <span>
+                        {article ? grammar.source_article_title : <span className="line-through decoration-muted-foreground/50 opacity-70">{grammar.source_article_title} (已删除)</span>}
+                    </span>
                 </div>
             )}
         </div>

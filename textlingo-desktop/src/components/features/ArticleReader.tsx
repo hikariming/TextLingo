@@ -590,6 +590,29 @@ export function ArticleReader({
                 </div>
               ) : (
                 <div className="h-full overflow-y-auto px-4 py-6 md:px-8 lg:px-12">
+                  {article.media_path && (() => {
+                    // 从完整路径提取文件名
+                    const filename = article.media_path.split('/').pop() || article.media_path.split('\\').pop() || '';
+                    const videoUrl = `http://127.0.0.1:19420/video/${encodeURIComponent(filename)}`;
+                    return (
+                      <div className="mb-6 max-w-3xl mx-auto rounded-lg overflow-hidden bg-black/5 border border-border">
+                        <video
+                          controls
+                          playsInline
+                          className="w-full aspect-video"
+                          src={videoUrl}
+                          onError={(e) => {
+                            console.error("Video playback error:", e);
+                            const video = e.target as HTMLVideoElement;
+                            console.error("Video error code:", video.error?.code);
+                            console.error("Video error message:", video.error?.message);
+                            console.error("Video URL:", videoUrl);
+                          }}
+                        />
+                      </div>
+                    );
+                  })()}
+
                   {hasSegments ? (
                     <div className="max-w-3xl mx-auto pb-20">
                       {/* 将段落按is_new_paragraph分组，连续的非换行句子组成一组 */}

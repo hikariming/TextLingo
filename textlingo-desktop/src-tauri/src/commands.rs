@@ -363,6 +363,7 @@ pub async fn create_article(
         title: title.clone(),
         content: content.clone(),
         source_url: source_url.clone(),
+        media_path: None,
         created_at: created_at.clone(),
         translated: false,
         segments,
@@ -978,4 +979,19 @@ pub async fn delete_favorite_grammar_cmd(
 ) -> Result<(), String> {
     delete_favorite_grammar(&app_handle, &id)?;
     Ok(())
+}
+
+// YouTube Import
+#[tauri::command]
+pub async fn import_youtube_video_cmd(
+    app_handle: AppHandle,
+    url: String,
+) -> Result<Article, String> {
+    let article = crate::youtube::import_youtube_video(app_handle.clone(), url).await?;
+    
+    let article_json = serde_json::to_string(&article)
+        .map_err(|e| format!("Failed to serialize article: {}", e))?;
+    save_article(&app_handle, &article.id, &article_json)?;
+    
+    Ok(article)
 }

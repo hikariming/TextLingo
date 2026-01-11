@@ -3,6 +3,7 @@ export interface Article {
     title: string;
     content: string;
     source_url?: string;
+    media_path?: string;
     created_at: string;
     translated: boolean;
     segments?: ArticleSegment[];

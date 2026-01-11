@@ -1,3 +1,4 @@
+use regex::Regex;
 use crate::types::{
     AnalysisRequest, AnalysisResponse, AnalysisType, ChatRequest, ChatResponse,
     TranslationRequest, TranslationResponse,
@@ -169,95 +170,160 @@ impl AIService {
         println!("Starting segment_translate_explain for text: '{}'...", text.chars().take(50).collect::<String>());
         let native_language_name = match target_language.as_str() {
             "zh" | "zh-CN" => "中文",
-            "en" => "英文",
-            "ja" => "日语",
-            "ko" => "韩语",
+            "en" => "English",
+            "ja" => "Japanese",
+            "ko" => "Korean",
             _ => "中文",
         };
 
         let system_prompt = format!(
-            r#"你是一个专业的语言学习助手。用户的母语是{0}。请对以下文本段落进行全面的分析，并严格按照下面的JSON格式返回结果，不要添加任何额外的解释或说明。
+            r#"You are a professional language learning assistant. The user's native language is {0}. Please analyze the following text segment comprehensively and return the result strictly in the following JSON format. Do NOT add any extra explanations or markdown formatting outside the JSON block.
 
-用户语言设置：
-- 母语：{0}
+User's Native Language: {0}
 
-要分析的文本：
+Text to Analyze:
 ---
 {1}
 ---
 
-请根据用户的语言设置，严格按照以下JSON结构返回，所有key都必须是英文：
+Please strictly adhere to this JSON structure (all keys must be in English):
 {{
-  "translation": "将原文翻译成{0}，要求自然流畅，符合{0}的表达习惯",
-  "explanation": "使用{0}对整个段落进行详细讲解，使用Markdown格式。包含对上下文、语气、文化背景的说明",
+  "translation": "Translate the text into natural, fluent {0}",
+  "explanation": "Explain the text in {0}, covering context, tone, and cultural background. Use Markdown formatting.",
   "vocabulary": [
     {{
-      "word": "要分析的单词或短语(不要展示读音，这里写上原文中的单词即可)",
-      "reading": "该单词或短语的读音（如果是日语，则使用日语的五十音平假名，如果是英语，则使用英语的音标）",
-      "meaning": "单词或短语在当前语境下的核心释义，用{0}解释",
-      "usage": "用{0}对用法和搭配进行详细说明",
-      "example": "使用该单词或短语的例句，并附上{0}翻译"
+      "word": "The word or phrase from the text",
+      "reading": "Pronunciation/Reading (e.g., Hiragana for Japanese, IPA for English)",
+      "meaning": "Core meaning in the context, explained in {0}",
+      "usage": "Usage notes and collocations in {0}",
+      "example": "Example sentence containing the word, with {0} translation"
     }}
   ],
   "grammar_points": [
     {{
-      "point": "要分析的语法点名称",
-      "explanation": "用{0}对该语法点进行详细解释",
-      "example": "使用该语法点的例句，并附上{0}翻译"
+      "point": "Name of the grammar point",
+      "explanation": "Detailed explanation in {0}",
+      "example": "Example sentence using the grammar point, with {0} translation"
     }}
   ],
-  "cultural_context": "如果文本涉及特定文化背景，用{0}进行说明",
+  "cultural_context": "Cultural background info in {0} (if applicable, else null)",
   "difficulty_level": "beginner | intermediate | advanced",
-  "learning_tips": "用{0}提供针对该段落的学习建议"
+  "learning_tips": "Learning advice for this segment in {0}"
 }}
 
-请确保所有解释、说明、建议都使用{0}。"#,
+Ensure all explanations, meanings, and descriptive text are written in {0}."#,
             native_language_name, text
         );
 
         let messages = vec![
             json!({"role": "system", "content": system_prompt}),
-            json!({"role": "user", "content": format!("请分析这个段落：{}", text)}),
+            json!({"role": "user", "content": format!("Analyze this: {}", text)}),
         ];
 
         println!("Sending request to AI provider: {}", self.provider);
         let content = self.make_request(messages, Some(0.3)).await?;
         println!("Received response from AI provider. Content length: {}", content.len());
 
-        // Parse JSON from content
-        // Handle markdown code blocks if present
-        let cleaned_content = if let Some(start) = content.find("```json") {
-            if let Some(end) = content[start..].find("```") {
-                 // start + 7 to skip ```json
-                 // find next ```
-                 let json_part = &content[start+7..];
-                 if let Some(end_idx) = json_part.find("```") {
-                     json_part[..end_idx].trim()
-                 } else {
-                     content.trim()
-                 }
-            } else {
-                content.trim()
+        // Robust JSON extraction
+        let json_str = Self::extract_json(&content);
+        println!("Extracted JSON candidate length: {}", json_str.len());
+
+        // Try parsing, with repair fallback
+        match serde_json::from_str::<crate::types::SegmentExplanation>(&json_str) {
+            Ok(explanation) => {
+                println!("Successfully parsed explanation JSON.");
+                Ok(explanation)
+            },
+            Err(e) => {
+                println!("Initial JSON parse failed: {}. Attempting repair...", e);
+                let repaired_json = Self::repair_json(&json_str);
+                match serde_json::from_str::<crate::types::SegmentExplanation>(&repaired_json) {
+                    Ok(explanation) => {
+                        println!("Successfully parsed repaired JSON.");
+                        Ok(explanation)
+                    },
+                    Err(e2) => {
+                        println!("Failed to parse repaired JSON: {}.", e2);
+                        println!("Original content: {}", content);
+                        Err(format!("Failed to parse AI response. Error: {}. Content: {}", e2, repaired_json))
+                    }
+                }
             }
-        } else if let Some(start) = content.find('{') {
-             if let Some(end) = content.rfind('}') {
-                 &content[start..=end]
-             } else {
-                 content.trim()
-             }
-        } else {
-            content.trim()
-        };
+        }
+    }
+
+    /// Extracts the likely JSON part from a string.
+    /// Prioritizes code blocks, then finding the outermost matching braces.
+    fn extract_json(content: &str) -> String {
+        // 1. Try finding markdown code blocks explicitly
+        if let Some(start) = content.find("```json") {
+            if let Some(end) = content[start..].rfind("```") {
+                if end > 7 { // Ensure there's content between ```json and ```
+                     return content[start+7..start+end].trim().to_string();
+                }
+            }
+        }
         
-        // Remove markdown block if it was ``` without json
-        let cleaned_content = cleaned_content.trim_start_matches("```json").trim_start_matches("```").trim_end_matches("```").trim();
+        // 2. Try generic code blocks
+        if let Some(start) = content.find("```") {
+             // Find the next ``` 
+             if let Some(end_offset) = content[start+3..].find("```") {
+                 let end = start + 3 + end_offset;
+                 return content[start+3..end].trim().to_string();
+             }
+        }
 
-        println!("Attempting to parse JSON content...");
-        let explanation: crate::types::SegmentExplanation = serde_json::from_str(cleaned_content)
-            .map_err(|e| format!("Failed to parse JSON response: {}. Content: {}", e, cleaned_content))?;
+        // 3. Robust brace counting to find the main JSON object
+        if let Some(start_idx) = content.find('{') {
+             let mut balance = 0;
+             let mut end_idx = start_idx;
+             let mut found_end = false;
+             
+             // Iterate through chars to find the matching closing brace
+             for (i, c) in content[start_idx..].char_indices() {
+                 match c {
+                     '{' => balance += 1,
+                     '}' => {
+                         balance -= 1;
+                         if balance == 0 {
+                             end_idx = start_idx + i;
+                             found_end = true;
+                             break;
+                         }
+                     },
+                     _ => {}
+                 }
+             }
+             
+             if found_end {
+                 return content[start_idx..=end_idx].to_string();
+             }
+        }
 
-        println!("Successfully parsed explanation JSON.");
-        Ok(explanation)
+        // 4. Fallback to just trimming
+        content.trim().trim_start_matches("```json").trim_start_matches("```").trim_end_matches("```").to_string()
+    }
+
+    /// Attempts to repair common JSON errors from LLMs
+    fn repair_json(json_str: &str) -> String {
+        // Use regex to remove trailing commas which are invalid in JSON but common in LLM output
+        // Invalid: { "a": 1, } -> Valid: { "a": 1 }
+        // Invalid: [ "a", ] -> Valid: [ "a" ]
+        
+        let mut repaired = json_str.to_string();
+
+        if let Ok(re) = Regex::new(r",(\s*\})") {
+            repaired = re.replace_all(&repaired, "$1").to_string();
+        }
+
+        if let Ok(re) = Regex::new(r",(\s*\])") {
+            repaired = re.replace_all(&repaired, "$1").to_string();
+        }
+        
+        // Normalize quotes
+        repaired = repaired.replace("“", "\"").replace("”", "\"");
+
+        repaired
     }
 }
 

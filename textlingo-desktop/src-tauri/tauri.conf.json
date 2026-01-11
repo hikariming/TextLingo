@@ -23,7 +23,14 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$APPDATA/**",
+          "$APPCACHE/**"
+        ]
+      }
     }
   },
   "bundle": {
@@ -38,6 +45,9 @@
     ],
     "category": "Education",
     "shortDescription": "AI-powered article reader and translator",
-    "longDescription": "TextLingo Desktop is a powerful AI-powered application for reading, translating, and analyzing articles. Use your own API keys to access the latest AI models."
+    "longDescription": "TextLingo Desktop is a powerful AI-powered application for reading, translating, and analyzing articles. Use your own API keys to access the latest AI models.",
+    "externalBin": [
+      "binaries/yt-dlp"
+    ]
   }
 }

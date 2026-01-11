@@ -217,5 +217,19 @@
     "copied": "已复制",
     "importSuccess": "成功导入 {{count}} 个单词",
     "importError": "导入失败"
+  },
+  "youtubeImport": {
+    "title": "导入 YouTube 视频",
+    "urlLabel": "视频链接",
+    "urlPlaceholder": "https://www.youtube.com/watch?v=...",
+    "import": "导入",
+    "importing": "正在下载...",
+    "processing": "处理中...",
+    "cancel": "取消",
+    "errors": {
+      "urlRequired": "请输入视频链接",
+      "urlInvalid": "无效的 YouTube 链接",
+      "importFailed": "导入失败"
+    }
   }
 }
