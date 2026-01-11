@@ -1,6 +1,0 @@
-mongodb:
-  uri: "mongodb://username:password@localhost:27017/dbname?authSource=admin"
-secret_key: "your-secret-key-here" # 暂时没啥用，可留空
-llm_api_key: "your-openai-api-key-here"
-llm_base_url: "https://api.wlai.vip/v1"  # 推荐使用claude，可使用openrouter或者yunwu中转
-llm_model: "claude-3-5-sonnet-20241022"  # 推荐使用claude

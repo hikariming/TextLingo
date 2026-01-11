@@ -65,7 +65,8 @@
     "segmentArticleHint": "「セグメント」ボタンをクリックして、記事を段落に分割して詳しく学習できます。",
     "analyzeAll": "すべて分析",
     "analyzeAllConfirm": "{{count}}個のセグメントを分析します。多くのトークンを消費する可能性があります。\n（3セグメントずつ並行処理）\n\n続行しますか？",
-    "allSegmentsAnalyzed": "すべてのセグメントは分析済みです。"
+    "allSegmentsAnalyzed": "すべてのセグメントは分析済みです。",
+    "selectToExplain": "「アシスタント」をクリックしてこのセグメントを分析します"
   },
   "newArticle": {
     "title": "新規記事",

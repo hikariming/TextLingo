@@ -7,3 +7,4 @@ api/data/*
 .DS_Store
 api/textlingo/
 api/config.yml
+old/

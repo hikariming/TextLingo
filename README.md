@@ -2,9 +2,9 @@
 
 <!-- <img src="/docs/img/logo.png" alt="TextLingo Logo" height="140"> -->
 
-# TextLingo📕
+# TextLingo Desktop 📕
 <p align="center">
-  <a href="https://www.python.org" target="_blank"><img src="https://img.shields.io/badge/Python-3.10-blue.svg" alt="Python"></a>
+  <a href="https://www.python.org" target="_blank"><img src="https://img.shields.io/badge/Tauri-v2-blue.svg" alt="Tauri"></a>
   <a href="https://github.com/hikariming/TextLingo/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/YourUsername/TextLingo.svg" alt="GitHub stars"></a>
 </p>
 
@@ -12,21 +12,20 @@
 
 </div>
 
-TextLingo is an innovative foreign language reading and learning tool that allows you to learn foreign languages using any text content of interest, transforming boring language learning into an enjoyable reading experience.
+TextLingo Desktop is an innovative AI-powered foreign language reading and learning tool. It allows you to learn languages using any text content that interests you, transforming boring study into an enjoyable reading experience.
 
-TextLingo uses AI technology to intelligently analyze texts and provides detailed grammar explanations and word definitions to help you better understand the content.
+Locally running with Tauri, it offers a fast, privacy-focused, and immersive learning environment.
 
 ![TextLingo Main Interface](docs/img/main_page.png)
-
-
 
 # Version Information
 
 | Version | Description | Link |
 |---------|-------------|------|
-| Web Version |  Most convenient, no installation required. Currently free, but advanced features may be charged in the future. （register code: textlingo2025） | https://textlingo.app/zh/login |
-| Open Source Version | 🆓 Most free, completely free, requires Docker installation | https://github.com/hikariming/TextLingo |
-| iOS Version | Under development... | TBD.... |
+| **Desktop Version** | **Recommended** 🖥️ Native performance, local data, supports Mac/Windows/Linux. | [Download Latest Release](https://github.com/hikariming/TextLingo/releases) |
+| Web Version |  Convenient online access, no installation required. | [https://textlingo.app](https://textlingo.app) |
+| Open Source | 🆓 Fully open source, built with Tauri + React + Rust. | [https://github.com/hikariming/TextLingo](https://github.com/hikariming/TextLingo) |
+
 
 ## Core Features
 
@@ -54,7 +53,20 @@ TextLingo uses AI technology to intelligently analyze texts and provides detaile
 
 # How to Run
 
-Refer to [Running Documentation](docs/HowToRun_en.md)
+### Development
+
+1. **Prerequisites**: Ensure you have Node.js and Rust installed.
+2. **Install Dependencies**:
+   ```bash
+   cd textlingo-desktop
+   npm install
+   ```
+3. **Run in Development Mode**:
+   ```bash
+   npm run tauri dev
+   ```
+
+For more details, refer to [Development Documentation](docs/HowToRun_en.md).
 
 ## Supported Languages
 - 🇨🇳 Chinese (Simplified)

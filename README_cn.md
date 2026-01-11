@@ -1,11 +1,18 @@
-# TextLingo📕
+# TextLingo Desktop 📕
+<p align="center">
+  <a href="https://www.python.org" target="_blank"><img src="https://img.shields.io/badge/Tauri-v2-blue.svg" alt="Tauri"></a>
+  <a href="https://github.com/hikariming/TextLingo/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/YourUsername/TextLingo.svg" alt="GitHub stars"></a>
+</p>
 
-TextLingo是一款创新的外语阅读与学习工具，它让您可以使用任何感兴趣的文本内容来学习外语，将枯燥的语言学习转变为充满乐趣的阅读体验。
+[**English**](/README.md)｜[**中文**](/README_cn.md)
 
+</div>
 
-TextLingo通过AI技术，对文本进行智能分析，并提供详细的语法讲解、单词解释等功能，帮助您更好地理解文本内容。
+TextLingo Desktop 是一款创新的 AI 驱动的外语阅读与学习工具。它让您可以使用任何感兴趣的文本内容来学习外语，将枯燥的语言学习转变为充满乐趣的阅读体验。
 
-![TextLingo主界面](docs/img/main_page.png)
+基于 Tauri 开发，提供原生、快速、注重隐私的沉浸式学习环境。
+
+![TextLingo 主界面](docs/img/main_page.png)
 
 ## 核心特性
 
@@ -32,15 +39,27 @@ TextLingo通过AI技术，对文本进行智能分析，并提供详细的语法
 
 | 版本 | 说明 | 链接 |
 |---------|-------------|------|
-| 网页版 | 😍最方便，无需安装。目前免费，后续高级功能可能收费，最好科学上网后使用 （注册码：textlingo2025） | https://textlingo.app/zh/login |
-| 开源版 | 🆓最自由，完全免费，需要使用Docker安装 | https://github.com/hikariming/TextLingo |
-| IOS版 | 挖坑开发中。。 | TBD.... |
+| **桌面版** | **推荐** 🖥️ 原生性能，本地数据，支持 Mac/Windows/Linux。 | [下载最新版本](https://github.com/hikariming/TextLingo/releases) |
+| 网页版 |  最方便，无需安装。 | [https://textlingo.app](https://textlingo.app) |
+| 开源版 | 🆓 完全开源，基于 Tauri + React + Rust 构建。 | [https://github.com/hikariming/TextLingo](https://github.com/hikariming/TextLingo) |
+
 
 # 运行方式
 
-如果你不熟悉Docker，可以使用[一键安装包](docs/HowToRun_cn.md)
+### 开发环境
 
-参考 [运行文档](docs/HowToRun_cn.md)
+1. **前置条件**：确保已安装 Node.js 和 Rust 环境。
+2. **安装依赖**：
+   ```bash
+   cd textlingo-desktop
+   npm install
+   ```
+3. **启动开发模式**：
+   ```bash
+   npm run tauri dev
+   ```
+
+更多详情请参考 [开发文档](docs/HowToRun_cn.md)。
 
 
 ## 支持语言
