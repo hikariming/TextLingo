@@ -1,3 +1,0 @@
-mongodb:
-  uri: "mongodb://mongodb:27017/textlingo"
-secret_key: "your-secret-key" 

@@ -1,0 +1,206 @@
+{
+  "app": {
+    "title": "TextLingo Desktop",
+    "subtitle": "AI-powered Article Reader",
+    "version": "v0.1.0",
+    "loading": "Loading TextLingo...",
+    "notConfigured": "Not configured"
+  },
+  "common": {
+    "refresh": "Refresh",
+    "close": "Close"
+  },
+  "header": {
+    "configureApiKey": "Configure your API key to get started",
+    "newArticle": "New Article",
+    "settings": "Settings",
+    "favorites": "Favorites"
+  },
+  "footer": {
+    "provider": "Provider",
+    "model": "Model"
+  },
+  "articleList": {
+    "title": "Your Articles",
+    "count_one": "{{count}} article",
+    "count_other": "{{count}} articles",
+    "noArticles": "No articles yet",
+    "createFirst": "Create your first article to get started",
+    "untitled": "Untitled Article",
+    "translated": "Translated",
+    "openSource": "Open source",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this article?"
+  },
+  "articleReader": {
+    "untitled": "Untitled Article",
+    "viewSource": "View Source",
+    "back": "Back",
+    "prev": "Prev",
+    "next": "Next",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "translate": "Quick Translate",
+    "translating": "Translating...",
+    "save": "Save",
+    "content": "Content",
+    "analysis": "Analysis",
+    "analyzing": "Analyzing...",
+    "analyze": "Analyze",
+    "analysisPrompt": "Select an analysis type and click Analyze to get insights about this article",
+    "summary": "Summary",
+    "keyPoints": "Key Points",
+    "vocabulary": "Vocabulary",
+    "grammar": "Grammar",
+    "fullAnalysis": "Full Analysis",
+    "segment": "Segment",
+    "resegment": "Resegment Article",
+    "resegmentConfirm": "This will replace existing segments. Continue?",
+    "selectSegmentHint": "Select a segment",
+    "selectSegmentDesc": "Click on any sentence in the article to view its detailed explanation.",
+    "showTranslation": "Show Translation",
+    "hideTranslation": "Hide Translation",
+    "segmentNumber": "Segment {{number}}",
+    "noSegments": "No segments yet",
+    "segmentArticleHint": "Click the Segment button to split this article into segments for detailed learning.",
+    "analyzeAll": "Analyze All",
+    "analyzeAllConfirm": "This will analyze {{count}} segments. This might consume significant tokens.\n(Note: Will process 3 segments at a time)\n\nContinue?",
+    "allSegmentsAnalyzed": "All segments already have explanations."
+  },
+  "newArticle": {
+    "title": "New Article",
+    "titleLabel": "Title",
+    "optional": "(optional)",
+    "titlePlaceholder": "Enter article title...",
+    "sourceUrlLabel": "Source URL",
+    "sourceUrlPlaceholder": "https://example.com/article",
+    "contentLabel": "Content",
+    "required": "(required)",
+    "pasteFromClipboard": "Paste from Clipboard",
+    "pasteUrlAndFetch": "Paste URL & Fetch",
+    "fetch": "Fetch",
+    "fetching": "Fetching...",
+    "contentPlaceholder": "Paste or type your article content here...",
+    "createArticle": "Create Article",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "errors": {
+      "contentRequired": "Content is required",
+      "clipboardError": "Failed to read clipboard",
+      "urlRequired": "Please enter a URL",
+      "urlInvalid": "URL must start with http:// or https://",
+      "clipboardNotUrl": "Clipboard content is not a valid URL",
+      "noContentExtracted": "No content could be extracted from the URL"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "apiProvider": "API Provider",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "Enter your API key...",
+    "model": "Model",
+    "targetLanguage": "Default Target Language",
+    "interfaceLanguage": "Interface Language",
+    "saveSettings": "Save Settings",
+    "saving": "Saving...",
+    "saveConfig": "Save Config",
+    "cancel": "Cancel",
+    "close": "Close",
+    "customModel": "Custom Model...",
+    "customModelPlaceholder": "Enter custom model ID (e.g., provider/model-name)",
+    "usePresetModel": "Use Preset Models",
+    "syncModels": "Sync Models",
+    "syncModelsTooltip": "Fetch latest models from OpenRouter",
+    "syncing": "Syncing...",
+    "modelsLoaded": "{{count}} models loaded from OpenRouter",
+    "modelConfigs": "Model Configurations",
+    "addConfig": "Add Config",
+    "noConfigs": "No configurations yet. Click above to add one.",
+    "newConfig": "New Config",
+    "editConfig": "Edit Config",
+    "deleteConfig": "Delete Config",
+    "setAsActive": "Set as Active",
+    "active": "Active",
+    "configName": "Config Name",
+    "configNamePlaceholder": "e.g., My GPT-4",
+    "errors": {
+      "apiKeyRequired": "API Key is required",
+      "modelRequired": "Model is required",
+      "configNameRequired": "Config name is required",
+      "cannotDeleteLastConfig": "Cannot delete the last configuration"
+    },
+    "syncErrors": {
+      "providerNotOpenRouter": "Model sync is only available for OpenRouter",
+      "apiKeyRequired": "API Key is required to sync models",
+      "syncFailed": "Failed to sync models"
+    },
+    "providers": {
+      "openai": "OpenAI",
+      "openrouter": "OpenRouter",
+      "deepseek": "DeepSeek",
+      "google": "Google (Gemini)"
+    },
+    "models": {
+      "openai": {
+        "gpt-4o": "GPT-4o",
+        "gpt-4o-mini": "GPT-4o Mini",
+        "gpt-4-turbo": "GPT-4 Turbo",
+        "gpt-3.5-turbo": "GPT-3.5 Turbo"
+      },
+      "openrouter": {
+        "openai/gpt-4o": "GPT-4o",
+        "openai/gpt-4o-mini": "GPT-4o Mini",
+        "anthropic/claude-3-haiku": "Claude 3 Haiku",
+        "google/gemini-pro-1.5": "Gemini Pro 1.5"
+      },
+      "deepseek": {
+        "deepseek-chat": "DeepSeek Chat",
+        "deepseek-coder": "DeepSeek Coder"
+      },
+      "google": {
+        "gemini-2.0-flash-exp": "Gemini 2.0 Flash Experimental",
+        "gemini-1.5-pro": "Gemini 1.5 Pro",
+        "gemini-1.5-flash": "Gemini 1.5 Flash"
+      }
+    },
+    "languages": {
+      "en": "English",
+      "zh-CN": "Chinese (Simplified)",
+      "zh-TW": "Chinese (Traditional)",
+      "ja": "Japanese",
+      "ko": "Korean",
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "ru": "Russian",
+      "ar": "Arabic"
+    },
+    "interfaceLanguages": {
+      "en": "English",
+      "zh": "中文 (简体)",
+      "ja": "日本語"
+    },
+    "backendConfig": "Backend API Configuration",
+    "backendConfigDesc": "Configure backend API for enhanced features like webpage content extraction.",
+    "backendUrl": "Backend URL",
+    "authToken": "Auth Token",
+    "authTokenPlaceholder": "Your JWT token",
+    "testConnection": "Test Connection",
+    "backendConnected": "Backend connection successful!",
+    "backendError": "Backend error",
+    "backendConnectionFailed": "Backend connection failed"
+  },
+  "favorites": {
+    "title": "My Favorites",
+    "vocabulary": "Vocabulary",
+    "grammar": "Grammar",
+    "noVocabulary": "No vocabulary favorites",
+    "noVocabularyDesc": "Click the star icon next to words during article reading to add favorites",
+    "noGrammar": "No grammar favorites",
+    "noGrammarDesc": "Click the star icon next to grammar points during article reading to add favorites",
+    "favorited": "Favorited",
+    "favoriteWord": "Favorite word",
+    "favoriteGrammar": "Favorite grammar",
+    "sourceDeleted": "(Deleted)"
+  }
+}

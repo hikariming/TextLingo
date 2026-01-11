@@ -1,0 +1,206 @@
+{
+  "app": {
+    "title": "TextLingo 桌面版",
+    "subtitle": "AI 驱动的文章阅读器",
+    "version": "v0.1.0",
+    "loading": "正在加载 TextLingo...",
+    "notConfigured": "未配置"
+  },
+  "common": {
+    "refresh": "刷新",
+    "close": "关闭"
+  },
+  "header": {
+    "configureApiKey": "配置您的 API 密钥以开始使用",
+    "newArticle": "新建文章",
+    "settings": "设置",
+    "favorites": "收藏夹"
+  },
+  "footer": {
+    "provider": "提供商",
+    "model": "模型"
+  },
+  "articleList": {
+    "title": "我的文章",
+    "count_one": "{{count}} 篇文章",
+    "count_other": "{{count}} 篇文章",
+    "noArticles": "暂无文章",
+    "createFirst": "创建您的第一篇文章开始使用",
+    "untitled": "未命名文章",
+    "translated": "已翻译",
+    "openSource": "打开来源",
+    "delete": "删除",
+    "deleteConfirm": "确定要删除这篇文章吗？"
+  },
+  "articleReader": {
+    "untitled": "未命名文章",
+    "viewSource": "查看来源",
+    "back": "返回",
+    "prev": "上一篇",
+    "next": "下一篇",
+    "edit": "编辑",
+    "cancel": "取消",
+    "translate": "快速翻译",
+    "translating": "翻译中...",
+    "save": "保存",
+    "content": "内容",
+    "analysis": "分析",
+    "analyzing": "分析中...",
+    "analyze": "分析",
+    "analysisPrompt": "选择分析类型并点击分析按钮，获取关于这篇文章的见解",
+    "summary": "摘要",
+    "keyPoints": "要点",
+    "vocabulary": "词汇",
+    "grammar": "语法",
+    "fullAnalysis": "完整分析",
+    "segment": "分段",
+    "resegment": "重新分段",
+    "resegmentConfirm": "这将替换现有的段落分段。是否继续？",
+    "selectSegmentHint": "选择一个段落",
+    "selectSegmentDesc": "点击文章中的任意句子查看详细讲解。",
+    "showTranslation": "显示翻译",
+    "hideTranslation": "隐藏翻译",
+    "segmentNumber": "第 {{number}} 段",
+    "noSegments": "暂无段落",
+    "segmentArticleHint": "点击「分段」按钮将文章拆分为段落，便于深入学习。",
+    "analyzeAll": "全部分析",
+    "analyzeAllConfirm": "本次将分析 {{count}} 个段落，可能消耗较多Token。\n（每次并行处理3个段落）\n\n是否继续？",
+    "allSegmentsAnalyzed": "所有段落已分析完成"
+  },
+  "newArticle": {
+    "title": "新建文章",
+    "titleLabel": "标题",
+    "optional": "（可选）",
+    "titlePlaceholder": "输入文章标题...",
+    "sourceUrlLabel": "来源网址",
+    "sourceUrlPlaceholder": "https://example.com/article",
+    "contentLabel": "内容",
+    "required": "（必填）",
+    "pasteFromClipboard": "从剪贴板粘贴",
+    "pasteUrlAndFetch": "从剪贴板粘贴网址并获取",
+    "fetch": "获取",
+    "fetching": "获取中...",
+    "contentPlaceholder": "在此粘贴或输入文章内容...",
+    "createArticle": "创建文章",
+    "saving": "保存中...",
+    "cancel": "取消",
+    "errors": {
+      "contentRequired": "内容不能为空",
+      "clipboardError": "读取剪贴板失败",
+      "urlRequired": "请输入网址",
+      "urlInvalid": "网址必须以 http:// 或 https:// 开头",
+      "clipboardNotUrl": "剪贴板内容不是有效的网址",
+      "noContentExtracted": "无法从该网址提取内容"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "apiProvider": "API 提供商",
+    "apiKey": "API 密钥",
+    "apiKeyPlaceholder": "输入您的 API 密钥...",
+    "model": "模型",
+    "targetLanguage": "默认目标语言",
+    "interfaceLanguage": "界面语言",
+    "saveSettings": "保存设置",
+    "saving": "保存中...",
+    "saveConfig": "保存配置",
+    "cancel": "取消",
+    "close": "关闭",
+    "customModel": "自定义模型...",
+    "customModelPlaceholder": "输入自定义模型 ID（例如：provider/model-name）",
+    "usePresetModel": "使用预设模型",
+    "syncModels": "同步模型",
+    "syncModelsTooltip": "从 OpenRouter 获取最新模型列表",
+    "syncing": "同步中...",
+    "modelsLoaded": "已从 OpenRouter 加载 {{count}} 个模型",
+    "modelConfigs": "模型配置",
+    "addConfig": "添加配置",
+    "noConfigs": "暂无配置，点击上方按钮添加",
+    "newConfig": "新建配置",
+    "editConfig": "编辑配置",
+    "deleteConfig": "删除配置",
+    "setAsActive": "设为当前",
+    "active": "当前使用",
+    "configName": "配置名称",
+    "configNamePlaceholder": "例如：我的 GPT-4",
+    "errors": {
+      "apiKeyRequired": "API 密钥不能为空",
+      "modelRequired": "模型不能为空",
+      "configNameRequired": "配置名称不能为空",
+      "cannotDeleteLastConfig": "至少需要保留一个配置"
+    },
+    "syncErrors": {
+      "providerNotOpenRouter": "模型同步仅适用于 OpenRouter",
+      "apiKeyRequired": "同步模型需要 API 密钥",
+      "syncFailed": "同步模型失败"
+    },
+    "providers": {
+      "openai": "OpenAI",
+      "openrouter": "OpenRouter",
+      "deepseek": "DeepSeek",
+      "google": "Google (Gemini)"
+    },
+    "models": {
+      "openai": {
+        "gpt-4o": "GPT-4o",
+        "gpt-4o-mini": "GPT-4o Mini",
+        "gpt-4-turbo": "GPT-4 Turbo",
+        "gpt-3.5-turbo": "GPT-3.5 Turbo"
+      },
+      "openrouter": {
+        "openai/gpt-4o": "GPT-4o",
+        "openai/gpt-4o-mini": "GPT-4o Mini",
+        "anthropic/claude-3-haiku": "Claude 3 Haiku",
+        "google/gemini-pro-1.5": "Gemini Pro 1.5"
+      },
+      "deepseek": {
+        "deepseek-chat": "DeepSeek Chat",
+        "deepseek-coder": "DeepSeek Coder"
+      },
+      "google": {
+        "gemini-2.0-flash-exp": "Gemini 2.0 Flash Experimental",
+        "gemini-1.5-pro": "Gemini 1.5 Pro",
+        "gemini-1.5-flash": "Gemini 1.5 Flash"
+      }
+    },
+    "languages": {
+      "en": "英语",
+      "zh-CN": "中文（简体）",
+      "zh-TW": "中文（繁体）",
+      "ja": "日语",
+      "ko": "韩语",
+      "es": "西班牙语",
+      "fr": "法语",
+      "de": "德语",
+      "ru": "俄语",
+      "ar": "阿拉伯语"
+    },
+    "interfaceLanguages": {
+      "en": "English",
+      "zh": "中文 (简体)",
+      "ja": "日本語"
+    },
+    "backendConfig": "后端 API 配置",
+    "backendConfigDesc": "配置后端 API 以启用网页内容提取等增强功能。",
+    "backendUrl": "后端 URL",
+    "authToken": "认证令牌",
+    "authTokenPlaceholder": "您的 JWT 令牌",
+    "testConnection": "测试连接",
+    "backendConnected": "后端连接成功！",
+    "backendError": "后端错误",
+    "backendConnectionFailed": "后端连接失败"
+  },
+  "favorites": {
+    "title": "我的收藏",
+    "vocabulary": "单词收藏",
+    "grammar": "语法收藏",
+    "noVocabulary": "暂无单词收藏",
+    "noVocabularyDesc": "在文章学习中点击单词旁的收藏按钮即可添加",
+    "noGrammar": "暂无语法收藏",
+    "noGrammarDesc": "在文章学习中点击语法点旁的收藏按钮即可添加",
+    "favorited": "已收藏",
+    "favoriteWord": "收藏单词",
+    "favoriteGrammar": "收藏语法",
+    "sourceDeleted": "（已删除）"
+  }
+}

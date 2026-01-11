@@ -1,0 +1,204 @@
+{
+  "app": {
+    "title": "TextLingo デスクトップ",
+    "subtitle": "AI搭載記事リーダー",
+    "version": "v0.1.0",
+    "loading": "TextLingoを読み込み中...",
+    "notConfigured": "未設定"
+  },
+  "common": {
+    "refresh": "更新",
+    "close": "閉じる"
+  },
+  "header": {
+    "configureApiKey": "使用を開始するにはAPIキーを設定してください",
+    "newArticle": "新規記事",
+    "settings": "設定",
+    "favorites": "お気に入り"
+  },
+  "footer": {
+    "provider": "プロバイダー",
+    "model": "モデル"
+  },
+  "articleList": {
+    "title": "マイ記事",
+    "count_one": "{{count}} 記事",
+    "count_other": "{{count}} 記事",
+    "noArticles": "記事がありません",
+    "createFirst": "最初の記事を作成して始めましょう",
+    "untitled": "無題の記事",
+    "translated": "翻訳済み",
+    "openSource": "ソースを開く",
+    "delete": "削除",
+    "deleteConfirm": "この記事を削除してもよろしいですか？"
+  },
+  "articleReader": {
+    "untitled": "無題の記事",
+    "viewSource": "ソースを表示",
+    "back": "戻る",
+    "prev": "前へ",
+    "next": "次へ",
+    "edit": "編集",
+    "cancel": "キャンセル",
+    "translate": "クイック翻訳",
+    "translating": "翻訳中...",
+    "save": "保存",
+    "content": "コンテンツ",
+    "analysis": "分析",
+    "analyzing": "分析中...",
+    "analyze": "分析",
+    "analysisPrompt": "分析タイプを選択して「分析」ボタンをクリックすると、この記事に関する洞察が得られます",
+    "summary": "要約",
+    "keyPoints": "要点",
+    "vocabulary": "語彙",
+    "grammar": "文法",
+    "fullAnalysis": "完全分析",
+    "segment": "セグメント",
+    "resegment": "再セグメント化",
+    "resegmentConfirm": "既存のセグメントが置き換えられます。続行しますか？",
+    "selectSegmentHint": "セグメントを選択",
+    "selectSegmentDesc": "記事内の文をクリックして詳細な説明を表示します。",
+    "showTranslation": "翻訳を表示",
+    "hideTranslation": "翻訳を非表示",
+    "segmentNumber": "セグメント {{number}}",
+    "noSegments": "セグメントがありません",
+    "segmentArticleHint": "「セグメント」ボタンをクリックして、記事を段落に分割して詳しく学習できます。",
+    "analyzeAll": "すべて分析",
+    "analyzeAllConfirm": "{{count}}個のセグメントを分析します。多くのトークンを消費する可能性があります。\n（3セグメントずつ並行処理）\n\n続行しますか？",
+    "allSegmentsAnalyzed": "すべてのセグメントは分析済みです。"
+  },
+  "newArticle": {
+    "title": "新規記事",
+    "titleLabel": "タイトル",
+    "optional": "（オプション）",
+    "titlePlaceholder": "記事のタイトルを入力...",
+    "sourceUrlLabel": "ソースURL",
+    "sourceUrlPlaceholder": "https://example.com/article",
+    "contentLabel": "コンテンツ",
+    "required": "（必須）",
+    "pasteFromClipboard": "クリップボードから貼り付け",
+    "pasteUrlAndFetch": "URLを貼り付けて取得",
+    "fetch": "取得",
+    "fetching": "取得中...",
+    "contentPlaceholder": "記事の内容をここに貼り付けまたは入力...",
+    "createArticle": "記事を作成",
+    "saving": "保存中...",
+    "cancel": "キャンセル",
+    "errors": {
+      "contentRequired": "コンテンツは必須です",
+      "clipboardError": "クリップボードの読み取りに失敗しました",
+      "urlRequired": "URLを入力してください",
+      "clipboardNotUrl": "クリップボードの内容は有効なURLではありません"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "apiProvider": "APIプロバイダー",
+    "apiKey": "APIキー",
+    "apiKeyPlaceholder": "APIキーを入力...",
+    "model": "モデル",
+    "targetLanguage": "デフォルトの翻訳言語",
+    "interfaceLanguage": "インターフェース言語",
+    "saveSettings": "設定を保存",
+    "saving": "保存中...",
+    "saveConfig": "設定を保存",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "customModel": "カスタムモデル...",
+    "customModelPlaceholder": "カスタムモデルIDを入力（例：provider/model-name）",
+    "usePresetModel": "プリセットモデルを使用",
+    "syncModels": "モデルを同期",
+    "syncModelsTooltip": "OpenRouterから最新のモデルリストを取得",
+    "syncing": "同期中...",
+    "modelsLoaded": "OpenRouterから{{count}}個のモデルを読み込みました",
+    "modelConfigs": "モデル設定",
+    "addConfig": "設定を追加",
+    "noConfigs": "設定がありません。上のボタンをクリックして追加してください。",
+    "newConfig": "新規設定",
+    "editConfig": "設定を編集",
+    "deleteConfig": "設定を削除",
+    "setAsActive": "有効にする",
+    "active": "有効",
+    "configName": "設定名",
+    "configNamePlaceholder": "例：マイGPT-4",
+    "errors": {
+      "apiKeyRequired": "APIキーは必須です",
+      "modelRequired": "モデルは必須です",
+      "configNameRequired": "設定名は必須です",
+      "cannotDeleteLastConfig": "最後の設定は削除できません"
+    },
+    "syncErrors": {
+      "providerNotOpenRouter": "モデル同期はOpenRouterのみ利用可能です",
+      "apiKeyRequired": "モデルの同期にはAPIキーが必要です",
+      "syncFailed": "モデルの同期に失敗しました"
+    },
+    "providers": {
+      "openai": "OpenAI",
+      "openrouter": "OpenRouter",
+      "deepseek": "DeepSeek",
+      "google": "Google (Gemini)"
+    },
+    "models": {
+      "openai": {
+        "gpt-4o": "GPT-4o",
+        "gpt-4o-mini": "GPT-4o Mini",
+        "gpt-4-turbo": "GPT-4 Turbo",
+        "gpt-3.5-turbo": "GPT-3.5 Turbo"
+      },
+      "openrouter": {
+        "openai/gpt-4o": "GPT-4o",
+        "openai/gpt-4o-mini": "GPT-4o Mini",
+        "anthropic/claude-3-haiku": "Claude 3 Haiku",
+        "google/gemini-pro-1.5": "Gemini Pro 1.5"
+      },
+      "deepseek": {
+        "deepseek-chat": "DeepSeek Chat",
+        "deepseek-coder": "DeepSeek Coder"
+      },
+      "google": {
+        "gemini-2.0-flash-exp": "Gemini 2.0 Flash Experimental",
+        "gemini-1.5-pro": "Gemini 1.5 Pro",
+        "gemini-1.5-flash": "Gemini 1.5 Flash"
+      }
+    },
+    "languages": {
+      "en": "英語",
+      "zh-CN": "中国語（簡体字）",
+      "zh-TW": "中国語（繁体字）",
+      "ja": "日本語",
+      "ko": "韓国語",
+      "es": "スペイン語",
+      "fr": "フランス語",
+      "de": "ドイツ語",
+      "ru": "ロシア語",
+      "ar": "アラビア語"
+    },
+    "interfaceLanguages": {
+      "en": "English",
+      "zh": "中文 (简体)",
+      "ja": "日本語"
+    },
+    "backendConfig": "バックエンドAPI設定",
+    "backendConfigDesc": "Webページコンテンツ抽出などの拡張機能を有効にするには、バックエンドAPIを設定してください。",
+    "backendUrl": "バックエンドURL",
+    "authToken": "認証トークン",
+    "authTokenPlaceholder": "JWTトークン",
+    "testConnection": "接続テスト",
+    "backendConnected": "バックエンド接続成功！",
+    "backendError": "バックエンドエラー",
+    "backendConnectionFailed": "バックエンド接続に失敗しました"
+  },
+  "favorites": {
+    "title": "お気に入り",
+    "vocabulary": "語彙",
+    "grammar": "文法",
+    "noVocabulary": "語彙のお気に入りはありません",
+    "noVocabularyDesc": "記事の学習中に単語の横にある星アイコンをクリックして追加できます",
+    "noGrammar": "文法のお気に入りはありません",
+    "noGrammarDesc": "記事の学習中に文法ポイントの横にある星アイコンをクリックして追加できます",
+    "favorited": "お気に入り済み",
+    "favoriteWord": "単語をお気に入り",
+    "favoriteGrammar": "文法をお気に入り",
+    "sourceDeleted": "（削除済み）"
+  }
+}
