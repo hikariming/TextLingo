@@ -62,6 +62,13 @@ TextLingo Desktop 是一款创新的 AI 驱动的外语阅读与学习工具。�
 更多详情请参考 [开发文档](docs/HowToRun_cn.md)。
 
 
+## 常见问题
+### macOS: "应用已损坏，打不开"
+如果遇到此错误，是因为 macOS Gatekeeper 安全机制。请在终端运行以下命令：
+```bash
+sudo xattr -r -d com.apple.quarantine /Applications/TextLingo\ Desktop.app
+```
+
 ## 支持语言
 - 🇨🇳 中文 (简体)
 - 🇺🇸 English

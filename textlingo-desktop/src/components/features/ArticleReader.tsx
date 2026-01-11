@@ -81,12 +81,7 @@ export function ArticleReader({
     setAnalysisResult("");
     // 同步外部 article.segments 到本地状态
     setLocalSegments(article.segments || []);
-    // If article has segments, select the first one by default if none selected
-    if (article.segments && article.segments.length > 0 && !selectedSegmentId) {
-      // Optional: Select first segment automatically? 
-      // setSelectedSegmentId(article.segments[0].id);
-    }
-  }, [article, selectedSegmentId]);
+  }, [article]);
 
   useEffect(() => {
     const handleSelection = () => {
@@ -177,7 +172,7 @@ export function ArticleReader({
     setShowAssistant(true);
 
     // Check if we need to auto-generate
-    const segment = article.segments?.find(s => s.id === id);
+    const segment = localSegments.find(s => s.id === id);
     if (segment && !segment.explanation && !isGeneratingExplanation) {
       // Auto-trigger generation
       setTimeout(() => handleGenerateExplanation(id), 0);
@@ -357,9 +352,9 @@ export function ArticleReader({
   return (
     <div className="h-full flex overflow-hidden">
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-gray-950 relative">
+      <div className="flex-1 flex flex-col min-w-0 bg-background relative">
         {error && (
-          <div className="absolute top-0 left-0 right-0 z-50 bg-red-900/90 border-b border-red-700 text-white px-4 py-2 text-sm flex justify-between items-center backdrop-blur-md animate-in slide-in-from-top-full duration-300">
+          <div className="absolute top-0 left-0 right-0 z-50 bg-destructive/90 border-b border-destructive text-destructive-foreground px-4 py-2 text-sm flex justify-between items-center backdrop-blur-md animate-in slide-in-from-top-full duration-300">
             <span>{error}</span>
             <button onClick={() => setError(null)} className="text-white/80 hover:text-white">✕</button>
           </div>
@@ -367,12 +362,12 @@ export function ArticleReader({
 
         {/* Batch Translation Confirmation Dialog */}
         {showBatchConfirm && (
-          <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-            <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-md mx-4 shadow-2xl animate-in zoom-in-95 duration-200">
-              <h3 className="text-lg font-semibold text-white mb-3">
+          <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-card border border-border rounded-2xl p-6 max-w-md mx-4 shadow-2xl animate-in zoom-in-95 duration-200">
+              <h3 className="text-lg font-semibold text-foreground mb-3">
                 {t("articleReader.analyzeAll") || "Analyze All Segments"}
               </h3>
-              <p className="text-gray-300 mb-4 leading-relaxed">
+              <p className="text-muted-foreground mb-4 leading-relaxed">
                 {t("articleReader.analyzeAllConfirm", { count: pendingBatchCount }) ||
                   `This will analyze ${pendingBatchCount} segments. This might consume significant tokens. (Processing 3 at a time)`}
               </p>
@@ -385,7 +380,7 @@ export function ArticleReader({
                 </Button>
                 <Button
                   onClick={executeBatchTranslate}
-                  className="bg-primary hover:bg-primary/90"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {t("articleReader.analyze") || "Confirm"}
                 </Button>
@@ -395,7 +390,7 @@ export function ArticleReader({
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-gray-900/50">
+        <div className="flex items-center justify-between p-4 border-b border-border bg-card/50 backdrop-blur-sm supports-[backdrop-filter]:bg-card/50">
           <div className="flex items-center gap-4 min-w-0">
             {onBack && (
               <Button variant="ghost" size="sm" onClick={onBack}>
@@ -403,143 +398,165 @@ export function ArticleReader({
               </Button>
             )}
             <div className="min-w-0 overflow-hidden">
-              <h1 className="text-xl font-semibold text-white truncate">
+              <h1 className="text-xl font-semibold text-foreground truncate">
                 {article.title || t("articleReader.untitled")}
               </h1>
               {hasSegments && (
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-800 rounded-md border border-gray-700/50">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-muted rounded-md border border-border">
                     <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></div>
-                    <span className="text-xs text-gray-400 font-medium">
+                    <span className="text-xs text-muted-foreground font-medium">
                       {localSegments.filter(s => s.explanation).length} / {localSegments.length}
                     </span>
-                    <span className="text-xs text-gray-500">Parsed</span>
+                    <span className="text-xs text-muted-foreground/80 hidden sm:inline">Parsed</span>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowAssistant(!showAssistant)}
-              title={showAssistant ? "Hide Assistant" : "Show Assistant"}
-            >
-              {showAssistant ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
-            </Button>
-            <div className="h-4 w-px bg-gray-700 mx-2" />
-
+          <div className="flex items-center gap-1.5 shrink-0">
             {onPrev && (
-              <Button variant="ghost" size="sm" onClick={onPrev} disabled={!hasPrev}>
-                <ChevronLeft size={16} />
+              <Button variant="ghost" size="sm" onClick={onPrev} disabled={!hasPrev} title="Previous Article">
+                <ChevronLeft size={18} />
               </Button>
             )}
             {onNext && (
-              <Button variant="ghost" size="sm" onClick={onNext} disabled={!hasNext}>
-                <ChevronRight size={16} />
+              <Button variant="ghost" size="sm" onClick={onNext} disabled={!hasNext} title="Next Article">
+                <ChevronRight size={18} />
               </Button>
             )}
 
-            <div className="h-4 w-px bg-gray-700 mx-2" />
+            <div className="w-px h-4 bg-border mx-1" />
 
-            <div className="flex items-center gap-1 bg-gray-800 rounded-lg p-0.5">
+            {/* Font Size Control - Compact */}
+            <div className="flex items-center gap-0.5 bg-muted/50 rounded-lg p-0.5 mr-2 border border-border">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setFontSize(Math.max(12, fontSize - 2))}
-                className="h-7 w-7 p-0"
+                className="h-7 w-7 p-0 hover:bg-background text-foreground"
                 title="Decrease font size"
               >
                 <Minus size={14} />
               </Button>
-              <span className="text-xs text-gray-400 w-6 text-center">{fontSize}</span>
+              <span className="text-xs text-muted-foreground w-6 text-center">{fontSize}</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setFontSize(Math.min(32, fontSize + 2))}
-                className="h-7 w-7 p-0"
+                className="h-7 w-7 p-0 hover:bg-background text-foreground"
                 title="Increase font size"
               >
                 <Plus size={14} />
               </Button>
             </div>
-            <div className="hidden md:flex items-center gap-2">
-              {!hasSegments && (
+
+            {hasSegments ? (
+              <>
+                <Button
+                  variant={showTranslation ? "default" : "secondary"}
+                  size="sm"
+                  onClick={() => setShowTranslation(!showTranslation)}
+                  title={showTranslation ? t("articleReader.hideTranslation") : t("articleReader.showTranslation")}
+                  className="h-8 md:h-9"
+                >
+                  {showTranslation ? <EyeOff size={16} /> : <Eye size={16} />}
+                  <span className="ml-2 hidden xl:inline">
+                    {showTranslation ? t("articleReader.hideTranslation") : t("articleReader.showTranslation")}
+                  </span>
+                </Button>
+
+                {isBatchTranslating ? (
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md border border-border h-8 md:h-9">
+                    <Loader2 size={14} className="animate-spin text-primary" />
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {Math.round((batchProgress.current / batchProgress.total) * 100)}%
+                    </span>
+                  </div>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleBatchTranslate}
+                    disabled={isBatchTranslating || !hasSegments}
+                    title={t("articleReader.analyzeAll")}
+                    className="h-8 md:h-9"
+                  >
+                    <Sparkles size={16} />
+                    <span className="ml-2 hidden xl:inline">{t("articleReader.analyzeAll") || "Analyze All"}</span>
+                  </Button>
+                )}
+
+                {/* Resegment Button moved here */}
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={handleResegment}
                   disabled={isResegmenting}
+                  className="h-8 md:h-9"
+                  title={t("articleReader.resegment")}
                 >
                   {isResegmenting ? <Loader2 size={16} className="animate-spin" /> : <Split size={16} />}
-                  <span className="ml-2">{t("articleReader.segment")}</span>
+                  <span className="ml-2 hidden xl:inline">{t("articleReader.segment")}</span>
                 </Button>
-              )}
-              {hasSegments && (
-                <>
-                  <Button
-                    variant={showTranslation ? "default" : "secondary"}
-                    size="sm"
-                    onClick={() => setShowTranslation(!showTranslation)}
-                    title={showTranslation ? t("articleReader.hideTranslation") : t("articleReader.showTranslation")}
-                  >
-                    {showTranslation ? <EyeOff size={16} /> : <Eye size={16} />}
-                    <span className="ml-2 hidden lg:inline">
-                      {showTranslation ? t("articleReader.hideTranslation") : t("articleReader.showTranslation")}
-                    </span>
-                  </Button>
-
-                  {isBatchTranslating ? (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 rounded-md border border-gray-700">
-                      <Loader2 size={14} className="animate-spin text-primary" />
-                      <span className="text-xs text-gray-300 font-mono">
-                        {Math.round((batchProgress.current / batchProgress.total) * 100)}%
-                      </span>
-                      <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary transition-all duration-300"
-                          style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleBatchTranslate}
-                      disabled={isBatchTranslating || !hasSegments}
-                      title={t("articleReader.analyzeAll") || "Analyze all segments"}
-                    >
-                      <Sparkles size={16} />
-                      <span className="ml-2 hidden lg:inline">{t("articleReader.analyzeAll") || "Analyze All"}</span>
-                    </Button>
-                  )}
-                </>
-              )}
+              </>
+            ) : (
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setIsEditing(!isEditing)}
+                onClick={handleResegment}
+                disabled={isResegmenting}
+                className="h-8 md:h-9"
               >
-                {isEditing ? t("articleReader.cancel") : t("articleReader.edit")}
+                {isResegmenting ? <Loader2 size={16} className="animate-spin" /> : <Split size={16} />}
+                <span className="ml-2 hidden xl:inline">{t("articleReader.segment")}</span>
               </Button>
-              <Button
-                size="sm"
-                onClick={handleTranslate}
-                disabled={isTranslating}
-                className="gap-2"
-              >
-                {isTranslating ? <Loader2 size={16} className="animate-spin" /> : <Languages size={16} />}
-                <span className="hidden lg:inline">{t("articleReader.translate")}</span>
-              </Button>
-            </div>
+            )}
+
+            <div className="w-px h-4 bg-border mx-1" />
+
+            {/* Edit & Translate */}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsEditing(!isEditing)}
+              className="h-8 md:h-9"
+              title={t("articleReader.edit")}
+            >
+              <FileText size={16} />
+              <span className="ml-2 hidden xl:inline">{isEditing ? t("articleReader.cancel") : t("articleReader.edit")}</span>
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={handleTranslate}
+              disabled={isTranslating}
+              className="gap-2 h-8 md:h-9"
+              title={t("articleReader.translate")}
+              variant="secondary"
+            >
+              {isTranslating ? <Loader2 size={16} className="animate-spin" /> : <Languages size={16} />}
+              <span className="hidden xl:inline">{t("articleReader.translate")}</span>
+            </Button>
+
+            <div className="w-px h-4 bg-border mx-1" />
+
+            {/* Assistant Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAssistant(!showAssistant)}
+              title={showAssistant ? "Hide Assistant" : "Show Assistant"}
+              className="h-8 w-8 p-0"
+            >
+              {showAssistant ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+            </Button>
           </div>
         </div>
 
         {error && (
-          <div className="mx-4 mt-4 p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-300 text-sm">
+          <div className="mx-4 mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
             {error}
           </div>
         )}
@@ -548,7 +565,7 @@ export function ArticleReader({
         <div className="flex-1 overflow-hidden relative">
           <Tabs defaultValue="content" className="h-full flex flex-col">
             {!hasSegments && ( // only show Content/Analysis tabs if in Markdown mode or maybe always?
-              <div className="px-4 py-2 border-b border-gray-800">
+              <div className="px-4 py-2 border-b border-border">
                 <TabsList>
                   <TabsTrigger value="content">{t("articleReader.content") || "Content"}</TabsTrigger>
                   <TabsTrigger value="analysis">{t("articleReader.analysis") || "Local Analysis"}</TabsTrigger>
@@ -562,7 +579,7 @@ export function ArticleReader({
                   <Textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    className="flex-1 font-mono text-sm resize-none bg-gray-900"
+                    className="flex-1 font-mono text-sm resize-none bg-background text-foreground"
                   />
                   <div className="flex justify-end gap-2 mt-4">
                     <Button variant="secondary" onClick={() => setIsEditing(false)}>
@@ -603,7 +620,7 @@ export function ArticleReader({
                           <div key={`group-${groupIndex}`} className="mb-6">
                             {/* 段落容器 - 使用 block 布局实现真正的流式排版 */}
                             <div
-                              className="text-gray-200"
+                              className="text-foreground"
                               style={{ lineHeight: 2 }} // 增加行高以容纳边框和padding
                             >
                               {group.map((segment, segIndex) => {
@@ -615,10 +632,10 @@ export function ArticleReader({
                                     <span
                                       onClick={() => handleSegmentClick(segment.id)}
                                       className={`inline decoration-clone rounded-lg border-2 px-1 py-0.5 mx-0.5 transition-all duration-200 cursor-pointer ${isSelected
-                                        ? "bg-primary/20 border-primary shadow-sm text-white"
+                                        ? "bg-primary/20 border-primary shadow-sm text-foreground"
                                         : isExplained
-                                          ? "hover:bg-gray-800 border-green-800/50 hover:border-green-600/50 text-gray-200"
-                                          : "hover:bg-gray-800 border-transparent hover:border-gray-700 hover:text-white"
+                                          ? "hover:bg-accent border-green-500/30 hover:border-green-500/50 text-foreground"
+                                          : "hover:bg-accent border-transparent hover:border-border hover:text-foreground"
                                         }`}
                                       style={{
                                         fontSize: `${fontSize}px`,
@@ -638,14 +655,16 @@ export function ArticleReader({
                             {/* 翻译和注音 - 显示组内选中段落的信息 */}
                             {group.map((segment) => {
                               const isSelected = segment.id === selectedSegmentId;
-                              if (!isSelected) return null;
+                              // 只有选中且有内容时才显示详情框
+                              const hasContent = segment.reading_text || (showTranslation && segment.translation);
+                              if (!isSelected || !hasContent) return null;
 
                               return (
-                                <div key={`detail-${segment.id}`} className="mt-4 px-4 py-3 bg-gray-900/50 rounded-xl border border-gray-800 animate-in fade-in slide-in-from-top-2">
+                                <div key={`detail-${segment.id}`} className="mt-4 px-4 py-3 bg-muted/30 rounded-xl border border-border animate-in fade-in slide-in-from-top-2">
                                   {/* 注音/读法 */}
                                   {segment.reading_text && (
                                     <p
-                                      className="text-gray-400 leading-relaxed mb-2 font-mono"
+                                      className="text-muted-foreground leading-relaxed mb-2 font-mono"
                                       style={{ fontSize: `${fontSize * 0.85}px` }}
                                     >
                                       {segment.reading_text}
@@ -654,18 +673,11 @@ export function ArticleReader({
 
                                   {/* 翻译 */}
                                   {showTranslation && segment.translation && (
-                                    <div className="text-blue-200 leading-relaxed">
+                                    <div className="text-primary leading-relaxed">
                                       <p style={{ fontSize: `${fontSize * 0.95}px` }}>
                                         {segment.translation}
                                       </p>
                                     </div>
-                                  )}
-
-                                  {/* 如果没有注音和翻译，显示提示 */}
-                                  {!segment.reading_text && (!showTranslation || !segment.translation) && (
-                                    <p className="text-gray-500 italic text-sm">
-                                      {t("articleReader.selectToExplain") || "Click 'Assistant' to analyze this segment"}
-                                    </p>
                                   )}
                                 </div>
                               );
@@ -673,21 +685,9 @@ export function ArticleReader({
                           </div>
                         ));
                       })()}
-
-                      <div className="flex justify-center pt-8 border-t border-gray-800">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={handleResegment}
-                          disabled={isResegmenting}
-                        >
-                          <Split size={14} className="mr-2" />
-                          {t("articleReader.resegment") || "Resegment Article"}
-                        </Button>
-                      </div>
                     </div>
                   ) : (
-                    <article className="prose prose-invert max-w-none pb-20">
+                    <article className="prose dark:prose-invert max-w-none pb-20 text-foreground">
                       <ReactMarkdown>{content}</ReactMarkdown>
                     </article>
                   )}
@@ -722,17 +722,17 @@ export function ArticleReader({
                   </Button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto bg-gray-900 rounded-lg p-6 border border-gray-800">
+                <div className="flex-1 overflow-y-auto bg-card rounded-lg p-6 border border-border">
                   {isAnalyzing ? (
                     <div className="flex items-center justify-center h-full">
-                      <Loader2 size={24} className="animate-spin text-blue-600" />
+                      <Loader2 size={24} className="animate-spin text-primary" />
                     </div>
                   ) : analysisResult ? (
-                    <article className="prose prose-invert max-w-none">
+                    <article className="prose dark:prose-invert max-w-none text-foreground">
                       <ReactMarkdown>{analysisResult}</ReactMarkdown>
                     </article>
                   ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
                       <p>{t("articleReader.analysisPrompt") || "Select an analysis type and click Analyze"}</p>
                     </div>
                   )}
@@ -745,9 +745,9 @@ export function ArticleReader({
 
       {/* Right Assistant Panel */}
       {showAssistant && (
-        <div className="w-[400px] border-l border-gray-800 bg-gray-950 flex flex-col shrink-0">
+        <div className="w-[400px] border-l border-border bg-background flex flex-col shrink-0">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="h-full flex flex-col">
-            <div className="flex items-center px-2 bg-gray-900 border-b border-gray-800">
+            <div className="flex items-center px-2 bg-muted/30 border-b border-border">
               <TabsList className="bg-transparent border-0 w-full justify-start p-0 h-10">
                 <TabsTrigger value="explanation" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
                   Explanation

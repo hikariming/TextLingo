@@ -65,8 +65,7 @@
     "segmentArticleHint": "点击「分段」按钮将文章拆分为段落，便于深入学习。",
     "analyzeAll": "全部分析",
     "analyzeAllConfirm": "本次将分析 {{count}} 个段落，可能消耗较多Token。\n（每次并行处理3个段落）\n\n是否继续？",
-    "allSegmentsAnalyzed": "所有段落已分析完成",
-    "selectToExplain": "点击「助手」以分析此段落"
+    "allSegmentsAnalyzed": "所有段落已分析完成"
   },
   "newArticle": {
     "title": "新建文章",
@@ -140,6 +139,12 @@
       "openrouter": "OpenRouter",
       "deepseek": "DeepSeek",
       "google": "Google (Gemini)"
+    },
+    "theme": {
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统",
+      "eyeProtection": "护眼模式"
     },
     "models": {
       "openai": {

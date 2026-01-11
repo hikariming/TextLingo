@@ -9,6 +9,8 @@ interface DialogProps {
   className?: string;
 }
 
+import { createPortal } from "react-dom";
+
 export function Dialog({ isOpen, onClose, title, children, className }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -30,35 +32,38 @@ export function Dialog({ isOpen, onClose, title, children, className }: DialogPr
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
+  return createPortal(
+    // 外层容器：使用 fixed 定位覆盖整个视口，flex 实现垂直和水平居中
+    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto">
+      {/* Backdrop - 遮罩层，使用主题兼容的半透明背景 */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Dialog */}
+      {/* Dialog - 弹窗主体，使用主题变量替代硬编码颜色 */}
       <div
         ref={dialogRef}
         className={cn(
-          "relative z-50 w-full max-w-lg rounded-xl bg-gray-900 border border-gray-800",
-          "shadow-2xl p-6 mx-4",
+          // 使用 popover 主题变量，确保与当前主题匹配
+          "relative z-[101] w-full max-w-lg rounded-xl bg-popover border border-border",
+          "shadow-2xl p-6 mx-4 my-4",
           className
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className="mb-4">
-            <h2 className="text-xl font-semibold text-white">{title}</h2>
+            {/* 标题使用主题前景色 */}
+            <h2 className="text-xl font-semibold text-popover-foreground">{title}</h2>
           </div>
         )}
         {children}
 
-        {/* Close button */}
+        {/* Close button - 关闭按钮使用主题兼容的颜色 */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-popover-foreground transition-colors"
           aria-label="Close"
         >
           <svg
@@ -77,7 +82,8 @@ export function Dialog({ isOpen, onClose, title, children, className }: DialogPr
           </svg>
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

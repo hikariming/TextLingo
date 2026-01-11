@@ -68,6 +68,13 @@ Locally running with Tauri, it offers a fast, privacy-focused, and immersive lea
 
 For more details, refer to [Development Documentation](docs/HowToRun_en.md).
 
+## Troubleshooting
+### macOS: "App is damaged and can't be opened"
+If you encounter this error, it is due to macOS Gatekeeper. Please run the following command in Terminal:
+```bash
+sudo xattr -r -d com.apple.quarantine /Applications/TextLingo\ Desktop.app
+```
+
 ## Supported Languages
 - 🇨🇳 Chinese (Simplified)
 - 🇺🇸 English

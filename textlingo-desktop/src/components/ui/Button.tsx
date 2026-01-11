@@ -16,12 +16,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
           "disabled:pointer-events-none disabled:opacity-50",
           {
-            "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600":
+            "bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary":
               variant === "default",
-            "bg-gray-700 text-white hover:bg-gray-600 focus-visible:ring-gray-600":
+            "bg-secondary text-secondary-foreground hover:bg-secondary/80 focus-visible:ring-ring":
               variant === "secondary",
-            "hover:bg-gray-800 text-gray-300": variant === "ghost",
-            "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600":
+            "hover:bg-accent hover:text-accent-foreground text-foreground": variant === "ghost",
+            "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive":
               variant === "danger",
           },
           {

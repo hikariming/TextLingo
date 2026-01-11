@@ -6,6 +6,7 @@ import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
 import { Settings, Plus, Trash2, Edit2, Check, RefreshCw, Loader2 } from "lucide-react";
+import { useTheme } from "../theme-provider";
 
 interface ModelConfig {
   id: string;
@@ -80,6 +81,7 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps) {
   const { t, i18n } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const [config, setConfig] = useState<AppConfig>({
     model_configs: [],
     target_language: "zh-CN",
@@ -510,7 +512,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
     <Dialog isOpen={isOpen} onClose={onClose} title={t("settings.title")}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         {error && (
-          <div className="mb-4 p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-300 text-sm">
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/50 rounded-lg text-destructive text-sm">
             {error}
           </div>
         )}
@@ -519,7 +521,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
           {/* Model Configurations Section */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium text-gray-200">
+              <h3 className="text-lg font-medium text-foreground">
                 {t("settings.modelConfigs")}
               </h3>
               <Button
@@ -546,22 +548,22 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                   <div
                     key={modelConfig.id}
                     className={`p-3 rounded-lg border flex items-center justify-between gap-3 ${config.active_model_id === modelConfig.id
-                      ? "bg-blue-900/30 border-blue-600"
-                      : "bg-gray-800/50 border-gray-700"
+                      ? "bg-primary/10 border-primary"
+                      : "bg-card border-border"
                       }`}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-200 truncate">
+                        <span className="font-medium text-foreground truncate">
                           {modelConfig.name}
                         </span>
                         {config.active_model_id === modelConfig.id && (
-                          <span className="text-xs px-1.5 py-0.5 bg-blue-600 text-white rounded">
+                          <span className="text-xs px-1.5 py-0.5 bg-primary text-primary-foreground rounded">
                             {t("settings.active")}
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-400 truncate">
+                      <div className="text-xs text-muted-foreground truncate">
                         {t(`settings.providers.${modelConfig.api_provider}`)} / {modelConfig.model}
                       </div>
                     </div>
@@ -597,7 +599,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                         onClick={() => deleteConfig(modelConfig.id)}
                         disabled={isEditing || isSaving}
                         title={t("settings.deleteConfig")}
-                        className="h-7 w-7 p-0 text-red-400 hover:text-red-300"
+                        className="h-7 w-7 p-0 text-destructive hover:text-destructive/80"
                       >
                         <Trash2 size={14} />
                       </Button>
@@ -609,8 +611,8 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
 
             {/* Edit Form */}
             {isEditing && editingConfig && (
-              <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700 space-y-4">
-                <h4 className="font-medium text-gray-200">
+              <div className="p-4 bg-muted/50 rounded-lg border border-border space-y-4">
+                <h4 className="font-medium text-foreground">
                   {editingConfig.id && config.model_configs.some(c => c.id === editingConfig.id)
                     ? t("settings.editConfig")
                     : t("settings.newConfig")}
@@ -618,7 +620,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
 
                 {/* Config Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     {t("settings.configName")}
                   </label>
                   <Input
@@ -631,7 +633,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
 
                 {/* Provider */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     {t("settings.apiProvider")}
                   </label>
                   <Select
@@ -648,7 +650,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
 
                 {/* API Key */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     {t("settings.apiKey")}
                   </label>
                   <Input
@@ -663,7 +665,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                 {/* Model */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-300">
+                    <label className="block text-sm font-medium text-foreground">
                       {t("settings.model")}
                     </label>
                     {["openrouter", "openai", "deepseek", "google"].includes(editingConfig.api_provider || "") && (
@@ -756,12 +758,28 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
           </div>
 
           {/* Other Settings */}
-          <div className="border-t border-gray-700 pt-4 space-y-4">
+          <div className="border-t border-border pt-4 space-y-4">
+
+            {/* Theme */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                {t("Theme")}
+              </label>
+              <Select
+                value={theme}
+                onChange={(e) => setTheme(e.target.value as any)}
+              >
+                <option value="light">{t("settings.theme.light")}</option>
+                <option value="dark">{t("settings.theme.dark")}</option>
+                <option value="eye-protection">{t("settings.theme.eyeProtection")}</option>
+                <option value="system">{t("settings.theme.system")}</option>
+              </Select>
+            </div>
 
 
             {/* Interface Language */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 {t("settings.interfaceLanguage")}
               </label>
               <Select
@@ -778,7 +796,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
 
             {/* Target Language */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 {t("settings.targetLanguage")}
               </label>
               <Select
@@ -813,7 +831,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
           {isSaving ? t("settings.saving") : t("settings.close")}
         </Button>
       </DialogFooter>
-    </Dialog>
+    </Dialog >
   );
 }
 
@@ -837,7 +855,7 @@ export function SettingsButton({ onOpen, onSave }: SettingsButtonProps) {
         variant="ghost"
         size="sm"
         onClick={handleOpen}
-        className="gap-2"
+        className="gap-2 text-foreground"
       >
         <Settings size={16} />
         {t("header.settings")}

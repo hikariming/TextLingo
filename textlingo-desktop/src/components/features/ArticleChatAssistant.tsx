@@ -16,7 +16,7 @@ import {
 
 // Simple Card component since we don't have one in UI
 const Card = ({ className, children }: { className?: string; children: React.ReactNode }) => (
-    <div className={cn("bg-gray-900 border border-gray-800 rounded-lg", className)}>
+    <div className={cn("bg-card border border-border rounded-lg", className)}>
         {children}
     </div>
 );
@@ -268,8 +268,8 @@ export function ArticleChatAssistant({
     if (isInitializing) {
         return (
             <Card className={cn("p-6 flex items-center justify-center", className)}>
-                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-                <span className="ml-2 text-gray-400">{t("novelChat.initializing") || "Initializing..."}</span>
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <span className="ml-2 text-muted-foreground">{t("novelChat.initializing") || "Initializing..."}</span>
             </Card>
         );
     }
@@ -277,10 +277,10 @@ export function ArticleChatAssistant({
     return (
         <Card className={cn("flex flex-col h-full", className)}>
             {/* Header */}
-            <div className="border-b border-gray-800 p-4">
+            <div className="border-b border-border p-4">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-white">
-                        <Sparkles className="h-5 w-5 text-blue-500" />
+                    <div className="flex items-center gap-2 text-foreground">
+                        <Sparkles className="h-5 w-5 text-primary" />
                         <h3 className="font-semibold">{t("novelChat.aiAssistant") || "AI Assistant"}</h3>
                     </div>
                     {onClose && (
@@ -292,9 +292,9 @@ export function ArticleChatAssistant({
 
                 {/* Selected Text Display */}
                 {selectedText && (
-                    <div className="mt-2 p-2 bg-gray-800 rounded text-sm text-gray-300">
+                    <div className="mt-2 p-2 bg-muted rounded text-sm text-muted-foreground">
                         <div className="flex items-start justify-between">
-                            <span className="text-gray-500 text-xs">{t("novelChat.selectedText") || "Selected text"}:</span>
+                            <span className="text-muted-foreground/70 text-xs">{t("novelChat.selectedText") || "Selected text"}:</span>
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -304,7 +304,7 @@ export function ArticleChatAssistant({
                                 <Copy className="h-3 w-3" />
                             </Button>
                         </div>
-                        <p className="mt-1 line-clamp-2 italic">"{selectedText}"</p>
+                        <p className="mt-1 line-clamp-2 italic text-foreground">"{selectedText}"</p>
                     </div>
                 )}
             </div>
@@ -316,7 +316,7 @@ export function ArticleChatAssistant({
                             <Bot className="h-4 w-4 mr-2" />
                             {t("novelChat.chat") || "Chat"}
                         </TabsTrigger>
-                        <div className="text-gray-500 flex items-center justify-center flex-1">
+                        <div className="text-muted-foreground flex items-center justify-center flex-1 text-sm">
                             <Languages className="h-4 w-4 mr-2" />
                             {t("novelChat.batch") || "Batch"} (Coming Soon)
                         </div>
@@ -355,16 +355,16 @@ export function ArticleChatAssistant({
                                 )}
                             >
                                 {message.role === 'assistant' && (
-                                    <div className="h-8 w-8 rounded-full bg-blue-600/10 flex items-center justify-center shrink-0">
-                                        <Bot className="h-5 w-5 text-blue-500" />
+                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                        <Bot className="h-5 w-5 text-primary" />
                                     </div>
                                 )}
 
                                 <div className={cn(
                                     "max-w-[85%] rounded-lg p-3 text-sm",
                                     message.role === 'user'
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-gray-800 text-gray-200"
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-muted text-foreground"
                                 )}>
                                     <div className="whitespace-pre-wrap leading-relaxed">
                                         {message.content}
@@ -375,8 +375,8 @@ export function ArticleChatAssistant({
                                 </div>
 
                                 {message.role === 'user' && (
-                                    <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center shrink-0">
-                                        <User className="h-5 w-5 text-gray-300" />
+                                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                                        <User className="h-5 w-5 text-muted-foreground" />
                                     </div>
                                 )}
                             </div>
@@ -392,7 +392,7 @@ export function ArticleChatAssistant({
                             onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                             placeholder={t("novelChat.inputPlaceholder") || "Ask a question..."}
                             disabled={isLoading}
-                            className="flex-1 bg-gray-950 border-gray-800"
+                            className="flex-1 bg-background border-input"
                         />
                         {isLoading ? (
                             <Button onClick={stopStreaming} variant="danger" size="sm" className="w-10 px-0">

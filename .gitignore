@@ -8,3 +8,4 @@ api/data/*
 api/textlingo/
 api/config.yml
 old/
+web/

@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "../../lib/utils";
 
 export interface SelectProps
-  extends React.SelectHTMLAttributes<HTMLSelectElement> {}
+  extends React.SelectHTMLAttributes<HTMLSelectElement> { }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, children, ...props }, ref) => {
@@ -10,9 +10,9 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       <div className="relative">
         <select
           className={cn(
-            "flex h-10 w-full appearance-none rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm",
-            "text-white",
-            "focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent",
+            "flex h-10 w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 text-sm",
+            "text-foreground",
+            "focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "pr-10", // Space for arrow
             className
@@ -34,7 +34,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-gray-500"
+            className="text-muted-foreground"
           >
             <polyline points="6 9 12 15 18 9" />
           </svg>

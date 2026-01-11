@@ -83,12 +83,12 @@ export function ArticleList({
     <>
       {/* 删除确认弹窗 */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-md mx-4 shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-semibold text-white mb-3">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-card border border-border rounded-2xl p-6 max-w-md mx-4 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-semibold text-foreground mb-3">
               {t("articleList.delete") || "Delete Article"}
             </h3>
-            <p className="text-gray-300 mb-4 leading-relaxed">
+            <p className="text-muted-foreground mb-4 leading-relaxed">
               {t("articleList.deleteConfirm") || "Are you sure you want to delete this article?"}
             </p>
             <div className="flex gap-3 justify-end">
@@ -100,7 +100,7 @@ export function ArticleList({
               </Button>
               <Button
                 onClick={executeDelete}
-                className="bg-red-600 hover:bg-red-500 text-white"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               >
                 {t("articleList.delete") || "Delete"}
               </Button>
@@ -117,28 +117,28 @@ export function ArticleList({
             className={`
               group p-4 rounded-lg border transition-all cursor-pointer
               ${selectedId === article.id
-                ? "bg-blue-900/30 border-blue-700"
-                : "bg-gray-900 border-gray-800 hover:border-gray-700 hover:bg-gray-800"
+                ? "bg-primary/10 border-primary"
+                : "bg-card border-border hover:border-primary/50 hover:bg-accent/50"
               }
             `}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-white truncate">
+                <h3 className="font-medium text-foreground truncate">
                   {article.title || t("articleList.untitled")}
                 </h3>
-                <p className="text-sm text-gray-500 mt-1 flex items-center gap-3">
+                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-3">
                   <span className="flex items-center gap-1">
                     <Clock size={12} />
                     {formatDate(article.created_at)}
                   </span>
                   {article.translated && (
-                    <span className="px-2 py-0.5 bg-blue-900/50 text-blue-300 rounded text-xs">
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
                       {t("articleList.translated")}
                     </span>
                   )}
                 </p>
-                <p className="text-sm text-gray-400 mt-2 line-clamp-2">
+                <p className="text-sm text-muted-foreground/80 mt-2 line-clamp-2">
                   {truncateText(article.content, 150)}
                 </p>
               </div>

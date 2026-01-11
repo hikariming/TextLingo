@@ -101,32 +101,32 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-950">
+      <div className="h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-400">{t("app.loading")}</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">{t("app.loading")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-950 text-white">
+    <div className="h-screen flex flex-col bg-background text-foreground">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-gray-900">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm supports-[backdrop-filter]:bg-card/50">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600">
-            <BookOpen className="text-white" size={20} />
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground">
+            <BookOpen size={20} />
           </div>
           <div>
             <h1 className="text-lg font-semibold">{t("app.title")}</h1>
-            <p className="text-xs text-gray-500">{t("app.subtitle")}</p>
+            <p className="text-xs text-muted-foreground">{t("app.subtitle")}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           {!hasConfig && (
-            <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 rounded-lg text-amber-300 text-sm">
+            <div className="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/50 rounded-lg text-yellow-600 dark:text-yellow-400 text-sm">
               {t("header.configureApiKey")}
             </div>
           )}
@@ -162,7 +162,7 @@ function App() {
                 >
                   <RotateCw size={16} className={isLoading ? "animate-spin" : ""} />
                 </Button>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {t("articleList.count_other", { count: articles.length })}
                 </p>
               </div>
@@ -179,8 +179,8 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="px-6 py-3 border-t border-gray-800 bg-gray-900">
-        <div className="flex items-center justify-between text-xs text-gray-500">
+      <footer className="px-6 py-3 border-t border-border bg-card/50 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between">
           <p>TextLingo Desktop {t("app.version")}</p>
           <div className="flex items-center gap-4">
             <span>{t("footer.provider")}: {activeConfig?.api_provider || t("app.notConfigured")}</span>

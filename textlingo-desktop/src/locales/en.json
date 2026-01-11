@@ -65,8 +65,7 @@
     "segmentArticleHint": "Click the Segment button to split this article into segments for detailed learning.",
     "analyzeAll": "Analyze All",
     "analyzeAllConfirm": "This will analyze {{count}} segments. This might consume significant tokens.\n(Note: Will process 3 segments at a time)\n\nContinue?",
-    "allSegmentsAnalyzed": "All segments already have explanations.",
-    "selectToExplain": "Click 'Assistant' to analyze this segment"
+    "allSegmentsAnalyzed": "All segments already have explanations."
   },
   "newArticle": {
     "title": "New Article",
@@ -140,6 +139,12 @@
       "openrouter": "OpenRouter",
       "deepseek": "DeepSeek",
       "google": "Google (Gemini)"
+    },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System",
+      "eyeProtection": "Eye Protection"
     },
     "models": {
       "openai": {
