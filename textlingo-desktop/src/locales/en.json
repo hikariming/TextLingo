@@ -277,6 +277,7 @@
     "extracting": "Extracting subtitles...",
     "success": "Subtitles extracted successfully!",
     "error": "Failed to extract subtitles",
-    "geminiRequired": "Subtitle extraction requires a Gemini model (gemini-2.0-flash or newer). Please configure in Settings."
+    "geminiRequired": "Subtitle extraction requires a Gemini model (gemini-2.0-flash or newer). Please configure in Settings.",
+    "reExtract": "Re-extract"
   }
 }

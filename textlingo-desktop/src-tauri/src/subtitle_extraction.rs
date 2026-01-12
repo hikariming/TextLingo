@@ -155,39 +155,37 @@ async fn transcribe_audio_with_gemini(
     }
     
     // 转录提示词
-    let transcription_prompt = r#"请将这段音频转录为文字，并按照以下要求返回 JSON 格式：
+    let transcription_prompt = r#"请将这段音频转录为文字，并严格按照以下 JSON 格式返回。
 
-1. 将音频分割成自然的句子或段落
-2. 每个段落包含开始和结束时间戳（格式：MM:SS）
-3. 如果能识别不同说话者，请标注
+要求：
+1. 将音频分割成自然的句子或段落。
+2. 每个段落必须包含 start (开始时间) 和 end (结束时间) 字段，格式为 MM:SS 或 HH:MM:SS。
+3. start 和 end 字段是必须的，不能缺失。
+4. 内容尽量保持原文语言。
 
-请严格返回以下 JSON 格式（不要包含 markdown 代码块）：
+返回格式示例：
 {
   "segments": [
     {
       "start": "00:00",
       "end": "00:05",
-      "content": "转录的文字内容",
+      "content": "这里是转录的内容",
       "speaker": "Speaker 1"
     }
   ],
-  "full_text": "完整的转录文本"
+  "full_text": "完整的转录文本..."
 }
-
-注意：
-- 时间戳格式为 MM:SS 或 HH:MM:SS
-- 如果无法识别说话者，speaker 可以为 null
-- 尽量保持原文语言，不要翻译"#;
+"#;
 
     let client = Client::new();
     
     // 根据提供商选择不同的 API 格式
     let response = match provider {
-        "google" => {
+        "google" | "google-ai-studio" => {
             // Google Gemini 直接 API
             let url = format!(
                 "{}/{}:generateContent?key={}",
-                GOOGLE_GEMINI_URL, model, api_key
+                GOOGLE_GEMINI_URL, model.strip_prefix("models/").unwrap_or(model), api_key
             );
             
             let request_body = json!({
@@ -203,7 +201,10 @@ async fn transcribe_audio_with_gemini(
                             "text": transcription_prompt
                         }
                     ]
-                }]
+                }],
+                "generationConfig": {
+                    "response_mime_type": "application/json"
+                }
             });
             
             client
@@ -266,7 +267,7 @@ async fn transcribe_audio_with_gemini(
         .map_err(|e| format!("解析响应失败: {}", e))?;
     
     // 提取响应内容
-    let content = if provider == "google" {
+    let content = if provider == "google" || provider == "google-ai-studio" {
         // Google API 响应格式
         response_json["candidates"][0]["content"]["parts"][0]["text"]
             .as_str()
@@ -291,7 +292,7 @@ fn parse_transcription_response(content: &str) -> Result<TranscriptionResult, St
     
     // 解析 JSON
     let parsed: Value = serde_json::from_str(&json_str)
-        .map_err(|e| format!("JSON 解析失败: {}. 内容: {}", e, json_str))?;
+        .map_err(|e| format!("JSON 解析失败: {}. \n提取的JSON: {}\n原始响应: {}", e, json_str, content))?;
     
     // 提取 segments
     let segments = parsed["segments"]
@@ -363,19 +364,11 @@ fn extract_json(content: &str) -> String {
         }
     }
     
-    // 3. 尝试找大括号
-    if let Some(start_idx) = content.find('{') {
-        let mut balance = 0;
-        for (i, c) in content[start_idx..].char_indices() {
-            match c {
-                '{' => balance += 1,
-                '}' => {
-                    balance -= 1;
-                    if balance == 0 {
-                        return content[start_idx..=start_idx+i].to_string();
-                    }
-                }
-                _ => {}
+    // 3. 尝试找大括号 (Generic find first '{' and last '}')
+    if let Some(start) = content.find('{') {
+        if let Some(end) = content.rfind('}') {
+            if end > start {
+                return content[start..=end].to_string();
             }
         }
     }

@@ -1013,7 +1013,7 @@ pub async fn extract_subtitles_cmd(
     // 允许的 Gemini 模型前缀
     let is_gemini = model.contains("gemini") || 
                     model.starts_with("google/gemini") ||
-                    provider == "google";
+                    provider == "google" || provider == "google-ai-studio";
     
     if !is_gemini {
         return Err("字幕提取需要使用 Gemini 模型。请在设置中配置 Gemini API (gemini-2.0-flash 或更新版本)".to_string());

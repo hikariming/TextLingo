@@ -25,6 +25,7 @@ import { AnalysisType, AppConfig } from "../../lib/tauri";
 import { Article, SegmentExplanation } from "../../types";
 import { ArticleChatAssistant } from "./ArticleChatAssistant";
 import { ArticleExplanationPanel } from "./ArticleExplanationPanel";
+import { VideoSubtitlePlayer } from "./VideoSubtitlePlayer";
 
 interface ArticleReaderProps {
   article: Article;
@@ -65,16 +66,15 @@ export function ArticleReader({
   const [activeTab, setActiveTab] = useState<"explanation" | "chat">("explanation");
 
   // Video Sync State
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [autoScroll, setAutoScroll] = useState(true);
-  const activeSegmentRef = useRef<HTMLSpanElement>(null);
+  const activeSegmentRef = useRef<HTMLElement>(null);
 
   // 本地段落状态 - 用于批量处理时的局部刷新
   const [localSegments, setLocalSegments] = useState(article.segments || []);
 
   // 字幕提取状态
   const [isExtractingSubtitles, setIsExtractingSubtitles] = useState(false);
+
+
 
   const ANALYSIS_TYPES: { value: AnalysisType; label: string; icon: React.ReactNode }[] = [
     { value: "summary", label: t("articleReader.summary") || "Summary", icon: <FileText size={16} /> },
@@ -102,31 +102,15 @@ export function ArticleReader({
     return () => document.removeEventListener("mouseup", handleSelection);
   }, []);
 
-  // 监听视频时间，更新高亮段落
+  // 自动滚动到激活的段落（非视频模式）
   useEffect(() => {
-    if (!article.media_path || !localSegments.length || !autoScroll) return;
-
-    // 找到当前时间对应的段落
-    const activeSeg = localSegments.find(
-      s => s.start_time !== undefined && s.end_time !== undefined &&
-        currentTime >= s.start_time && currentTime < s.end_time
-    );
-
-    if (activeSeg && activeSeg.id !== selectedSegmentId) {
-      // 只更新选中状态，暂不触发 AI 解析（除非用户手动点击）
-      setSelectedSegmentId(activeSeg.id);
-    }
-  }, [currentTime, localSegments, article.media_path, autoScroll]);
-
-  // 自动滚动到激活的段落
-  useEffect(() => {
-    if (selectedSegmentId && autoScroll && activeSegmentRef.current) {
+    if (selectedSegmentId && activeSegmentRef.current && !article.media_path) {
       activeSegmentRef.current.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     }
-  }, [selectedSegmentId, autoScroll]);
+  }, [selectedSegmentId, article.media_path]);
 
   const handleSaveContent = async () => {
     try {
@@ -228,16 +212,8 @@ export function ArticleReader({
     setActiveTab("explanation");
     setShowAssistant(true);
 
-    // 如果是视频模式，跳转视频进度
-    const segment = localSegments.find(s => s.id === id);
-    if (videoRef.current && segment?.start_time !== undefined) {
-      videoRef.current.currentTime = segment.start_time;
-      videoRef.current.play().catch(() => { });
-      // 用户手动点击时，暂时禁用自动滚动一小段时间，避免冲突？
-      // 其实不需要，只要 autoScroll 保持 true，就会滚动到新位置，这符合预期
-    }
-
     // Check if we need to auto-generate explanation
+    const segment = localSegments.find(s => s.id === id);
     if (segment && !segment.explanation && !isGeneratingExplanation) {
       // Auto-trigger generation
       setTimeout(() => handleGenerateExplanation(id), 0);
@@ -654,92 +630,52 @@ export function ArticleReader({
                 </div>
               ) : (
                 <div className="h-full overflow-y-auto px-4 py-6 md:px-8 lg:px-12 scroll-smooth">
+                  {/* 视频模式：使用 VideoSubtitlePlayer 组件 */}
                   {article.media_path && (() => {
-                    // 从完整路径提取文件名
                     const filename = article.media_path.split('/').pop() || article.media_path.split('\\').pop() || '';
                     const videoUrl = `http://127.0.0.1:19420/video/${encodeURIComponent(filename)}`;
                     return (
-                      <div className="mb-6 max-w-3xl mx-auto rounded-lg overflow-hidden bg-black/5 border border-border sticky top-0 z-10 shadow-lg">
-                        <video
-                          ref={videoRef}
-                          controls
-                          playsInline
-                          className="w-full aspect-video bg-black"
-                          src={videoUrl}
-                          onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                          onPlay={() => setAutoScroll(true)}
-                          onPause={() => setAutoScroll(false)} // 可选：暂停时不自动滚动，或保持开启
-                          onError={(e) => {
-                            console.error("Video playback error:", e);
-                            const video = e.target as HTMLVideoElement;
-                            console.error("Video error code:", video.error?.code);
-                            console.error("Video error message:", video.error?.message);
-                            console.error("Video URL:", videoUrl);
-                          }}
-                        />
-                      </div>
+                      <VideoSubtitlePlayer
+                        videoUrl={videoUrl}
+                        segments={localSegments}
+                        selectedSegmentId={selectedSegmentId}
+                        onSegmentClick={handleSegmentClick}
+                        fontSize={fontSize}
+                        showTranslation={showTranslation}
+                        isExtractingSubtitles={isExtractingSubtitles}
+                        onExtractSubtitles={handleExtractSubtitles}
+                      />
                     );
                   })()}
 
-                  {/* 字幕提取按钮 - 当视频没有字幕时显示 */}
-                  {article.media_path && !hasSegments && (
-                    <div className="mb-6 max-w-3xl mx-auto p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                      <div className="flex-1">
-                        <p className="text-foreground font-medium">{t("subtitleExtraction.noSubtitles")}</p>
-                        <p className="text-sm text-muted-foreground mt-1">{t("subtitleExtraction.geminiRequired")}</p>
-                      </div>
-                      <Button
-                        onClick={handleExtractSubtitles}
-                        disabled={isExtractingSubtitles}
-                        className="gap-2 shrink-0"
-                      >
-                        {isExtractingSubtitles ? (
-                          <>
-                            <Loader2 size={16} className="animate-spin" />
-                            {t("subtitleExtraction.extracting")}
-                          </>
-                        ) : (
-                          <>
-                            <FileText size={16} />
-                            {t("subtitleExtraction.extractButton")}
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-
-                  {hasSegments ? (
+                  {/* 非视频模式：段落式显示 */}
+                  {hasSegments && !article.media_path && (
                     <div className="max-w-3xl mx-auto pb-20">
-                      {/* 将段落按is_new_paragraph分组，连续的非换行句子组成一组 */}
                       {(() => {
                         const sortedSegments = [...localSegments].sort((a, b) => a.order - b.order);
                         const paragraphGroups: typeof sortedSegments[] = [];
                         let currentGroup: typeof sortedSegments = [];
 
                         sortedSegments.forEach((segment, index) => {
-                          // 如果是新段落（或者是第一个元素），开始一个新组
                           if (segment.is_new_paragraph || index === 0) {
                             if (currentGroup.length > 0) {
                               paragraphGroups.push(currentGroup);
                             }
                             currentGroup = [segment];
                           } else {
-                            // 否则加入当前组（紧跟上一个句子）
                             currentGroup.push(segment);
                           }
                         });
 
-                        // 不要忘记最后一组
                         if (currentGroup.length > 0) {
                           paragraphGroups.push(currentGroup);
                         }
 
                         return paragraphGroups.map((group, groupIndex) => (
                           <div key={`group-${groupIndex}`} className="mb-6">
-                            {/* 段落容器 - 使用 block 布局实现真正的流式排版 */}
                             <div
                               className="text-foreground"
-                              style={{ lineHeight: 2 }} // 增加行高以容纳边框和padding
+                              style={{ lineHeight: 2 }}
                             >
                               {group.map((segment, segIndex) => {
                                 const isExplained = !!segment.explanation;
@@ -764,23 +700,19 @@ export function ArticleReader({
                                     >
                                       {segment.text}
                                     </span>
-                                    {/* 为非中文段落添加空格，或者总是添加一个空格间隙 */}
                                     {segIndex < group.length - 1 && " "}
                                   </React.Fragment>
                                 );
                               })}
                             </div>
 
-                            {/* 翻译和注音 - 显示组内选中段落的信息 */}
                             {group.map((segment) => {
                               const isSelected = segment.id === selectedSegmentId;
-                              // 只有选中且有内容时才显示详情框
                               const hasContent = segment.reading_text || (showTranslation && segment.translation);
                               if (!isSelected || !hasContent) return null;
 
                               return (
                                 <div key={`detail-${segment.id}`} className="mt-4 px-4 py-3 bg-muted/30 rounded-xl border border-border animate-in fade-in slide-in-from-top-2">
-                                  {/* 注音/读法 */}
                                   {segment.reading_text && (
                                     <p
                                       className="text-muted-foreground leading-relaxed mb-2 font-mono"
@@ -790,7 +722,6 @@ export function ArticleReader({
                                     </p>
                                   )}
 
-                                  {/* 翻译 */}
                                   {showTranslation && segment.translation && (
                                     <div className="text-primary leading-relaxed">
                                       <p style={{ fontSize: `${fontSize * 0.95}px` }}>
@@ -805,7 +736,10 @@ export function ArticleReader({
                         ));
                       })()}
                     </div>
-                  ) : (
+                  )}
+
+                  {/* 纯文本模式：Markdown 渲染 */}
+                  {!hasSegments && !article.media_path && (
                     <article className="prose dark:prose-invert max-w-none pb-20 text-foreground">
                       <ReactMarkdown>{content}</ReactMarkdown>
                     </article>
@@ -851,9 +785,9 @@ export function ArticleReader({
                       {t("articleReader.analyzing")}
                     </div>
                   ) : analysisResult ? (
-                    <ReactMarkdown className="prose dark:prose-invert max-w-none">
-                      {analysisResult}
-                    </ReactMarkdown>
+                    <div className="prose dark:prose-invert max-w-none">
+                      <ReactMarkdown>{analysisResult}</ReactMarkdown>
+                    </div>
                   ) : (
                     <div className="h-full flex items-center justify-center text-muted-foreground">
                       {t("articleReader.selectAnalysis")}
@@ -867,50 +801,53 @@ export function ArticleReader({
       </div>
 
       {/* Right Sidebar: Assistant / Explanation */}
-      {showAssistant && (
-        <div className="w-[350px] md:w-[400px] border-l border-border bg-card flex flex-col shrink-0 transition-all duration-300">
-          <Tabs
-            value={activeTab}
-            onValueChange={(v) => setActiveTab(v as any)}
-            className="flex-1 flex flex-col h-full overflow-hidden"
-          >
-            <div className="px-4 py-2 border-b border-border bg-card">
-              <TabsList className="w-full">
-                <TabsTrigger value="explanation" className="flex-1">
-                  {t("articleReader.explanation") || "Explanation"}
-                </TabsTrigger>
-                <TabsTrigger value="chat" className="flex-1">
-                  {t("articleReader.chat") || "Chat"}
-                </TabsTrigger>
-              </TabsList>
-            </div>
+      {
+        showAssistant && (
+          <div className="w-[350px] md:w-[400px] border-l border-border bg-card flex flex-col shrink-0 transition-all duration-300">
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => setActiveTab(v as any)}
+              className="flex-1 flex flex-col h-full overflow-hidden"
+            >
+              <div className="px-4 py-2 border-b border-border bg-card">
+                <TabsList className="w-full">
+                  <TabsTrigger value="explanation" className="flex-1">
+                    {t("articleReader.explanation") || "Explanation"}
+                  </TabsTrigger>
+                  <TabsTrigger value="chat" className="flex-1">
+                    {t("articleReader.chat") || "Chat"}
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-            <TabsContent value="explanation" className="flex-1 overflow-hidden mt-0 relative">
-              {selectedSegment ? (
-                <ArticleExplanationPanel
-                  segment={selectedSegment}
-                  explanation={selectedSegment.explanation || null}
-                  isLoading={isGeneratingExplanation}
-                  onRegenerate={handleGenerateExplanation}
+              <TabsContent value="explanation" className="flex-1 overflow-hidden mt-0 relative">
+                {selectedSegment ? (
+                  <ArticleExplanationPanel
+                    segment={selectedSegment}
+                    explanation={selectedSegment.explanation || null}
+                    isLoading={isGeneratingExplanation}
+                    onRegenerate={handleGenerateExplanation}
+                  />
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
+                    <BookOpen size={48} className="mb-4 opacity-50" />
+                    <p>{t("articleReader.selectSegment") || "Select a sentence to see explanation"}</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="chat" className="flex-1 overflow-hidden mt-0">
+                <ArticleChatAssistant
+                  articleId={article.id}
+                  articleTitle={article.title} // Use correct prop name
+                  targetLanguage="zh-CN" // Use required prop
+                  selectedText={selectedText || (selectedSegment ? selectedSegment.text : "")}
                 />
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
-                  <BookOpen size={48} className="mb-4 opacity-50" />
-                  <p>{t("articleReader.selectSegment") || "Select a sentence to see explanation"}</p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="chat" className="flex-1 overflow-hidden mt-0">
-              <ArticleChatAssistant
-                articleId={article.id}
-                articleContent={article.content} // Pass full content
-                selectedText={selectedText || (selectedSegment ? selectedSegment.text : "")}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
-      )}
-    </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )
+      }
+    </div >
   );
 }
