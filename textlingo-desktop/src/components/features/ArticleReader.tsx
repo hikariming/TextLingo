@@ -716,8 +716,11 @@ export function ArticleReader({
 
                             {group.map((segment) => {
                               const isSelected = segment.id === selectedSegmentId;
-                              const hasContent = segment.reading_text || (showTranslation && segment.translation);
-                              if (!isSelected || !hasContent) return null;
+                              const hasTranslationContent = showTranslation && !!segment.translation;
+                              const shouldShow = isSelected || hasTranslationContent;
+                              const hasContent = segment.reading_text || hasTranslationContent;
+
+                              if (!shouldShow || !hasContent) return null;
 
                               return (
                                 <div key={`detail-${segment.id}`} className="mt-4 px-4 py-3 bg-muted/30 rounded-xl border border-border animate-in fade-in slide-in-from-top-2">
