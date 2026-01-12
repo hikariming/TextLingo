@@ -299,6 +299,7 @@
     "extractButton": "Extract Subtitles",
     "extracting": "Extracting subtitles...",
     "success": "Subtitles extracted successfully!",
+    "successMessage": "Successfully extracted {{count}} subtitle segments!",
     "error": "Failed to extract subtitles",
     "geminiRequired": "Subtitle extraction requires a Gemini model. We recommend Gemini 3.0 Flash for short videos and Gemini 3.0 Pro for long videos. Please configure in Settings.",
     "reExtract": "Re-extract"

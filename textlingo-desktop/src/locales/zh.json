@@ -299,6 +299,7 @@
     "extractButton": "提取字幕",
     "extracting": "正在提取字幕...",
     "success": "字幕提取成功！",
+    "successMessage": "成功提取 {{count}} 个字幕片段！",
     "error": "字幕提取失败",
     "geminiRequired": "字幕提取需要使用 Gemini 模型。短视频推荐使用 Gemini 3.0 Flash，长视频建议使用 Gemini 3.0 Pro。请在设置中配置。",
     "reExtract": "重新提取"

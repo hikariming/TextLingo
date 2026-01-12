@@ -284,6 +284,7 @@
     "extractButton": "字幕を抽出",
     "extracting": "字幕を抽出中...",
     "success": "字幕の抽出に成功しました！",
+    "successMessage": "{{count}}個の字幕セグメントを抽出しました！",
     "error": "字幕の抽出に失敗しました",
     "geminiRequired": "字幕抽出にはGeminiモデルが必要です。短い動画にはGemini 3.0 Flash、長い動画にはGemini 3.0 Proを推奨します。設定で構成してください。",
     "reExtract": "再抽出"

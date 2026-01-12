@@ -74,6 +74,9 @@ export function ArticleReader({
   // 字幕提取状态
   const [isExtractingSubtitles, setIsExtractingSubtitles] = useState(false);
 
+  // 成功提示消息状态
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
 
 
   const ANALYSIS_TYPES: { value: AnalysisType; label: string; icon: React.ReactNode }[] = [
@@ -181,8 +184,15 @@ export function ArticleReader({
         setLocalSegments(updatedArticle.segments);
         setContent(updatedArticle.content);
 
-        // 强制 VideoSubtitlePlayer 重渲染 (通过 key 或状态变更)
-        // 本地状态更新优先于 onUpdate 触发的 prop 更新
+        // 显示成功提示
+        const successMsg = t("subtitleExtraction.successMessage", { count: updatedArticle.segments.length })
+          || `成功提取 ${updatedArticle.segments.length} 个字幕片段！`;
+        setSuccessMessage(successMsg);
+
+        // 3秒后自动隐藏成功提示
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
       }
 
       onUpdate?.();
@@ -405,6 +415,19 @@ export function ArticleReader({
           <div className="absolute top-0 left-0 right-0 z-50 bg-destructive/90 border-b border-destructive text-destructive-foreground px-4 py-2 text-sm flex justify-between items-center backdrop-blur-md animate-in slide-in-from-top-full duration-300">
             <span>{error}</span>
             <button onClick={() => setError(null)} className="text-white/80 hover:text-white">✕</button>
+          </div>
+        )}
+
+        {/* 成功提示消息 */}
+        {successMessage && (
+          <div className="absolute top-0 left-0 right-0 z-50 bg-green-500/90 border-b border-green-600 text-white px-4 py-2 text-sm flex justify-between items-center backdrop-blur-md animate-in slide-in-from-top-full duration-300">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span>{successMessage}</span>
+            </div>
+            <button onClick={() => setSuccessMessage(null)} className="text-white/80 hover:text-white">✕</button>
           </div>
         )}
 
