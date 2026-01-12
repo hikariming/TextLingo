@@ -161,6 +161,110 @@ impl AIService {
         })
     }
 
+    /// 批量翻译多个文本段落（最多30条）
+    /// 返回 Vec<(id, translation)>
+    pub async fn batch_translate(
+        &self,
+        items: Vec<(String, String)>,  // Vec<(id, text)>
+        target_language: &str,
+    ) -> Result<Vec<(String, String)>, String> {
+        if items.is_empty() {
+            return Ok(vec![]);
+        }
+
+        // 构建批量翻译提示词
+        let mut prompt = format!(
+            "将以下编号的文本翻译成{}。严格按照JSON数组格式返回，每项包含id和translation字段。\n\n",
+            target_language
+        );
+        prompt.push_str("待翻译文本：\n");
+        for (id, text) in &items {
+            prompt.push_str(&format!("[{}] {}\n", id, text));
+        }
+        prompt.push_str("\n返回格式示例：\n");
+        prompt.push_str(r#"[{"id": "xxx", "translation": "翻译结果"}, ...]"#);
+
+        let response_text = if self.is_google_provider() {
+            let contents = vec![
+                json!({
+                    "role": "user",
+                    "parts": [{"text": prompt}]
+                })
+            ];
+            self.make_google_request(contents, Some(0.3)).await?
+        } else {
+            let messages = vec![
+                json!({"role": "system", "content": "你是专业翻译助手，将文本翻译并返回JSON格式结果。"}),
+                json!({"role": "user", "content": prompt}),
+            ];
+            self.make_request(messages, Some(0.3)).await?
+        };
+
+        // 解析返回的 JSON 数组
+        let json_str = Self::extract_json_array(&response_text);
+        let parsed: Vec<Value> = serde_json::from_str(&json_str)
+            .map_err(|e| format!("Failed to parse batch translation response: {} - raw: {}", e, json_str))?;
+
+        let mut results = Vec::new();
+        for item in parsed {
+            if let (Some(id), Some(translation)) = (
+                item.get("id").and_then(|v| v.as_str()),
+                item.get("translation").and_then(|v| v.as_str()),
+            ) {
+                results.push((id.to_string(), translation.to_string()));
+            }
+        }
+
+        Ok(results)
+    }
+
+    /// 从响应中提取 JSON 数组
+    fn extract_json_array(content: &str) -> String {
+        // 尝试提取 markdown 代码块
+        if let Some(start) = content.find("```json") {
+            if let Some(end) = content[start..].rfind("```") {
+                if end > 7 {
+                    return content[start+7..start+end].trim().to_string();
+                }
+            }
+        }
+        
+        if let Some(start) = content.find("```") {
+            if let Some(end_offset) = content[start+3..].find("```") {
+                let end = start + 3 + end_offset;
+                return content[start+3..end].trim().to_string();
+            }
+        }
+
+        // 提取 JSON 数组 (以 [ 开头)
+        if let Some(start_idx) = content.find('[') {
+            let mut balance = 0;
+            let mut end_idx = start_idx;
+            let mut found_end = false;
+            
+            for (i, c) in content[start_idx..].char_indices() {
+                match c {
+                    '[' => balance += 1,
+                    ']' => {
+                        balance -= 1;
+                        if balance == 0 {
+                            end_idx = start_idx + i;
+                            found_end = true;
+                            break;
+                        }
+                    },
+                    _ => {}
+                }
+            }
+            
+            if found_end {
+                return content[start_idx..=end_idx].to_string();
+            }
+        }
+
+        content.trim().to_string()
+    }
+
     pub async fn analyze(&self, request: AnalysisRequest) -> Result<AnalysisResponse, String> {
         let system_prompt = match request.analysis_type {
             AnalysisType::Summary => {

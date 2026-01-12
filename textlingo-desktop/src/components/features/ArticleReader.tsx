@@ -129,10 +129,14 @@ export function ArticleReader({
     setIsTranslating(true);
     setError(null);
     try {
-      const result = await invoke<{ id: string; content: string }>("translate_article", {
+      const result = await invoke<Article>("translate_article", {
         articleId: article.id,
         targetLanguage: "zh-CN", // Default, could be from settings
       });
+      // 更新本地段落状态，使翻译立即渲染
+      if (result.segments && result.segments.length > 0) {
+        setLocalSegments(result.segments);
+      }
       setContent(result.content);
       onUpdate?.();
     } catch (err) {
@@ -680,6 +684,7 @@ export function ArticleReader({
                             >
                               {group.map((segment, segIndex) => {
                                 const isExplained = !!segment.explanation;
+                                const hasTranslation = !!segment.translation && !isExplained;
                                 const isSelected = segment.id === selectedSegmentId;
 
                                 return (
@@ -691,7 +696,9 @@ export function ArticleReader({
                                         ? "bg-primary/20 border-primary shadow-sm text-foreground ring-2 ring-primary/20"
                                         : isExplained
                                           ? "hover:bg-accent border-green-500/30 hover:border-green-500/50 text-foreground"
-                                          : "hover:bg-accent border-transparent hover:border-border hover:text-foreground"
+                                          : hasTranslation
+                                            ? "hover:bg-accent border-yellow-500/30 hover:border-yellow-500/50 text-foreground"
+                                            : "hover:bg-accent border-transparent hover:border-border hover:text-foreground"
                                         }`}
                                       style={{
                                         fontSize: `${fontSize}px`,

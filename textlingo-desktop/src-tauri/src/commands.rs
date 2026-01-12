@@ -545,29 +545,39 @@ pub async fn translate_article(
         article.segments = create_segments_from_content(&article.id, &article.content);
     }
 
-    // Translate each segment
-    // Note: Serial execution for simplicity and stability.
-    // For production, this should be batched or parallelized.
-    for segment in &mut article.segments {
-        if segment.translation.is_none() {
-             let request = TranslationRequest {
-                text: segment.text.clone(),
-                target_language: target_language.clone(),
-                context: Some(article.title.clone()),
-            };
+    // 收集需要翻译的段落（没有翻译的）
+    let untranslated: Vec<(String, String)> = article.segments
+        .iter()
+        .filter(|s| s.translation.is_none())
+        .map(|s| (s.id.clone(), s.text.clone()))
+        .collect();
+
+    if !untranslated.is_empty() {
+        let ai_service = get_ai_service(&state).await?;
+        
+        // 批量翻译（每批最多30条）
+        const BATCH_SIZE: usize = 30;
+        for chunk in untranslated.chunks(BATCH_SIZE) {
+            let batch_items: Vec<(String, String)> = chunk.to_vec();
             
-            // We ignore individual failures to keep going? Or fail?
-            // Let's try to translate, if fail, skip.
-            if let Ok(response) = translate_text(state.clone(), request).await {
-                segment.translation = Some(response.translated_text);
+            match ai_service.batch_translate(batch_items, &target_language).await {
+                Ok(translations) => {
+                    // 将翻译结果写回对应的 segment
+                    for (id, translation) in translations {
+                        if let Some(seg) = article.segments.iter_mut().find(|s| s.id == id) {
+                            seg.translation = Some(translation);
+                        }
+                    }
+                }
+                Err(e) => {
+                    // 批量翻译失败，记录错误但继续
+                    eprintln!("Batch translation error: {}", e);
+                }
             }
         }
     }
 
     article.translated = true;
-
-    // Do NOT overwrite article.content. Keep original.
-    // article.content = ... 
 
     let article_json = serde_json::to_string(&article).unwrap();
     save_article(&app_handle, &article_id, &article_json)?;

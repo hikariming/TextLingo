@@ -386,6 +386,7 @@ export function VideoSubtitlePlayer({
                                 return currentTime >= segment.start_time && currentTime < segment.end_time;
                             })();
                             const isExplained = !!segment.explanation;
+                            const hasTranslation = !!segment.translation && !isExplained;
                             const isSelected = segment.id === selectedSegmentId;
 
                             return (
@@ -422,6 +423,9 @@ export function VideoSubtitlePlayer({
                                         <div className="flex items-center gap-1 shrink-0">
                                             {isExplained && (
                                                 <span className="w-2 h-2 rounded-full bg-green-500" title="已解析" />
+                                            )}
+                                            {hasTranslation && (
+                                                <span className="w-2 h-2 rounded-full bg-yellow-500" title="已翻译" />
                                             )}
                                         </div>
                                     </div>
