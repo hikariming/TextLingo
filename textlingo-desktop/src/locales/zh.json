@@ -14,7 +14,8 @@
     "configureApiKey": "配置您的 API 密钥以开始使用",
     "newArticle": "新建文章",
     "settings": "设置",
-    "favorites": "收藏夹"
+    "favorites": "收藏夹",
+    "newMaterial": "新建素材"
   },
   "footer": {
     "provider": "提供商",

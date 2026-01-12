@@ -280,9 +280,13 @@ fn parse_srt(path: &Path) -> Result<Vec<ArticleSegment>, String> {
              // Line 0: Index
              // Line 1: Timestamp
              // Line 2+: Text
-             if let Some(_caps) = time_regex.captures(lines[1]) {
-                 // let start = &caps[1];
-                 // let end = &caps[2];
+             if let Some(caps) = time_regex.captures(lines[1]) {
+                 let start_str = &caps[1];
+                 let end_str = &caps[2];
+                 
+                 let start_time = parse_srt_timestamp(start_str);
+                 let end_time = parse_srt_timestamp(end_str);
+                 
                  let text = lines[2..].join(" ");
                  
                  // Clean text (remove HTML tags if any)
@@ -297,6 +301,8 @@ fn parse_srt(path: &Path) -> Result<Vec<ArticleSegment>, String> {
                          reading_text: None,
                          translation: None,
                          explanation: None,
+                         start_time,
+                         end_time,
                          created_at: Utc::now().to_rfc3339(),
                          is_new_paragraph: true, // SRT blocks usually separate sentences/phrases
                      });
@@ -306,4 +312,20 @@ fn parse_srt(path: &Path) -> Result<Vec<ArticleSegment>, String> {
     }
 
     Ok(segments)
+}
+
+fn parse_srt_timestamp(ts: &str) -> Option<f64> {
+    // format: 00:00:00,000
+    let parts: Vec<&str> = ts.split(',').collect();
+    if parts.len() != 2 { return None; }
+    
+    let time_parts: Vec<&str> = parts[0].split(':').collect();
+    if time_parts.len() != 3 { return None; }
+    
+    let h: f64 = time_parts[0].parse().ok()?;
+    let m: f64 = time_parts[1].parse().ok()?;
+    let s: f64 = time_parts[2].parse().ok()?;
+    let ms: f64 = parts[1].parse().ok()?;
+    
+    Some(h * 3600.0 + m * 60.0 + s + ms / 1000.0)
 }

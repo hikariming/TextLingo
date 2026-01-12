@@ -50,6 +50,8 @@ fn create_segments_from_content(article_id: &str, content: &str) -> Vec<ArticleS
                 reading_text: None,
                 translation: None,
                 explanation: None,
+                start_time: None,
+                end_time: None,
                 created_at: chrono::Utc::now().to_rfc3339(),
                 // 段落的第一个句子需要换行显示，后续句子紧跟前一个显示
                 is_new_paragraph: sentence_index == 0,
@@ -598,30 +600,6 @@ pub async fn analyze_article(
 
     let response = analyze_text(state, request).await?;
     Ok(response.result)
-}
-
-// Utility function to split text into chunks
-fn split_text_into_chunks(text: &str, max_chunk_size: usize) -> Vec<String> {
-    let paragraphs: Vec<&str> = text.split("\n\n").collect();
-    let mut chunks = Vec::new();
-    let mut current_chunk = String::new();
-
-    for paragraph in paragraphs {
-        if current_chunk.len() + paragraph.len() > max_chunk_size && !current_chunk.is_empty() {
-            chunks.push(current_chunk.clone());
-            current_chunk = String::new();
-        }
-        if !current_chunk.is_empty() {
-            current_chunk.push_str("\n\n");
-        }
-        current_chunk.push_str(paragraph);
-    }
-
-    if !current_chunk.is_empty() {
-        chunks.push(current_chunk);
-    }
-
-    chunks
 }
 
 // Return type for fetch_url_content

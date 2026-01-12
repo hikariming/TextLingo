@@ -47,7 +47,8 @@
     "shortDescription": "AI-powered article reader and translator",
     "longDescription": "TextLingo Desktop is a powerful AI-powered application for reading, translating, and analyzing articles. Use your own API keys to access the latest AI models.",
     "externalBin": [
-      "binaries/yt-dlp"
+      "binaries/yt-dlp",
+      "binaries/ffmpeg"
     ]
   }
 }

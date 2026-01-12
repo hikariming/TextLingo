@@ -100,7 +100,8 @@ async fn extract_audio_from_video(app: &AppHandle, video_path: &Path) -> Result<
     let shell = app.shell();
     
     let output = shell
-        .command("ffmpeg")
+        .sidecar("ffmpeg")
+        .map_err(|e| format!("无法创建 FFmpeg sidecar: {}。请确保 sidecar 配置正确。", e))?
         .args([
             "-i", video_path_str,
             "-vn",
@@ -157,14 +158,15 @@ async fn transcribe_audio_with_gemini(
     let transcription_prompt = r#"请将这段音频转录为文字，并按照以下要求返回 JSON 格式：
 
 1. 将音频分割成自然的句子或段落
-2. 每个段落包含时间戳（格式：MM:SS）
+2. 每个段落包含开始和结束时间戳（格式：MM:SS）
 3. 如果能识别不同说话者，请标注
 
 请严格返回以下 JSON 格式（不要包含 markdown 代码块）：
 {
   "segments": [
     {
-      "timestamp": "00:00",
+      "start": "00:00",
+      "end": "00:05",
       "content": "转录的文字内容",
       "speaker": "Speaker 1"
     }
@@ -173,7 +175,7 @@ async fn transcribe_audio_with_gemini(
 }
 
 注意：
-- 时间戳格式为 MM:SS
+- 时间戳格式为 MM:SS 或 HH:MM:SS
 - 如果无法识别说话者，speaker 可以为 null
 - 尽量保持原文语言，不要翻译"#;
 
@@ -297,10 +299,19 @@ fn parse_transcription_response(content: &str) -> Result<TranscriptionResult, St
         .ok_or("响应中没有 segments 字段")?
         .iter()
         .filter_map(|seg| {
+            // 支持 "start"/"end" 或旧格式 "timestamp"
+            let start_str = seg["start"].as_str().or(seg["timestamp"].as_str())?;
+            let end_str = seg["end"].as_str().unwrap_or(start_str);
+            
+            let start_time = parse_time_str(start_str);
+            let end_time = parse_time_str(end_str);
+            
             Some(TranscriptionSegment {
                 speaker: seg["speaker"].as_str().map(|s| s.to_string()),
-                timestamp: seg["timestamp"].as_str()?.to_string(),
+                // timestamp removed as per user request
                 content: seg["content"].as_str()?.to_string(),
+                start_time: Some(start_time),
+                end_time: Some(end_time),
             })
         })
         .collect();
@@ -314,6 +325,23 @@ fn parse_transcription_response(content: &str) -> Result<TranscriptionResult, St
         segments,
         full_text,
     })
+}
+
+/// 将 MM:SS 或 HH:MM:SS 格式字符串解析为秒数
+fn parse_time_str(time_str: &str) -> f64 {
+    let parts: Vec<&str> = time_str.split(':').collect();
+    if parts.len() == 2 {
+        let min: f64 = parts[0].parse().unwrap_or(0.0);
+        let sec: f64 = parts[1].parse().unwrap_or(0.0);
+        min * 60.0 + sec
+    } else if parts.len() == 3 {
+         let h: f64 = parts[0].parse().unwrap_or(0.0);
+         let m: f64 = parts[1].parse().unwrap_or(0.0);
+         let s: f64 = parts[2].parse().unwrap_or(0.0);
+         h * 3600.0 + m * 60.0 + s
+    } else {
+        0.0
+    }
 }
 
 /// 从响应中提取 JSON 字符串
@@ -372,6 +400,8 @@ fn transcription_to_segments(
                 reading_text: None,
                 translation: None,
                 explanation: None,
+                start_time: seg.start_time,
+                end_time: seg.end_time,
                 created_at: Utc::now().to_rfc3339(),
                 is_new_paragraph: true,
             }
@@ -396,16 +426,27 @@ mod tests {
     
     #[test]
     fn test_extract_json_plain() {
-        let content = r#"{"segments": [{"timestamp": "00:00", "content": "Test"}], "full_text": "Test"}"#;
+        let content = r#"{"segments": [{"start": "00:00", "content": "Test"}], "full_text": "Test"}"#;
         let json = extract_json(content);
         assert_eq!(json, content);
     }
     
     #[test]
     fn test_parse_transcription_response() {
-        let content = r#"{"segments": [{"timestamp": "00:00", "content": "Hello world", "speaker": null}], "full_text": "Hello world"}"#;
+        // Test with new format (start/end)
+        let content = r#"{"segments": [{"start": "00:00", "end": "00:05", "content": "Hello world", "speaker": null}], "full_text": "Hello world"}"#;
         let result = parse_transcription_response(content).unwrap();
         assert_eq!(result.segments.len(), 1);
         assert_eq!(result.segments[0].content, "Hello world");
+        assert_eq!(result.segments[0].start_time, Some(0.0));
+        assert_eq!(result.segments[0].end_time, Some(5.0));
+    }
+
+    #[test]
+    fn test_parse_time_str() {
+        assert_eq!(parse_time_str("00:00"), 0.0);
+        assert_eq!(parse_time_str("00:05"), 5.0);
+        assert_eq!(parse_time_str("01:00"), 60.0);
+        assert_eq!(parse_time_str("01:02:03"), 3723.0);
     }
 }

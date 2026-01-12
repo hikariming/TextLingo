@@ -14,7 +14,8 @@
     "configureApiKey": "Configure your API key to get started",
     "newArticle": "New Article",
     "settings": "Settings",
-    "favorites": "Favorites"
+    "favorites": "Favorites",
+    "newMaterial": "New Material"
   },
   "footer": {
     "provider": "Provider",

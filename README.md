@@ -62,7 +62,14 @@ v0.1 download for chinese
 ### Development
 
 1. **Prerequisites**: Ensure you have Node.js and Rust installed.
-2. **Install Dependencies**:
+2. **Download Binaries**:
+   Run the following script to download necessary binaries (ffmpeg, yt-dlp):
+   ```bash
+   chmod +x script/download_binaries.sh
+   ./script/download_binaries.sh
+   # If you are on Windows, run step-by-step or use Git Bash
+   ```
+3. **Install Dependencies**:
    ```bash
    cd textlingo-desktop
    npm install

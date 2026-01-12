@@ -103,6 +103,12 @@ pub struct ArticleSegment {
     pub reading_text: Option<String>,
     pub translation: Option<String>,
     pub explanation: Option<SegmentExplanation>,
+    /// Start time in seconds (for subtitles)
+    #[serde(default)]
+    pub start_time: Option<f64>,
+    /// End time in seconds (for subtitles)
+    #[serde(default)]
+    pub end_time: Option<f64>,
     pub created_at: String,
     /// 是否是新段落开始（true则另起一行显示，false则紧跟上一段显示）
     #[serde(default)]
@@ -229,8 +235,13 @@ pub struct ChatResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TranscriptionSegment {
     pub speaker: Option<String>,
-    pub timestamp: String,
     pub content: String,
+    /// Start time in seconds
+    #[serde(default)]
+    pub start_time: Option<f64>,
+    /// End time in seconds
+    #[serde(default)]
+    pub end_time: Option<f64>,
 }
 
 /// 转录结果 (用于字幕提取)

@@ -4,8 +4,7 @@ import { BookOpen, RotateCw, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ArticleList } from "./components/features/ArticleList";
 import { ArticleReader } from "./components/features/ArticleReader";
-import { NewArticleButton } from "./components/features/NewArticleDialog";
-import { YouTubeImportButton } from "./components/features/YouTubeImportDialog";
+import { NewMaterialButton } from "./components/features/NewMaterialDialog";
 import { FavoritesPage } from "./components/features/FavoritesPage";
 import { SettingsButton } from "./components/features/SettingsDialog";
 import { Button } from "./components/ui/Button";
@@ -121,38 +120,39 @@ function App() {
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm supports-[backdrop-filter]:bg-card/50">
-        <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleGoHome}>
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground">
-            <BookOpen size={20} />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold">{t("app.title")}</h1>
-            <p className="text-xs text-muted-foreground">{t("app.subtitle")}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {!hasConfig && (
-            <div className="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/50 rounded-lg text-yellow-600 dark:text-yellow-400 text-sm">
-              {t("header.configureApiKey")}
+      {!selectedArticle && (
+        <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm supports-[backdrop-filter]:bg-card/50">
+          <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleGoHome}>
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground">
+              <BookOpen size={20} />
             </div>
-          )}
+            <div>
+              <h1 className="text-lg font-semibold">{t("app.title")}</h1>
+              <p className="text-xs text-muted-foreground">{t("app.subtitle")}</p>
+            </div>
+          </div>
 
-          <Button
-            variant={showFavorites ? "default" : "secondary"}
-            onClick={handleToggleFavorites}
-            className="gap-2"
-          >
-            <Star size={16} className={showFavorites ? "fill-current" : ""} />
-            {t("header.favorites", "收藏夹")}
-          </Button>
+          <div className="flex items-center gap-3">
+            {!hasConfig && (
+              <div className="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/50 rounded-lg text-yellow-600 dark:text-yellow-400 text-sm">
+                {t("header.configureApiKey")}
+              </div>
+            )}
 
-          <YouTubeImportButton onSave={() => handleNewArticle()} />
-          <NewArticleButton onSave={() => handleNewArticle()} />
-          <SettingsButton onSave={handleArticleUpdate} />
-        </div>
-      </header>
+            <Button
+              variant={showFavorites ? "default" : "secondary"}
+              onClick={handleToggleFavorites}
+              className="gap-2"
+            >
+              <Star size={16} className={showFavorites ? "fill-current" : ""} />
+              {t("header.favorites", "收藏夹")}
+            </Button>
+
+            <NewMaterialButton onSave={() => handleNewArticle()} />
+            <SettingsButton onSave={handleArticleUpdate} />
+          </div>
+        </header>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">
@@ -172,7 +172,7 @@ function App() {
             onSelectArticle={handleSelectArticle}
           />
         ) : (
-          <div className="h-full max-w-4xl mx-auto p-6">
+          <div className="h-full max-w-4xl mx-auto p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">{t("articleList.title")}</h2>
               <div className="flex items-center gap-3">

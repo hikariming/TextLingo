@@ -17,6 +17,8 @@ export interface ArticleSegment {
     reading_text?: string;
     translation?: string;
     explanation?: SegmentExplanation;
+    start_time?: number;
+    end_time?: number;
     created_at: string;
     /** 是否是新段落开始（true则另起一行显示，false则紧跟上一段显示） */
     is_new_paragraph?: boolean;

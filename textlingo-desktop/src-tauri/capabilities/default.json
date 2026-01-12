@@ -16,6 +16,11 @@
           "name": "yt-dlp",
           "cmd": "yt-dlp",
           "args": true
+        },
+        {
+          "name": "ffmpeg",
+          "cmd": "ffmpeg",
+          "args": true
         }
       ]
     }
