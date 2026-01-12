@@ -271,6 +271,17 @@
       "importFailed": "导入失败"
     }
   },
+  "videoPlayer": {
+    "original": "原文",
+    "translation": "译文",
+    "noTranslationYet": "点击上方原文生成翻译和解析",
+    "playToShowSubtitle": "播放视频显示字幕",
+    "miniMode": "迷你模式",
+    "exitMiniMode": "退出迷你模式",
+    "exportSrt": "导出SRT字幕",
+    "hideSubtitles": "收起字幕列表",
+    "showAllSubtitles": "查看全部字幕"
+  },
   "subtitleExtraction": {
     "noSubtitles": "该视频没有字幕。",
     "extractButton": "提取字幕",

@@ -644,6 +644,7 @@ export function ArticleReader({
                         showTranslation={showTranslation}
                         isExtractingSubtitles={isExtractingSubtitles}
                         onExtractSubtitles={handleExtractSubtitles}
+                        articleTitle={article.title}
                       />
                     );
                   })()}

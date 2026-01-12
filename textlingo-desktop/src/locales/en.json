@@ -271,6 +271,17 @@
       "importFailed": "Import failed"
     }
   },
+  "videoPlayer": {
+    "original": "Original",
+    "translation": "Translation",
+    "noTranslationYet": "Click to generate translation",
+    "playToShowSubtitle": "Play video to show subtitle",
+    "miniMode": "Mini Mode",
+    "exitMiniMode": "Exit Mini Mode",
+    "exportSrt": "Export SRT",
+    "hideSubtitles": "Hide Subtitles",
+    "showAllSubtitles": "Show All Subtitles"
+  },
   "subtitleExtraction": {
     "noSubtitles": "No subtitles found for this video.",
     "extractButton": "Extract Subtitles",

@@ -154,27 +154,37 @@ async fn transcribe_audio_with_gemini(
         return Err("音频文件过大 (>20MB)，请尝试更短的视频".to_string());
     }
     
-    // 转录提示词
+    // 转录提示词 - 强调按句子断句
     let transcription_prompt = r#"请将这段音频转录为文字，并严格按照以下 JSON 格式返回。
 
 要求：
-1. 将音频分割成自然的句子或段落。
-2. 每个段落必须包含 start (开始时间) 和 end (结束时间) 字段，格式为 MM:SS 或 HH:MM:SS。
-3. start 和 end 字段是必须的，不能缺失。
-4. 内容尽量保持原文语言。
+1. **按句子断句**：每个 segment 只包含一个完整的句子，不要将多个句子合并成一段。
+2. 句子的划分依据：遇到句号、问号、感叹号等句末标点，或自然的语音停顿时，应断开为新的 segment。
+3. 每个句子的长度通常在 5-30 个字左右，不要超过 50 个字。
+4. 每个 segment 必须包含 start (开始时间) 和 end (结束时间) 字段，格式为 MM:SS。
+5. start 和 end 字段是必须的，不能缺失。
+6. 内容保持原文语言，不要翻译。
 
 返回格式示例：
 {
   "segments": [
     {
       "start": "00:00",
-      "end": "00:05",
-      "content": "这里是转录的内容",
-      "speaker": "Speaker 1"
+      "end": "00:03",
+      "content": "大家好，欢迎收看今天的节目。",
+      "speaker": null
+    },
+    {
+      "start": "00:03",
+      "end": "00:06",
+      "content": "今天我们来讨论一个重要的话题。",
+      "speaker": null
     }
   ],
   "full_text": "完整的转录文本..."
 }
+
+注意：每个 segment 只包含一句话，不要合并多个句子！
 "#;
 
     let client = Client::new();

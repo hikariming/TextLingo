@@ -255,5 +255,25 @@
     "copied": "コピーしました",
     "importSuccess": "{{count}}個の単語をインポートしました",
     "importError": "インポートに失敗しました"
+  },
+  "videoPlayer": {
+    "original": "原文",
+    "translation": "翻訳",
+    "noTranslationYet": "クリックして翻訳を生成",
+    "playToShowSubtitle": "再生して字幕を表示",
+    "miniMode": "ミニモード",
+    "exitMiniMode": "ミニモードを終了",
+    "exportSrt": "SRT出力",
+    "hideSubtitles": "字幕を非表示",
+    "showAllSubtitles": "すべての字幕を表示"
+  },
+  "subtitleExtraction": {
+    "noSubtitles": "この動画には字幕がありません。",
+    "extractButton": "字幕を抽出",
+    "extracting": "字幕を抽出中...",
+    "success": "字幕の抽出に成功しました！",
+    "error": "字幕の抽出に失敗しました",
+    "geminiRequired": "字幕抽出にはGeminiモデル（gemini-2.0-flash以降）が必要です。設定で構成してください。",
+    "reExtract": "再抽出"
   }
 }
