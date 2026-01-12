@@ -212,9 +212,39 @@ pub struct AnalysisResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ChatContent {
+    Text(String),
+    Parts(Vec<ContentPart>),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContentPart {
+    #[serde(rename = "type")]
+    pub part_type: String, // "text", "image_url", "file"
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_url: Option<ImageUrl>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_data: Option<FileData>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageUrl {
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileData {
+    pub mime_type: String,
+    pub data: String, // Base64
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMessage {
     pub role: String, // "user" or "assistant"
-    pub content: String,
+    pub content: ChatContent,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

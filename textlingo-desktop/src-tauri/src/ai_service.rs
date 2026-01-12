@@ -29,14 +29,23 @@ impl AIService {
         }
     }
 
-    fn get_api_url(&self) -> &str {
+    fn get_api_url(&self) -> String {
         match self.provider.as_str() {
-            "openrouter" => OPENROUTER_API_URL,
-            "deepseek" => DEEPSEEK_API_URL,
-            "siliconflow" => SILICONFLOW_API_URL,
-            "302ai" => API_302AI_URL,
-            _ => OPENAI_API_URL,
+            "openrouter" => OPENROUTER_API_URL.to_string(),
+            "deepseek" => DEEPSEEK_API_URL.to_string(),
+            "siliconflow" => SILICONFLOW_API_URL.to_string(),
+            "302ai" => API_302AI_URL.to_string(),
+            "google" | "google-ai-studio" => format!(
+                "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent",
+                self.model.strip_prefix("models/").unwrap_or(&self.model)
+            ),
+            _ => OPENAI_API_URL.to_string(),
         }
+    }
+
+    /// 检查是否为 Google 类型的 provider（需要使用 X-goog-api-key 认证）
+    fn is_google_provider(&self) -> bool {
+        self.provider == "google" || self.provider == "google-ai-studio"
     }
 
     async fn make_request(
@@ -79,6 +88,48 @@ impl AIService {
             .ok_or_else(|| "No content in response".to_string())
     }
 
+    async fn make_google_request(
+        &self,
+        contents: Vec<Value>,
+        temperature: Option<f32>,
+    ) -> Result<String, String> {
+        let request_body = json!({
+            "contents": contents,
+            "generationConfig": {
+                "temperature": temperature.unwrap_or(0.7)
+            }
+        });
+
+        let response = self
+            .client
+            .post(self.get_api_url())
+            .header("Content-Type", "application/json")
+            .header("X-goog-api-key", &self.api_key)
+            .json(&request_body)
+            .send()
+            .await
+            .map_err(|e| format!("Failed to send request: {}", e))?;
+
+        if !response.status().is_success() {
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(format!("Google API error: {}", error_text));
+        }
+
+        let response_json: Value = response
+            .json()
+            .await
+            .map_err(|e| format!("Failed to parse response: {}", e))?;
+
+        // Google response structure: { candidates: [ { content: { parts: [ { text: "..." } ] } } ] }
+        response_json["candidates"][0]["content"]["parts"][0]["text"]
+            .as_str()
+            .map(|s| s.to_string())
+            .ok_or_else(|| "No content in response".to_string())
+    }
+
     pub async fn translate(&self, request: TranslationRequest) -> Result<TranslationResponse, String> {
         let system_prompt = format!(
             "You are a professional translator. Translate the following text to {}. \
@@ -86,12 +137,22 @@ impl AIService {
             request.target_language
         );
 
-        let messages = vec![
-            json!({"role": "system", "content": system_prompt}),
-            json!({"role": "user", "content": request.text}),
-        ];
-
-        let translated_text = self.make_request(messages, Some(0.3)).await?;
+        let translated_text = if self.is_google_provider() {
+            // 使用 Google API 格式
+            let contents = vec![
+                json!({
+                    "role": "user",
+                    "parts": [{"text": format!("{}\n\n{}", system_prompt, request.text)}]
+                })
+            ];
+            self.make_google_request(contents, Some(0.3)).await?
+        } else {
+            let messages = vec![
+                json!({"role": "system", "content": system_prompt}),
+                json!({"role": "user", "content": request.text.clone()}),
+            ];
+            self.make_request(messages, Some(0.3)).await?
+        };
 
         Ok(TranslationResponse {
             translated_text,
@@ -127,12 +188,22 @@ impl AIService {
             }
         };
 
-        let messages = vec![
-            json!({"role": "system", "content": system_prompt}),
-            json!({"role": "user", "content": request.text}),
-        ];
-
-        let result = self.make_request(messages, Some(0.5)).await?;
+        let result = if self.is_google_provider() {
+            // 使用 Google API 格式
+            let contents = vec![
+                json!({
+                    "role": "user",
+                    "parts": [{"text": format!("{}\n\n{}", system_prompt, request.text)}]
+                })
+            ];
+            self.make_google_request(contents, Some(0.5)).await?
+        } else {
+            let messages = vec![
+                json!({"role": "system", "content": system_prompt}),
+                json!({"role": "user", "content": request.text}),
+            ];
+            self.make_request(messages, Some(0.5)).await?
+        };
 
         Ok(AnalysisResponse {
             analysis_type: request.analysis_type,
@@ -142,6 +213,10 @@ impl AIService {
     }
 
     pub async fn chat(&self, request: ChatRequest) -> Result<ChatResponse, String> {
+        if self.provider == "google" || self.provider == "google-ai-studio" {
+            return self.chat_google(request).await;
+        }
+
         let messages: Vec<Value> = request
             .messages
             .into_iter()
@@ -154,6 +229,47 @@ impl AIService {
             .collect();
 
         let content = self.make_request(messages, request.temperature).await?;
+
+        Ok(ChatResponse {
+            content,
+            model: self.model.clone(),
+            tokens_used: None,
+        })
+    }
+
+    async fn chat_google(&self, request: ChatRequest) -> Result<ChatResponse, String> {
+        let contents: Vec<Value> = request
+            .messages
+            .into_iter()
+            .map(|msg| {
+                let role = if msg.role == "assistant" { "model" } else { "user" };
+                
+                let parts = match msg.content {
+                    crate::types::ChatContent::Text(text) => vec![json!({"text": text})],
+                    crate::types::ChatContent::Parts(parts) => parts.into_iter().map(|part| {
+                        if let Some(text) = part.text {
+                            json!({"text": text})
+                        } else if let Some(file) = part.file_data {
+                            json!({
+                                "inlineData": {
+                                    "mimeType": file.mime_type,
+                                    "data": file.data
+                                }
+                            })
+                        } else {
+                            json!({"text": ""}) // Fallback
+                        }
+                    }).collect()
+                };
+
+                json!({
+                    "role": role,
+                    "parts": parts
+                })
+            })
+            .collect();
+
+        let content = self.make_google_request(contents, request.temperature).await?;
 
         Ok(ChatResponse {
             content,
@@ -216,12 +332,23 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
         );
 
         let messages = vec![
-            json!({"role": "system", "content": system_prompt}),
+            json!({"role": "system", "content": system_prompt.clone()}),
             json!({"role": "user", "content": format!("Analyze this: {}", text)}),
         ];
 
         println!("Sending request to AI provider: {}", self.provider);
-        let content = self.make_request(messages, Some(0.3)).await?;
+        let content = if self.is_google_provider() {
+            // 使用 Google API 格式
+            let contents = vec![
+                json!({
+                    "role": "user",
+                    "parts": [{"text": format!("{}\n\nAnalyze this: {}", system_prompt, text)}]
+                })
+            ];
+            self.make_google_request(contents, Some(0.3)).await?
+        } else {
+            self.make_request(messages, Some(0.3)).await?
+        };
         println!("Received response from AI provider. Content length: {}", content.len());
 
         // Robust JSON extraction

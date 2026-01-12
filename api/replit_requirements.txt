@@ -1,0 +1,38 @@
+# Replit 优化的依赖文件
+# FastAPI 核心框架
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Supabase 客户端
+supabase==2.7.4
+
+# 数据验证和序列化
+pydantic[email]==2.8.2
+pydantic-settings==2.1.0
+email-validator>=2.0.0
+
+# 认证和安全
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
+python-multipart==0.0.6
+
+# HTTP客户端
+httpx>=0.26.0,<0.29.0
+
+# 日志和监控
+structlog==23.2.0
+
+# 其他工具
+python-dotenv==1.0.0
+
+# LangChain 核心 (轻量版)
+langchain-core==0.3.15
+langchain-openai==0.2.8
+
+# 异步文件处理
+aiofiles>=23.0.0
+
+# Replit 优化依赖
+gunicorn==21.2.0
+watchfiles==0.21.0

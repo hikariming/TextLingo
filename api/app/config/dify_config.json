@@ -1,0 +1,267 @@
+{
+  "dify_flows": [
+    {
+      "id": "main-assistant",
+      "name": "主要助手工作流",
+      "api_url": "https://api.dify.ai/v1",
+      "api_token": "app-YWGT62ud25D5TpbpbAlhZnDl",
+      "flow_type": "chatflow",
+      "points_cost": 30,
+      "description": "主要的AI助手对话流",
+      "is_active": true,
+      "input_schema": [
+        { "name": "query", "type": "string", "required": true }
+      ],
+      "max_tokens": 128000,
+      "rate_limit_per_minute": 60,
+      "use_cases": ["日常对话", "问答咨询", "学习辅助"]
+    },
+    {
+      "id": "universal-assistant",
+      "name": "通用助手",
+      "api_url": "https://api.dify.ai/v1",
+      "api_token": "app-6ZjkToChJY49omDolBUHsUe5",
+      "flow_type": "chatflow",
+      "billing_type": "token_based",
+      "description": "支持多模型的通用AI助手，基于实际token消耗计费",
+      "is_active": true,
+      "input_schema": [
+        { "name": "query", "type": "string", "required": true },
+        { "name": "model", "type": "string", "required": false, "default": "glm45" },
+        { "name": "files", "type": "array", "required": false }
+      ],
+      "supported_models": [
+        {
+          "id": "gemini25pro",
+          "name": "Gemini 2.5 Pro",
+          "input_token_cost": 9,
+          "output_token_cost": 70,
+          "base_cost": 5,
+          "required_tier": "plus",
+          "max_tokens": 128000,
+          "supports_function_calling": true,
+          "rate_limit_per_minute": 60,
+          "is_active": true,
+          "supported_file_types": ["image", "audio"],
+          "capabilities": ["multimodal", "image_analysis", "audio_processing", "reasoning"],
+          "description": "Google Gemini 2.5 Pro，支持图片和音频多模态交互，强大的推理能力"
+        },
+        {
+          "id": "claude4",
+          "name": "Claude 4",
+          "input_token_cost": 15,
+          "output_token_cost": 75,
+          "base_cost": 5,
+          "required_tier": "plus",
+          "max_tokens": 200000,
+          "supports_function_calling": true,
+          "rate_limit_per_minute": 40,
+          "is_active": true,
+          "supported_file_types": ["image"],
+          "capabilities": ["multimodal", "image_analysis", "advanced_reasoning", "code_generation"],
+          "description": "Anthropic Claude 4，支持图片分析，卓越的推理和代码生成能力"
+        },
+        {
+          "id": "grok4",
+          "name": "Grok 4",
+          "input_token_cost": 15,
+          "output_token_cost": 75,
+          "base_cost": 5,
+          "required_tier": "plus",
+          "max_tokens": 128000,
+          "supports_function_calling": true,
+          "rate_limit_per_minute": 40,
+          "is_active": true,
+          "supported_file_types": ["image"],
+          "capabilities": ["multimodal", "image_analysis", "creative_writing", "reasoning"],
+          "description": "xAI Grok 4，支持图片分析，具有创意写作和推理能力"
+        },
+        {
+          "id": "kimik2",
+          "name": "Kimi K2",
+          "input_token_cost": 4,
+          "output_token_cost": 8,
+          "base_cost": 3,
+          "required_tier": "free",
+          "max_tokens": 200000,
+          "supports_function_calling": false,
+          "rate_limit_per_minute": 100,
+          "is_active": true,
+          "supported_file_types": [],
+          "capabilities": ["text_generation", "conversation", "long_context"],
+          "description": "月之暗面 Kimi K2，超长上下文文本对话模型，适合长文本处理"
+        },
+        {
+          "id": "glm45",
+          "name": "GLM 4.5",
+          "input_token_cost": 4,
+          "output_token_cost": 8,
+          "base_cost": 3,
+          "required_tier": "free",
+          "max_tokens": 128000,
+          "supports_function_calling": true,
+          "rate_limit_per_minute": 100,
+          "is_active": true,
+          "supported_file_types": [],
+          "capabilities": ["text_generation", "conversation", "function_calling"],
+          "description": "智谱清言 GLM 4.5，高效的中文对话模型，支持函数调用"
+        }
+      ],
+      "token_calculation": {
+        "method": "usage_metadata",
+        "unit": "per_1000_tokens",
+        "include_base_cost": true,
+        "file_processing_cost": 2
+      },
+      "max_tokens": 128000,
+      "rate_limit_per_minute": 100,
+      "use_cases": ["多模态对话", "文件分析", "图像识别", "高级推理"]
+    },
+    {
+      "id": "file-to-text",
+      "name": "文件转文本",
+      "api_url": "https://api.dify.ai/v1",
+      "api_token": "app-LGOAxLpRuu4nTo9ok1nYmrxf",
+      "flow_type": "workflow",
+      "points_cost": 40,
+      "description": "专门用于文件转文本的任务",
+      "is_active": true,
+      "input_schema": [
+        { "name": "file", "type": "file", "required": true }
+      ],
+      "max_tokens": 128000,
+      "rate_limit_per_minute": 100,
+      "use_cases": ["文件转文本"]
+    },
+    {
+      "id": "webpage-to-text",
+      "name": "网页转文本",
+      "api_url": "https://api.dify.ai/v1",
+      "api_token": "app-3dpAf4N5eRvMWnIH94jV4KqM",
+      "flow_type": "workflow",
+      "points_cost": 40,
+      "description": "用于网页转文本的任务",
+      "is_active": true,
+      "input_schema": [
+        { "name": "url", "type": "string", "required": true }
+      ],
+      "max_tokens": 128000,
+      "rate_limit_per_minute": 100,
+      "use_cases": ["网页转文本"]
+    }
+  ],
+  "flow_types": [
+    {
+      "type": "workflow",
+      "name": "工作流",
+      "description": "用于复杂的多步骤任务处理"
+    },
+    {
+      "type": "chatflow", 
+      "name": "对话流",
+      "description": "用于连续的对话交互"
+    }
+  ],
+  "default_settings": {
+    "timeout": 30,
+    "retry_attempts": 3,
+    "retry_delay": 1
+  },
+  "billing_settings": {
+    "pre_charge_multiplier": 1.2,
+    "min_points_charge": 1,
+    "max_points_charge": 1000,
+    "refund_unused_points": true,
+    "calculation_precision": 2
+  },
+
+  "file_types": {
+    "image": {
+      "extensions": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"],
+      "max_size_mb": 10,
+      "description": "图片文件，支持常见格式"
+    },
+    "audio": {
+      "extensions": [".mp3", ".wav", ".flac", ".aac", ".ogg"],
+      "max_size_mb": 25,
+      "description": "音频文件，支持常见格式"
+    },
+    "document": {
+      "extensions": [".pdf", ".doc", ".docx", ".txt", ".md"],
+      "max_size_mb": 20,
+      "description": "文档文件，支持常见格式"
+    },
+    "video": {
+      "extensions": [".mp4", ".avi", ".mov", ".mkv"],
+      "max_size_mb": 50,
+      "description": "视频文件，仅特定模型支持"
+    }
+  },
+  "token_rate_mapping": {
+    "usd_to_points": 1000,
+    "description": "1 USD = 1000 积分"
+  },
+  "calculation_examples": {
+    "description": "基于 Dify API 返回的 usage 数据计算积分消耗",
+    "example_usage_data": {
+      "prompt_tokens": 519,
+      "completion_tokens": 1600,
+      "total_tokens": 2119,
+      "total_price": "0.0166488",
+      "currency": "USD"
+    },
+    "calculation_formula": {
+      "method_1_direct_price": "total_price * usd_to_points = 0.0166488 * 1000 = 16.6488 points",
+      "method_2_token_based": "(prompt_tokens * input_cost + completion_tokens * output_cost) / 1000 + base_cost",
+      "gemini25pro_example": "(519 * 9 + 1600 * 70) / 1000 + 5 = (4671 + 112000) / 1000 + 5 = 116.67 + 5 = 121.67 points",
+      "glm45_example": "(519 * 4 + 1600 * 8) / 1000 + 3 = (2076 + 12800) / 1000 + 3 = 14.88 + 3 = 17.88 points",
+      "kimik2_example": "(519 * 4 + 1600 * 8) / 1000 + 3 = (2076 + 12800) / 1000 + 3 = 14.88 + 3 = 17.88 points"
+    },
+    "model_cost_ranking": {
+      "free_tier": {
+        "models": ["glm45", "kimik2"],
+        "cost_range": "3-18 积分",
+        "description": "免费用户可用，经济实惠"
+      },
+      "plus_tier": {
+        "models": ["gemini25pro"],
+        "cost_range": "121-127 积分",
+        "description": "Plus会员可用，支持多模态"
+      },
+      "pro_tier": {
+        "models": ["claude4", "grok4"],
+        "cost_range": "125-135 积分",
+        "description": "Pro会员可用，高端模型"
+      }
+    },
+    "model_capabilities_matrix": {
+      "text_only": ["glm45", "kimik2"],
+      "image_support": ["gemini25pro", "claude4", "grok4"],
+      "audio_support": ["gemini25pro"],
+      "function_calling": ["glm45", "gemini25pro", "claude4", "grok4"],
+      "long_context": ["kimik2", "claude4"]
+    },
+    "recommended_method": "使用 total_price 进行计算更准确，因为它反映了 Dify 的实际计费"
+  },
+  "access_control": {
+    "description": "模型访问权限控制规则",
+    "tier_hierarchy": ["free", "plus", "pro", "max"],
+    "validation_rules": {
+      "check_user_tier": "必须验证用户会员等级",
+      "check_model_permission": "验证用户是否有权限使用指定模型",
+      "check_file_support": "验证模型是否支持上传的文件类型",
+      "check_file_size": "验证文件大小是否超出限制"
+    },
+    "error_messages": {
+      "insufficient_tier": "您的会员等级不足，无法使用此模型",
+      "unsupported_file_type": "该模型不支持此文件类型",
+      "file_too_large": "文件大小超出限制",
+      "rate_limit_exceeded": "请求频率超出限制，请稍后再试"
+    },
+    "upgrade_suggestions": {
+      "free_to_plus": "升级到 Plus 会员即可使用 Gemini 2.5 Pro 多模态功能",
+      "plus_to_pro": "升级到 Pro 会员即可使用 Claude 4 和 Grok 4 高端模型",
+      "pro_to_max": "升级到 Max 会员即可享受无限制使用"
+    }
+  }
+}

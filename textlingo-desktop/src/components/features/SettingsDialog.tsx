@@ -38,7 +38,7 @@ interface OpenRouterModel {
   };
 }
 
-const SUPPORTED_PROVIDERS = ["openai", "openrouter", "deepseek", "siliconflow", "302ai", "google"] as const;
+const SUPPORTED_PROVIDERS = ["openai", "openrouter", "deepseek", "siliconflow", "302ai", "google", "google-ai-studio"] as const;
 
 // Default preset models
 const DEFAULT_MODELS = {
@@ -70,6 +70,13 @@ const DEFAULT_MODELS = {
     { value: "gemini-2.0-flash-exp", labelKey: "settings.models.google.gemini-2.0-flash-exp" },
     { value: "gemini-1.5-pro", labelKey: "settings.models.google.gemini-1.5-pro" },
     { value: "gemini-1.5-flash", labelKey: "settings.models.google.gemini-1.5-flash" },
+  ],
+  "google-ai-studio": [
+    { value: "gemini-2.0-flash-exp", labelKey: "settings.models.google-ai-studio.gemini-2.0-flash-exp" },
+    { value: "models/gemini-3-flash-preview", labelKey: "settings.models.google-ai-studio.gemini-3-flash-preview" },
+    { value: "models/gemini-3-pro-preview", labelKey: "settings.models.google-ai-studio.gemini-3-pro-preview" },
+    { value: "gemini-1.5-pro", labelKey: "settings.models.google-ai-studio.gemini-1.5-pro" },
+    { value: "gemini-1.5-flash", labelKey: "settings.models.google-ai-studio.gemini-1.5-flash" },
   ],
 };
 
@@ -105,6 +112,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
     siliconflow: DEFAULT_MODELS.siliconflow.map(m => ({ value: m.value, label: t(m.labelKey) })),
     "302ai": DEFAULT_MODELS["302ai"].map(m => ({ value: m.value, label: t(m.labelKey) })),
     google: DEFAULT_MODELS.google.map(m => ({ value: m.value, label: t(m.labelKey) })),
+    "google-ai-studio": DEFAULT_MODELS["google-ai-studio"].map(m => ({ value: m.value, label: t(m.labelKey) })),
   });
 
   // Load config on mount
@@ -320,10 +328,9 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
           "Authorization": `Bearer ${editingConfig.api_key}`,
           "Content-Type": "application/json",
         };
-      } else if (provider === "google") {
+      } else if (provider === "google" || provider === "google-ai-studio") {
         url = `https://generativelanguage.googleapis.com/v1beta/models?key=${editingConfig.api_key}`;
-        // Google API key is in URL, no auth header needed for this endpoint usually, 
-        // but Content-Type is good practice.
+        // Google API key is in URL, no auth header needed for this endpoint usually,
         headers = {
           "Content-Type": "application/json",
         };
@@ -668,7 +675,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                     <label className="block text-sm font-medium text-foreground">
                       {t("settings.model")}
                     </label>
-                    {["openrouter", "openai", "deepseek", "google"].includes(editingConfig.api_provider || "") && (
+                    {["openrouter", "openai", "deepseek", "google", "google-ai-studio"].includes(editingConfig.api_provider || "") && (
                       <Button
                         type="button"
                         variant="ghost"

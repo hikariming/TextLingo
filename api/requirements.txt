@@ -1,0 +1,47 @@
+# FastAPI 核心框架
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Supabase 客户端 (兼容版本)
+supabase==2.7.4
+
+
+# 数据验证和序列化
+pydantic[email]==2.8.2
+pydantic-settings==2.1.0
+email-validator>=2.0.0
+
+# 认证和安全
+python-jose[cryptography]==3.3.0
+PyJWT==2.9.0
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
+python-multipart==0.0.6
+
+# HTTP客户端 (兼容 gotrue 要求)
+httpx>=0.26.0,<0.29.0
+
+# 日志和监控
+structlog==23.2.0
+
+# 开发工具
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+isort==5.12.0
+
+# 其他工具
+python-dotenv==1.0.0
+
+# LangChain 核心 (最小化)
+langchain==0.3.5
+langchain-google-genai==2.0.4
+langchain-openai==0.2.8
+
+# 异步文件处理
+aiofiles>=23.0.0
+
+# EPUB 文件处理
+ebooklib==0.18
+
+html2text==2025.4.15

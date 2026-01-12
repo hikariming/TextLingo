@@ -136,7 +136,10 @@
       "openai": "OpenAI",
       "openrouter": "OpenRouter",
       "deepseek": "DeepSeek",
-      "google": "Google (Gemini)"
+      "siliconflow": "SiliconFlow",
+      "302ai": "302.AI",
+      "google": "Google (Vertex AI)",
+      "google-ai-studio": "Google AI Studio (無料)"
     },
     "theme": {
       "light": "ライト",
@@ -145,6 +148,14 @@
       "eyeProtection": "アイプロテクション"
     },
     "models": {
+      "siliconflow": {
+        "deepseek-v3": "DeepSeek V3",
+        "deepseek-r1": "DeepSeek R1"
+      },
+      "302ai": {
+        "gpt-4o": "GPT-4o",
+        "claude-3-5-sonnet": "Claude 3.5 Sonnet"
+      },
       "openai": {
         "gpt-4o": "GPT-4o",
         "gpt-4o-mini": "GPT-4o Mini",
@@ -163,6 +174,13 @@
       },
       "google": {
         "gemini-2.0-flash-exp": "Gemini 2.0 Flash Experimental",
+        "gemini-1.5-pro": "Gemini 1.5 Pro",
+        "gemini-1.5-flash": "Gemini 1.5 Flash"
+      },
+      "google-ai-studio": {
+        "gemini-2.0-flash-exp": "Gemini 2.0 Flash Experimental",
+        "gemini-3-flash-preview": "Gemini 3 Flash Preview",
+        "gemini-3-pro-preview": "Gemini 3 Pro Preview",
         "gemini-1.5-pro": "Gemini 1.5 Pro",
         "gemini-1.5-flash": "Gemini 1.5 Flash"
       }
