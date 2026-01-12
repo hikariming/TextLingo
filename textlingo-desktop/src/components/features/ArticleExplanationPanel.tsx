@@ -92,7 +92,7 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
                         #{segment.order}
                     </span>
                     <span className="font-medium text-sm text-foreground">
-                        Segment Explanation
+                        {t("articleReader.segmentExplanation") || "Segment Explanation"}
                     </span>
                 </div>
                 <Button
@@ -109,18 +109,12 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
 
-                {/* Original Text */}
-                <div className="p-4 bg-card/50 rounded-xl border border-border">
-                    <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Original Text</h4>
-                    <p className="text-lg leading-relaxed font-medium text-foreground">
-                        {segment.text}
-                    </p>
-                </div>
+
 
                 {!hasContent && !isLoading && (
                     <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                         <Button onClick={onRegenerate}>
-                            Generate Explanation
+                            {t("articleReader.generateExplanation") || "Generate Explanation"}
                         </Button>
                     </div>
                 )}
@@ -168,11 +162,11 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
                 {(explanation?.translation || (isLoading && streamingContent)) && (
                     <Section
                         icon={<Languages size={18} className="text-blue-500" />}
-                        title="Translation"
+                        title={t("articleReader.translation") || "Translation"}
                     >
                         <div className="text-foreground leading-relaxed">
                             {explanation?.translation || (
-                                isLoading && streamingContent?.includes("Translation") ? "Generating..." : null
+                                isLoading && streamingContent?.includes("Translation") ? (t("articleReader.translating") || "Translating...") : null
                             )}
                             {/* Fallback for streaming raw text if not parsed yet */}
                             {!explanation && streamingContent && (
@@ -188,7 +182,7 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
                 {explanation?.vocabulary && explanation.vocabulary.length > 0 && (
                     <Section
                         icon={<BookOpen size={18} className="text-amber-500" />}
-                        title="Vocabulary"
+                        title={t("articleReader.vocabulary") || "Vocabulary"}
                     >
                         <div className="space-y-3">
                             {explanation.vocabulary.map((item, idx) => {
@@ -205,7 +199,7 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
                                                 size="sm"
                                                 onClick={() => handleFavoriteVocab(item, idx)}
                                                 className={isFavorited ? "text-amber-500" : "text-muted-foreground hover:text-amber-500"}
-                                                title={isFavorited ? "已收藏" : "收藏单词"}
+                                                title={isFavorited ? t("favorites.favorited") : t("favorites.favoriteWord")}
                                             >
                                                 {isFavorited ? <Check size={14} /> : <Star size={14} />}
                                             </Button>
@@ -222,7 +216,7 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
                 {explanation?.grammar_points && explanation.grammar_points.length > 0 && (
                     <Section
                         icon={<SpellCheck size={18} className="text-purple-500" />}
-                        title="Grammar"
+                        title={t("articleReader.grammar") || "Grammar"}
                     >
                         <div className="space-y-4">
                             {explanation.grammar_points.map((point, idx) => {
@@ -236,7 +230,7 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
                                                 size="sm"
                                                 onClick={() => handleFavoriteGrammar(point, idx)}
                                                 className={isFavorited ? "text-purple-500" : "text-muted-foreground hover:text-purple-500"}
-                                                title={isFavorited ? "已收藏" : "收藏语法"}
+                                                title={isFavorited ? t("favorites.favorited") : t("favorites.favoriteGrammar")}
                                             >
                                                 {isFavorited ? <Check size={14} /> : <Star size={14} />}
                                             </Button>
@@ -253,7 +247,7 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
                 {explanation?.explanation && (
                     <Section
                         icon={<MessageCircle size={18} className="text-green-500" />}
-                        title="Notes"
+                        title={t("articleReader.notes") || "Notes"}
                     >
                         <div className="text-sm text-muted-foreground leading-relaxed">
                             <ReactMarkdown>{explanation.explanation}</ReactMarkdown>

@@ -66,7 +66,25 @@
     "segmentArticleHint": "Click the Segment button to split this article into segments for detailed learning.",
     "analyzeAll": "Analyze All",
     "analyzeAllConfirm": "This will analyze {{count}} segments. This might consume significant tokens.\n(Note: Will process 3 segments at a time)\n\nContinue?",
-    "allSegmentsAnalyzed": "All segments already have explanations."
+    "allSegmentsAnalyzed": "All segments already have explanations.",
+    "explanation": "Explanation",
+    "chat": "Chat",
+    "selectSegment": "Select a sentence to see explanation",
+    "segmentExplanation": "Segment Explanation",
+    "originalText": "Original Text",
+    "generateExplanation": "Generate Explanation",
+    "notes": "Notes",
+    "translation": "Translation"
+  },
+  "novelChat": {
+    "aiAssistant": "AI Assistant",
+    "initializing": "Initializing...",
+    "selectedText": "Selected text",
+    "chat": "Chat",
+    "batch": "Batch",
+    "inputPlaceholder": "Ask a question...",
+    "attachFile": "Attach file",
+    "welcome": "Hello! I'm your reading assistant. I can help translate, explain text, analyze grammar, or discuss the article."
   },
   "newArticle": {
     "title": "New Article",
@@ -227,6 +245,8 @@
     "favorited": "Favorited",
     "favoriteWord": "Favorite word",
     "favoriteGrammar": "Favorite grammar",
+    "favoriteGrammarAdded": "Grammar favorited",
+    "favoriteWordAdded": "Word favorited",
     "sourceDeleted": "(Deleted)",
     "exportPlainText": "Export Plain Text",
     "exportJson": "Export JSON",

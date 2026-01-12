@@ -65,7 +65,25 @@
     "segmentArticleHint": "「セグメント」ボタンをクリックして、記事を段落に分割して詳しく学習できます。",
     "analyzeAll": "すべて分析",
     "analyzeAllConfirm": "{{count}}個のセグメントを分析します。多くのトークンを消費する可能性があります。\n（3セグメントずつ並行処理）\n\n続行しますか？",
-    "allSegmentsAnalyzed": "すべてのセグメントは分析済みです。"
+    "allSegmentsAnalyzed": "すべてのセグメントは分析済みです。",
+    "explanation": "解説",
+    "chat": "チャット",
+    "selectSegment": "文を選択して解説を表示",
+    "segmentExplanation": "セグメント解説",
+    "originalText": "原文",
+    "generateExplanation": "解説を生成",
+    "notes": "ノート",
+    "translation": "翻訳"
+  },
+  "novelChat": {
+    "aiAssistant": "AIアシスタント",
+    "initializing": "初期化中...",
+    "selectedText": "選択テキスト",
+    "chat": "チャット",
+    "batch": "一括",
+    "inputPlaceholder": "質問を入力...",
+    "attachFile": "添付",
+    "welcome": "こんにちは！読書アシスタントです。翻訳、解説、文法分析、記事についての議論をお手伝いできます。"
   },
   "newArticle": {
     "title": "新規記事",
@@ -88,7 +106,9 @@
       "contentRequired": "コンテンツは必須です",
       "clipboardError": "クリップボードの読み取りに失敗しました",
       "urlRequired": "URLを入力してください",
-      "clipboardNotUrl": "クリップボードの内容は有効なURLではありません"
+      "urlInvalid": "URLは http:// または https:// で始まる必要があります",
+      "clipboardNotUrl": "クリップボードの内容は有効なURLではありません",
+      "noContentExtracted": "URLからコンテンツを抽出できませんでした"
     }
   },
   "settings": {
@@ -214,6 +234,7 @@
   },
   "favorites": {
     "title": "お気に入り",
+    "subtitle": "保存した語彙と文法を管理",
     "vocabulary": "語彙",
     "grammar": "文法",
     "noVocabulary": "語彙のお気に入りはありません",
@@ -223,6 +244,16 @@
     "favorited": "お気に入り済み",
     "favoriteWord": "単語をお気に入り",
     "favoriteGrammar": "文法をお気に入り",
-    "sourceDeleted": "（削除済み）"
+    "favoriteGrammarAdded": "文法をお気に入りに追加しました",
+    "favoriteWordAdded": "単語をお気に入りに追加しました",
+    "sourceDeleted": "（削除済み）",
+    "exportPlainText": "テキスト形式でエクスポート",
+    "exportJson": "JSON形式でエクスポート",
+    "importJson": "JSONをインポート",
+    "copyToClipboard": "クリップボードにコピー",
+    "downloadTxt": "TXTファイルをダウンロード",
+    "copied": "コピーしました",
+    "importSuccess": "{{count}}個の単語をインポートしました",
+    "importError": "インポートに失敗しました"
   }
 }

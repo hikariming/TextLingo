@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../ui/Button";
 import { Textarea } from "../ui/Textarea";
@@ -15,7 +15,9 @@ import {
   PanelRightOpen,
   PanelRightClose,
   Eye,
-  EyeOff
+  EyeOff,
+  Minus,
+  Plus
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
@@ -23,8 +25,6 @@ import { AnalysisType, AppConfig } from "../../lib/tauri";
 import { Article, SegmentExplanation } from "../../types";
 import { ArticleChatAssistant } from "./ArticleChatAssistant";
 import { ArticleExplanationPanel } from "./ArticleExplanationPanel";
-// getApiClient ununsed
-import { Minus, Plus } from "lucide-react";
 
 interface ArticleReaderProps {
   article: Article;
@@ -62,8 +62,13 @@ export function ArticleReader({
   // Segment Explorer State
   const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
   const [isGeneratingExplanation, setIsGeneratingExplanation] = useState(false);
-  const [streamingExplanation, setStreamingExplanation] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"explanation" | "chat">("explanation");
+
+  // Video Sync State
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const activeSegmentRef = useRef<HTMLSpanElement>(null);
 
   // 本地段落状态 - 用于批量处理时的局部刷新
   const [localSegments, setLocalSegments] = useState(article.segments || []);
@@ -96,6 +101,32 @@ export function ArticleReader({
     document.addEventListener("mouseup", handleSelection);
     return () => document.removeEventListener("mouseup", handleSelection);
   }, []);
+
+  // 监听视频时间，更新高亮段落
+  useEffect(() => {
+    if (!article.media_path || !localSegments.length || !autoScroll) return;
+
+    // 找到当前时间对应的段落
+    const activeSeg = localSegments.find(
+      s => s.start_time !== undefined && s.end_time !== undefined &&
+        currentTime >= s.start_time && currentTime < s.end_time
+    );
+
+    if (activeSeg && activeSeg.id !== selectedSegmentId) {
+      // 只更新选中状态，暂不触发 AI 解析（除非用户手动点击）
+      setSelectedSegmentId(activeSeg.id);
+    }
+  }, [currentTime, localSegments, article.media_path, autoScroll]);
+
+  // 自动滚动到激活的段落
+  useEffect(() => {
+    if (selectedSegmentId && autoScroll && activeSegmentRef.current) {
+      activeSegmentRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedSegmentId, autoScroll]);
 
   const handleSaveContent = async () => {
     try {
@@ -171,8 +202,6 @@ export function ArticleReader({
     }
   };
 
-
-
   const handleResegment = async () => {
     if (!confirm(t("articleReader.resegmentConfirm") || "This will replace existing segments. Continue?")) return;
 
@@ -199,8 +228,16 @@ export function ArticleReader({
     setActiveTab("explanation");
     setShowAssistant(true);
 
-    // Check if we need to auto-generate
+    // 如果是视频模式，跳转视频进度
     const segment = localSegments.find(s => s.id === id);
+    if (videoRef.current && segment?.start_time !== undefined) {
+      videoRef.current.currentTime = segment.start_time;
+      videoRef.current.play().catch(() => { });
+      // 用户手动点击时，暂时禁用自动滚动一小段时间，避免冲突？
+      // 其实不需要，只要 autoScroll 保持 true，就会滚动到新位置，这符合预期
+    }
+
+    // Check if we need to auto-generate explanation
     if (segment && !segment.explanation && !isGeneratingExplanation) {
       // Auto-trigger generation
       setTimeout(() => handleGenerateExplanation(id), 0);
@@ -322,7 +359,6 @@ export function ArticleReader({
     if (!targetId || !article.id) return;
 
     setIsGeneratingExplanation(true);
-    setStreamingExplanation("");
     setError(null);
 
     // Find segment text
@@ -617,18 +653,22 @@ export function ArticleReader({
                   </div>
                 </div>
               ) : (
-                <div className="h-full overflow-y-auto px-4 py-6 md:px-8 lg:px-12">
+                <div className="h-full overflow-y-auto px-4 py-6 md:px-8 lg:px-12 scroll-smooth">
                   {article.media_path && (() => {
                     // 从完整路径提取文件名
                     const filename = article.media_path.split('/').pop() || article.media_path.split('\\').pop() || '';
                     const videoUrl = `http://127.0.0.1:19420/video/${encodeURIComponent(filename)}`;
                     return (
-                      <div className="mb-6 max-w-3xl mx-auto rounded-lg overflow-hidden bg-black/5 border border-border">
+                      <div className="mb-6 max-w-3xl mx-auto rounded-lg overflow-hidden bg-black/5 border border-border sticky top-0 z-10 shadow-lg">
                         <video
+                          ref={videoRef}
                           controls
                           playsInline
-                          className="w-full aspect-video"
+                          className="w-full aspect-video bg-black"
                           src={videoUrl}
+                          onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                          onPlay={() => setAutoScroll(true)}
+                          onPause={() => setAutoScroll(false)} // 可选：暂停时不自动滚动，或保持开启
                           onError={(e) => {
                             console.error("Video playback error:", e);
                             const video = e.target as HTMLVideoElement;
@@ -708,9 +748,10 @@ export function ArticleReader({
                                 return (
                                   <React.Fragment key={segment.id}>
                                     <span
+                                      ref={isSelected ? activeSegmentRef : null}
                                       onClick={() => handleSegmentClick(segment.id)}
                                       className={`inline decoration-clone rounded-lg border-2 px-1 py-0.5 mx-0.5 transition-all duration-200 cursor-pointer ${isSelected
-                                        ? "bg-primary/20 border-primary shadow-sm text-foreground"
+                                        ? "bg-primary/20 border-primary shadow-sm text-foreground ring-2 ring-primary/20"
                                         : isExplained
                                           ? "hover:bg-accent border-green-500/30 hover:border-green-500/50 text-foreground"
                                           : "hover:bg-accent border-transparent hover:border-border hover:text-foreground"
@@ -799,19 +840,23 @@ export function ArticleReader({
                     {t("articleReader.analyze")}
                   </Button>
                 </div>
-
-                <div className="flex-1 overflow-y-auto bg-card rounded-lg p-6 border border-border">
+                {/* 
+                  Result Display 
+                  Using a simple div with whitespace-pre-wrap to show the result.
+                */}
+                <div className="flex-1 bg-muted/30 rounded-lg p-4 border border-border overflow-y-auto">
                   {isAnalyzing ? (
-                    <div className="flex items-center justify-center h-full">
-                      <Loader2 size={24} className="animate-spin text-primary" />
+                    <div className="h-full flex items-center justify-center text-muted-foreground">
+                      <Loader2 className="animate-spin mr-2" />
+                      {t("articleReader.analyzing")}
                     </div>
                   ) : analysisResult ? (
-                    <article className="prose dark:prose-invert max-w-none text-foreground">
-                      <ReactMarkdown>{analysisResult}</ReactMarkdown>
-                    </article>
+                    <ReactMarkdown className="prose dark:prose-invert max-w-none">
+                      {analysisResult}
+                    </ReactMarkdown>
                   ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground">
-                      <p>{t("articleReader.analysisPrompt") || "Select an analysis type and click Analyze"}</p>
+                    <div className="h-full flex items-center justify-center text-muted-foreground">
+                      {t("articleReader.selectAnalysis")}
                     </div>
                   )}
                 </div>
@@ -821,41 +866,46 @@ export function ArticleReader({
         </div>
       </div>
 
-      {/* Right Assistant Panel */}
+      {/* Right Sidebar: Assistant / Explanation */}
       {showAssistant && (
-        <div className="w-[400px] border-l border-border bg-background flex flex-col shrink-0">
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="h-full flex flex-col">
-            <div className="flex items-center px-2 bg-muted/30 border-b border-border">
-              <TabsList className="bg-transparent border-0 w-full justify-start p-0 h-10">
-                <TabsTrigger value="explanation" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                  Explanation
+        <div className="w-[350px] md:w-[400px] border-l border-border bg-card flex flex-col shrink-0 transition-all duration-300">
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as any)}
+            className="flex-1 flex flex-col h-full overflow-hidden"
+          >
+            <div className="px-4 py-2 border-b border-border bg-card">
+              <TabsList className="w-full">
+                <TabsTrigger value="explanation" className="flex-1">
+                  {t("articleReader.explanation") || "Explanation"}
                 </TabsTrigger>
-                <TabsTrigger value="chat" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                  Chat
+                <TabsTrigger value="chat" className="flex-1">
+                  {t("articleReader.chat") || "Chat"}
                 </TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="explanation" className="flex-1 overflow-hidden mt-0">
-              <ArticleExplanationPanel
-                segment={selectedSegment}
-                explanation={selectedSegment?.explanation || null}
-                isLoading={isGeneratingExplanation}
-                streamingContent={streamingExplanation}
-                onRegenerate={() => handleGenerateExplanation(selectedSegmentId!)}
-                articleId={article.id}
-                articleTitle={article.title}
-              />
+            <TabsContent value="explanation" className="flex-1 overflow-hidden mt-0 relative">
+              {selectedSegment ? (
+                <ArticleExplanationPanel
+                  segment={selectedSegment}
+                  explanation={selectedSegment.explanation || null}
+                  isLoading={isGeneratingExplanation}
+                  onRegenerate={handleGenerateExplanation}
+                />
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
+                  <BookOpen size={48} className="mb-4 opacity-50" />
+                  <p>{t("articleReader.selectSegment") || "Select a sentence to see explanation"}</p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="chat" className="flex-1 overflow-hidden mt-0">
               <ArticleChatAssistant
                 articleId={article.id}
-                articleTitle={article.title}
-                targetLanguage="zh-CN"
-                selectedText={selectedText || selectedSegment?.text || ""}
-                onClose={() => setShowAssistant(false)}
-                className="h-full border-0"
+                articleContent={article.content} // Pass full content
+                selectedText={selectedText || (selectedSegment ? selectedSegment.text : "")}
               />
             </TabsContent>
           </Tabs>

@@ -66,7 +66,25 @@
     "segmentArticleHint": "点击「分段」按钮将文章拆分为段落，便于深入学习。",
     "analyzeAll": "全部分析",
     "analyzeAllConfirm": "本次将分析 {{count}} 个段落，可能消耗较多Token。\n（每次并行处理3个段落）\n\n是否继续？",
-    "allSegmentsAnalyzed": "所有段落已分析完成"
+    "allSegmentsAnalyzed": "所有段落已分析完成",
+    "explanation": "讲解",
+    "chat": "对话",
+    "selectSegment": "选择一个句子查看讲解",
+    "segmentExplanation": "段落讲解",
+    "originalText": "原文",
+    "generateExplanation": "生成讲解",
+    "notes": "笔记",
+    "translation": "翻译"
+  },
+  "novelChat": {
+    "aiAssistant": "AI 助手",
+    "initializing": "初始化中...",
+    "selectedText": "选中文本",
+    "chat": "对话",
+    "batch": "批量",
+    "inputPlaceholder": "输入问题...",
+    "attachFile": "附件",
+    "welcome": "你好！我是你的阅读助手。我可以帮你翻译、解释文本，分析语法，或讨论文章内容。"
   },
   "newArticle": {
     "title": "新建文章",
@@ -227,6 +245,8 @@
     "favorited": "已收藏",
     "favoriteWord": "收藏单词",
     "favoriteGrammar": "收藏语法",
+    "favoriteGrammarAdded": "语法已收藏",
+    "favoriteWordAdded": "单词已收藏",
     "sourceDeleted": "（已删除）",
     "exportPlainText": "导出纯文本",
     "exportJson": "导出 JSON",

@@ -68,7 +68,7 @@ export function ArticleChatAssistant({
     onClose,
     className,
 }: ArticleChatAssistantProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const [session, setSession] = useState<NovelSession | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
@@ -126,9 +126,7 @@ export function ArticleChatAssistant({
                 console.log("Backend not configured, using local mode");
             }
 
-            const welcomeMessage = i18n.language.startsWith('zh')
-                ? `你好！我是你的阅读助手。我可以帮你翻译、解释文本，分析语法，或讨论文章内容。`
-                : `Hello! I'm your reading assistant. I can help translate, explain text, analyze grammar, or discuss the article.`;
+            const welcomeMessage = t("novelChat.welcome");
 
             setMessages([{
                 id: 'welcome',
