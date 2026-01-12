@@ -12,7 +12,10 @@ TextLingo Desktop 是一款创新的 AI 驱动的外语阅读与学习工具。�
 
 基于 Tauri 开发，提供原生、快速、注重隐私的沉浸式学习环境。
 
-![TextLingo 主界面](docs/img/main_page.png)
+
+通过网盘分享的文件：0.1.0
+链接: https://pan.baidu.com/s/1OGcadEHPohl0QZbRwiK32w?pwd=f2pi 提取码: f2pi 
+--来自百度网盘超级会员v8的分享
 
 ## 核心特性
 
