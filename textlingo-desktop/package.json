@@ -19,6 +19,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2.5.0",
     "@tauri-apps/plugin-opener": "^2",
     "ai": "^6.0.26",
     "class-variance-authority": "^0.7.1",

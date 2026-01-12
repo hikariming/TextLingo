@@ -16,6 +16,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(AIServiceCache::default())
         .invoke_handler(tauri::generate_handler![
             // App initialization
@@ -53,6 +54,7 @@ pub fn run() {
             commands::delete_favorite_grammar_cmd,
             // External
             commands::import_youtube_video_cmd,
+            commands::import_local_video_cmd,
             // 字幕提取
             commands::extract_subtitles_cmd,
         ])

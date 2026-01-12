@@ -11,7 +11,7 @@ use crate::types::{
     TranslationRequest, TranslationResponse, ModelConfig, ArticleSegment,
     FavoriteVocabulary, FavoriteGrammar,
 };
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, State, Manager};
 use uuid::Uuid;
 use reqwest::Client;
 use std::time::Duration;
@@ -981,6 +981,67 @@ pub async fn import_youtube_video_cmd(
         .map_err(|e| format!("Failed to serialize article: {}", e))?;
     save_article(&app_handle, &article.id, &article_json)?;
     
+    Ok(article)
+}
+
+#[tauri::command]
+pub async fn import_local_video_cmd(
+    app_handle: AppHandle,
+    file_path: String,
+) -> Result<Article, String> {
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?;
+    
+    let videos_dir = app_data_dir.join("videos");
+    if !videos_dir.exists() {
+        std::fs::create_dir_all(&videos_dir)
+            .map_err(|e| format!("Failed to create videos dir: {}", e))?;
+    }
+
+    let src_path = std::path::Path::new(&file_path);
+    if !src_path.exists() {
+        return Err("Source file does not exist".to_string());
+    }
+
+    let file_name = src_path
+        .file_name()
+        .ok_or("Invalid file name")?
+        .to_string_lossy();
+        
+    let ext = src_path
+        .extension()
+        .map(|e| e.to_string_lossy().to_string())
+        .unwrap_or_else(|| "mp4".to_string());
+
+    let id = Uuid::new_v4().to_string();
+    let dest_name = format!("{}.{}", id, ext);
+    let dest_path = videos_dir.join(&dest_name);
+
+    std::fs::copy(src_path, &dest_path)
+        .map_err(|e| format!("Failed to copy file: {}", e))?;
+
+    let created_at = chrono::Utc::now().to_rfc3339();
+    
+    // Initial content placeholder
+    let content = format!("[Local Import] {}", file_name);
+
+    let article = Article {
+        id: id.clone(),
+        title: file_name.into_owned(),
+        content,
+        source_url: Some(format!("file://{}", file_path)),
+        media_path: Some(dest_path.to_string_lossy().into_owned()),
+        created_at,
+        translated: false,
+        segments: Vec::new(),
+    };
+
+    let article_json = serde_json::to_string(&article)
+        .map_err(|e| format!("Failed to serialize article: {}", e))?;
+    save_article(&app_handle, &id, &article_json)?;
+
     Ok(article)
 }
 

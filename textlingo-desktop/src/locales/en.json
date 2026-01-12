@@ -257,6 +257,17 @@
     "importSuccess": "Successfully imported {{count}} words",
     "importError": "Import failed"
   },
+  "localImport": {
+    "title": "Local Video",
+    "fileLabel": "Video File",
+    "filePlaceholder": "Select a video file...",
+    "description": "Import a video file from your computer. Supports MP4, MKV, WebM, MOV, AVI.",
+    "import": "Import",
+    "importing": "Importing...",
+    "errors": {
+      "fileRequired": "Please select a file"
+    }
+  },
   "youtubeImport": {
     "title": "Import YouTube Video",
     "urlLabel": "Video URL",

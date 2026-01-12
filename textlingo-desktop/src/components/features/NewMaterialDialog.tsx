@@ -2,13 +2,15 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "../ui/Dialog";
 import { Button } from "../ui/Button";
-import { Plus, FileText, Youtube } from "lucide-react";
+import { Plus, FileText, Youtube, FolderOpen } from "lucide-react";
 import { Article } from "../../types";
 import { NewArticleForm } from "./NewArticleForm";
 import { YouTubeImportForm } from "./YouTubeImportForm";
 import { cn } from "../../lib/utils";
 
-type MaterialType = "article" | "youtube";
+import { LocalVideoImportForm } from "./LocalVideoImportForm";
+
+type MaterialType = "article" | "youtube" | "local";
 
 interface NewMaterialDialogProps {
     isOpen: boolean;
@@ -68,6 +70,19 @@ export function NewMaterialDialog({ isOpen, onClose, onSave }: NewMaterialDialog
                         <Youtube size={18} />
                         {t("youtubeImport.title")}
                     </button>
+
+                    <button
+                        className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
+                            activeTab === "local"
+                                ? "bg-blue-500/10 text-blue-500"
+                                : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                        )}
+                        onClick={() => setActiveTab("local")}
+                    >
+                        <FolderOpen size={18} />
+                        {t("localImport.title")}
+                    </button>
                 </div>
 
                 {/* Right Content */}
@@ -79,6 +94,9 @@ export function NewMaterialDialog({ isOpen, onClose, onSave }: NewMaterialDialog
                         )}
                         {activeTab === "youtube" && (
                             <YouTubeImportForm onSave={handleSave} onCancel={handleClose} />
+                        )}
+                        {activeTab === "local" && (
+                            <LocalVideoImportForm onSave={handleSave} onCancel={handleClose} />
                         )}
                     </div>
                 </div>
