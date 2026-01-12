@@ -176,9 +176,13 @@ export function ArticleReader({
       });
 
       // 更新本地状态
-      if (updatedArticle.segments) {
+      if (updatedArticle.segments && updatedArticle.segments.length > 0) {
+        console.log("[ArticleReader] Subtitles extracted, updating local state:", updatedArticle.segments.length);
         setLocalSegments(updatedArticle.segments);
         setContent(updatedArticle.content);
+
+        // 强制 VideoSubtitlePlayer 重渲染 (通过 key 或状态变更)
+        // 本地状态更新优先于 onUpdate 触发的 prop 更新
       }
 
       onUpdate?.();

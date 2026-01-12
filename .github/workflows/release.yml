@@ -39,6 +39,12 @@ jobs:
         run: npm install
         working-directory: ./textlingo-desktop
 
+      - name: download sidecar binaries
+        run: |
+          chmod +x script/download_binaries.sh
+          bash script/download_binaries.sh
+        shell: bash
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

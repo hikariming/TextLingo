@@ -8,7 +8,8 @@
   },
   "common": {
     "refresh": "更新",
-    "close": "閉じる"
+    "close": "閉じる",
+    "cancel": "キャンセル"
   },
   "header": {
     "configureApiKey": "使用を開始するにはAPIキーを設定してください",
@@ -256,6 +257,17 @@
     "importSuccess": "{{count}}個の単語をインポートしました",
     "importError": "インポートに失敗しました"
   },
+  "localImport": {
+    "title": "ローカル動画",
+    "fileLabel": "動画ファイル",
+    "filePlaceholder": "動画ファイルを選択...",
+    "description": "コンピュータから動画ファイルをインポートします。MP4, MKV, WebM, MOV, AVIに対応しています。",
+    "import": "インポート",
+    "importing": "インポート中...",
+    "errors": {
+      "fileRequired": "ファイルを選択してください"
+    }
+  },
   "videoPlayer": {
     "original": "原文",
     "translation": "翻訳",
@@ -273,7 +285,7 @@
     "extracting": "字幕を抽出中...",
     "success": "字幕の抽出に成功しました！",
     "error": "字幕の抽出に失敗しました",
-    "geminiRequired": "字幕抽出にはGeminiモデル（gemini-2.0-flash以降）が必要です。設定で構成してください。",
+    "geminiRequired": "字幕抽出にはGeminiモデルが必要です。短い動画にはGemini 3.0 Flash、長い動画にはGemini 3.0 Proを推奨します。設定で構成してください。",
     "reExtract": "再抽出"
   }
 }

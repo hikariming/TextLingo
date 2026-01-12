@@ -8,7 +8,8 @@
   },
   "common": {
     "refresh": "刷新",
-    "close": "关闭"
+    "close": "关闭",
+    "cancel": "取消"
   },
   "header": {
     "configureApiKey": "配置您的 API 密钥以开始使用",
@@ -257,6 +258,17 @@
     "importSuccess": "成功导入 {{count}} 个单词",
     "importError": "导入失败"
   },
+  "localImport": {
+    "title": "本地视频",
+    "fileLabel": "视频文件",
+    "filePlaceholder": "选择视频文件...",
+    "description": "从电脑导入视频文件。支持 MP4, MKV, WebM, MOV, AVI。",
+    "import": "导入",
+    "importing": "导入中...",
+    "errors": {
+      "fileRequired": "请选择文件"
+    }
+  },
   "youtubeImport": {
     "title": "导入 YouTube 视频",
     "urlLabel": "视频链接",
@@ -288,7 +300,7 @@
     "extracting": "正在提取字幕...",
     "success": "字幕提取成功！",
     "error": "字幕提取失败",
-    "geminiRequired": "字幕提取需要使用 Gemini 模型（gemini-2.0-flash 或更新版本），请在设置中配置。",
+    "geminiRequired": "字幕提取需要使用 Gemini 模型。短视频推荐使用 Gemini 3.0 Flash，长视频建议使用 Gemini 3.0 Pro。请在设置中配置。",
     "reExtract": "重新提取"
   }
 }
