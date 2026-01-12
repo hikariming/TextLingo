@@ -16,6 +16,16 @@ TextLingo Desktop is an innovative AI-powered foreign language reading and learn
 
 Locally running with Tauri, it offers a fast, privacy-focused, and immersive learning environment.
 
+v0.1 download
+
+https://github.com/hikariming/TextLingo/releases/download/untagged-cbb02c9c346087fa8cdf/TextLingo.Desktop_0.1.0_aarch64.dmg
+
+https://github.com/hikariming/TextLingo/releases/download/untagged-cbb02c9c346087fa8cdf/TextLingo.Desktop_0.1.0_x64-setup.exe
+
+https://github.com/hikariming/TextLingo/releases/download/untagged-cbb02c9c346087fa8cdf/TextLingo.Desktop_0.1.0_x64.dmg
+
+https://github.com/hikariming/TextLingo/releases/download/untagged-cbb02c9c346087fa8cdf/TextLingo.Desktop_0.1.0_x64_en-US.msi
+
 ![TextLingo Main Interface](docs/img/main_page.png)
 
 # Version Information
