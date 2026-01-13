@@ -20,7 +20,7 @@
 
 ## What is OpenKoto?
 
-OpenKoto Desktop is an **open-source, AI-powered language learning application** that transforms any content you're interested in into an immersive learning experience. Unlike traditional language learning apps, OpenKoto lets you learn from **real-world content** — song lyrics, news articles, blog posts, or any text that sparks your interest.
+OpenKoto Desktop is an **open-source, AI-powered language learning application** that transforms any content you're interested in into an immersive learning experience. Beyond language learning, it also serves as a **powerful reader and translation tool**. Unlike traditional language learning apps, OpenKoto lets you learn from **real-world content** — song lyrics, news articles, blog posts, or any text that sparks your interest.
 
 Built with **Tauri + React + Rust**, it runs locally on your machine for **fast performance and complete privacy**.
 
