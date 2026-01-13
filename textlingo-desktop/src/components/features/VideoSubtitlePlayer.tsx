@@ -9,11 +9,14 @@
  * 5. SRT 字幕导出
  */
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/Button";
 import { ChevronDown, ChevronUp, Loader2, FileText, Minimize2, Download, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ArticleSegment } from "../../types";
+
+// 播放位置存储的 key 前缀
+const PLAYBACK_POSITION_KEY_PREFIX = "textlingo_video_position_";
 
 interface VideoSubtitlePlayerProps {
     /** 视频URL */
@@ -36,6 +39,8 @@ interface VideoSubtitlePlayerProps {
     onExtractSubtitles?: () => void;
     /** 文章标题（用于导出文件名） */
     articleTitle?: string;
+    /** 文章ID（用于记忆播放位置） */
+    articleId?: string;
 }
 
 export function VideoSubtitlePlayer({
@@ -49,6 +54,7 @@ export function VideoSubtitlePlayer({
     isExtractingSubtitles = false,
     onExtractSubtitles,
     articleTitle = "subtitles",
+    articleId,
 }: VideoSubtitlePlayerProps) {
     const { t } = useTranslation();
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -57,12 +63,94 @@ export function VideoSubtitlePlayer({
     const [showFullSubtitles, setShowFullSubtitles] = useState(false);
     const [isMiniMode, setIsMiniMode] = useState(false);
     const activeSegmentRef = useRef<HTMLDivElement>(null);
+    const hasRestoredPosition = useRef(false);
+
+    // 获取播放位置存储的 key
+    const getStorageKey = useCallback(() => {
+        return `${PLAYBACK_POSITION_KEY_PREFIX}${articleId || videoUrl}`;
+    }, [articleId, videoUrl]);
+
+    // 保存播放位置
+    const savePlaybackPosition = useCallback((time: number) => {
+        if (time > 0) {
+            try {
+                localStorage.setItem(getStorageKey(), time.toString());
+            } catch (e) {
+                console.warn("Failed to save playback position:", e);
+            }
+        }
+    }, [getStorageKey]);
+
+    // 恢复播放位置
+    const restorePlaybackPosition = useCallback(() => {
+        if (hasRestoredPosition.current) return;
+
+        try {
+            const savedTime = localStorage.getItem(getStorageKey());
+            if (savedTime && videoRef.current) {
+                const time = parseFloat(savedTime);
+                if (!isNaN(time) && time > 0) {
+                    videoRef.current.currentTime = time;
+                    setCurrentTime(time);
+                    hasRestoredPosition.current = true;
+                }
+            }
+        } catch (e) {
+            console.warn("Failed to restore playback position:", e);
+        }
+    }, [getStorageKey]);
+
+    // 视频加载完成后恢复播放位置
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        const handleLoadedMetadata = () => {
+            restorePlaybackPosition();
+        };
+
+        video.addEventListener("loadedmetadata", handleLoadedMetadata);
+
+        // 如果视频已经加载，直接恢复
+        if (video.readyState >= 1) {
+            restorePlaybackPosition();
+        }
+
+        return () => {
+            video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+        };
+    }, [restorePlaybackPosition]);
+
+    // 定期保存播放位置（每5秒）
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (videoRef.current && !videoRef.current.paused) {
+                savePlaybackPosition(videoRef.current.currentTime);
+            }
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [savePlaybackPosition]);
+
+    // 组件卸载时保存播放位置
+    useEffect(() => {
+        return () => {
+            if (videoRef.current) {
+                savePlaybackPosition(videoRef.current.currentTime);
+            }
+        };
+    }, [savePlaybackPosition]);
 
     // 处理视频时间更新
     const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
         const time = e.currentTarget.currentTime;
         setCurrentTime(time);
         onTimeUpdate?.(time);
+    };
+
+    // 视频暂停时保存播放位置
+    const handlePause = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+        savePlaybackPosition(e.currentTarget.currentTime);
     };
 
     // 辅助函数：格式化时间为 MM:SS
@@ -147,6 +235,7 @@ export function VideoSubtitlePlayer({
                         src={videoUrl}
                         onTimeUpdate={handleTimeUpdate}
                         onSeeked={handleTimeUpdate}
+                        onPause={handlePause}
                         onError={(e) => {
                             console.error("Video playback error:", e);
                         }}
@@ -198,6 +287,7 @@ export function VideoSubtitlePlayer({
                             src={videoUrl}
                             onTimeUpdate={handleTimeUpdate}
                             onSeeked={handleTimeUpdate}
+                            onPause={handlePause}
                         />
                         {/* 退出迷你模式按钮 */}
                         <Button
@@ -237,6 +327,7 @@ export function VideoSubtitlePlayer({
                             src={videoUrl}
                             onTimeUpdate={handleTimeUpdate}
                             onSeeked={handleTimeUpdate}
+                            onPause={handlePause}
                             onError={(e) => {
                                 console.error("Video playback error:", e);
                             }}

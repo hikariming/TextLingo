@@ -676,6 +676,7 @@ export function ArticleReader({
                         isExtractingSubtitles={isExtractingSubtitles}
                         onExtractSubtitles={handleExtractSubtitles}
                         articleTitle={article.title}
+                        articleId={article.id}
                       />
                     );
                   })()}

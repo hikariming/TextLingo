@@ -135,7 +135,7 @@ export function FavoritesPage({ onBack, onSelectArticle }: FavoritesPageProps) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "textlingo_vocabulary.txt";
+        a.download = "openkoto_vocabulary.txt";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -152,7 +152,7 @@ export function FavoritesPage({ onBack, onSelectArticle }: FavoritesPageProps) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "textlingo_vocabulary.json";
+        a.download = "openkoto_vocabulary.json";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

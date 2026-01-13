@@ -1,34 +1,36 @@
 <div align="center">
 
-<!-- <img src="/docs/img/logo.png" alt="TextLingo Logo" height="140"> -->
+<!-- <img src="/docs/img/logo.png" alt="OpenKoto Logo" height="140"> -->
 
-# TextLingo Desktop 📕
+# OpenKoto Desktop 📕
 
 **Open Source Language Learning Tool | Free Alternative to Language Reactor & Duolingo**
 
 <p align="center">
   <a href="https://tauri.app" target="_blank"><img src="https://img.shields.io/badge/Tauri-v2-blue.svg" alt="Tauri"></a>
-  <a href="https://github.com/hikariming/TextLingo/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/hikariming/TextLingo.svg" alt="GitHub stars"></a>
-  <a href="https://github.com/hikariming/TextLingo/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License"></a>
+  <a href="https://github.com/hikariming/OpenKoto/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/hikariming/OpenKoto.svg" alt="GitHub stars"></a>
+  <a href="https://github.com/hikariming/OpenKoto/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License"></a>
 </p>
 
 [**English**](/README.md)｜[**中文**](/README_cn.md)｜[**日本語**](/README_ja.md)
 
 </div>
 
-## What is TextLingo?
+> 📢 **Note**: This project was previously known as **TextLingo**. We've renamed it to **OpenKoto** (Open + 言/ことば, meaning "word" in Japanese) to better reflect our vision of open-source language learning.
 
-TextLingo Desktop is an **open-source, AI-powered language learning application** that transforms any content you're interested in into an immersive learning experience. Unlike traditional language learning apps, TextLingo lets you learn from **real-world content** — song lyrics, news articles, blog posts, or any text that sparks your interest.
+## What is OpenKoto?
+
+OpenKoto Desktop is an **open-source, AI-powered language learning application** that transforms any content you're interested in into an immersive learning experience. Unlike traditional language learning apps, OpenKoto lets you learn from **real-world content** — song lyrics, news articles, blog posts, or any text that sparks your interest.
 
 Built with **Tauri + React + Rust**, it runs locally on your machine for **fast performance and complete privacy**.
 
 > 🎯 **Perfect for**: Japanese learners, English learners, polyglots, and anyone who wants to learn languages through content they actually enjoy!
 
-![TextLingo Main Interface](docs/img/main_page.png)
+![OpenKoto Main Interface](docs/img/main_page.png)
 
-## Why TextLingo?
+## Why OpenKoto?
 
-| Feature | TextLingo | Traditional Apps |
+| Feature | OpenKoto | Traditional Apps |
 |---------|-----------|------------------|
 | 📖 Learn from any content | ✅ Import URLs, docs, lyrics | ❌ Fixed curriculum |
 | 🔒 Privacy-focused | ✅ 100% local processing | ❌ Cloud-dependent |
@@ -41,9 +43,9 @@ Built with **Tauri + React + Rust**, it runs locally on your machine for **fast 
 
 | Version | Description | Link |
 |---------|-------------|------|
-| **Desktop** | **Recommended** 🖥️ Native performance, local data, Mac/Windows/Linux | [Download Latest Release](https://github.com/hikariming/TextLingo/releases) |
-| Web | Convenient online access, no installation required | [https://textlingo.app](https://textlingo.app) |
-| Source Code | 🆓 Fully open source, MIT License | [GitHub Repository](https://github.com/hikariming/TextLingo) |
+| **Desktop** | **Recommended** 🖥️ Native performance, local data, Mac/Windows/Linux | [Download Latest Release](https://github.com/hikariming/OpenKoto/releases) |
+| Web | Convenient online access, no installation required | [https://openkoto.app](https://openkoto.app) |
+| Source Code | 🆓 Fully open source, MIT License | [GitHub Repository](https://github.com/hikariming/OpenKoto) |
 
 **中国用户下载**: [百度网盘](https://pan.baidu.com/s/1OGcadEHPohl0QZbRwiK32w?pwd=f2pi) (提取码: f2pi)
 
@@ -81,10 +83,10 @@ Built with **Tauri + React + Rust**, it runs locally on your machine for **fast 
 
 ### Development Setup
 
-1. **Clone and download binaries**:
+1. **Clone and download binaries** (ffmpeg & yt-dlp for video features):
    ```bash
-   git clone https://github.com/hikariming/TextLingo.git
-   cd TextLingo
+   git clone https://github.com/hikariming/OpenKoto.git
+   cd OpenKoto
    chmod +x script/download_binaries.sh
    ./script/download_binaries.sh
    ```
@@ -107,7 +109,7 @@ For more details, see [Development Documentation](docs/HowToRun_en.md).
 ### macOS: "App is damaged and can't be opened"
 This is due to macOS Gatekeeper. Run in Terminal:
 ```bash
-sudo xattr -r -d com.apple.quarantine /Applications/TextLingo\ Desktop.app
+sudo xattr -r -d com.apple.quarantine /Applications/OpenKoto\ Desktop.app
 ```
 
 ## Supported Languages
@@ -150,7 +152,7 @@ We welcome contributions! Please feel free to submit PRs or open issues.
 [usedify](https://usedify.app/) is a specialized platform dedicated to the usage and learning of Dify. On this site, you can access a wealth of valuable content, including Dify usage tips, hands-on experience sharing, and practical case studies. Whether you're a beginner getting started with Dify or an experienced user aiming to master advanced features, usedify provides the knowledge and insights to help you make the most of the Dify tool.
 
 ### Foreign Language Learning Site Based on Personalized Texts
-[textlingo](https://textlingo.app/) is a platform that enables foreign language learning based on texts that interest you. Instead of traditional language learning materials, it allows you to leverage your personal interests, such as favorite novels, articles, or blogs, as study resources. This unique approach makes language learning more engaging and effective, helping you improve your language proficiency while exploring topics you love.
+[openkoto](https://openkoto.app/) is a platform that enables foreign language learning based on texts that interest you. Instead of traditional language learning materials, it allows you to leverage your personal interests, such as favorite novels, articles, or blogs, as study resources. This unique approach makes language learning more engaging and effective, helping you improve your language proficiency while exploring topics you love.
 
 ## License
 
@@ -160,8 +162,8 @@ Apache License 2.0 - See [LICENSE](LICENSE) for details
 
 <div align="center">
 
-**⭐ Star this repo if TextLingo helps you learn languages! ⭐**
+**⭐ Star this repo if OpenKoto helps you learn languages! ⭐**
 
-[Report Bug](https://github.com/hikariming/TextLingo/issues) · [Request Feature](https://github.com/hikariming/TextLingo/issues) · [Join Discussion](https://github.com/hikariming/TextLingo/discussions)
+[Report Bug](https://github.com/hikariming/OpenKoto/issues) · [Request Feature](https://github.com/hikariming/OpenKoto/issues) · [Join Discussion](https://github.com/hikariming/OpenKoto/discussions)
 
 </div>

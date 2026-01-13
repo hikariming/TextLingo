@@ -1,9 +1,8 @@
 {
   "app": {
-    "title": "TextLingo 桌面版",
-    "subtitle": "AI 驱动的文章阅读器",
-    "version": "v0.1.0",
-    "loading": "正在加载 TextLingo...",
+    "title": "OpenKoto",
+    "subtitle": "跨语言的阅读、播放与学习工具",
+    "loading": "正在加载 OpenKoto...",
     "notConfigured": "未配置"
   },
   "common": {
@@ -20,7 +19,8 @@
   },
   "footer": {
     "provider": "提供商",
-    "model": "模型"
+    "model": "模型",
+    "quickSwitch": "快速切换"
   },
   "articleList": {
     "title": "我的文章",
@@ -161,8 +161,15 @@
       "siliconflow": "硅基流动",
       "302ai": "302.AI",
       "google": "Google (Vertex AI)",
-      "google-ai-studio": "Google AI Studio (免费)"
+      "google-ai-studio": "Google AI Studio (免费)",
+      "openai-compatible": "OpenAI 兼容",
+      "ollama": "Ollama (本地)",
+      "lmstudio": "LM Studio (本地)"
     },
+    "baseUrl": "服务地址",
+    "baseUrlPlaceholder": "https://your-api-endpoint.com/v1",
+    "baseUrlHelp": "输入 API 服务地址 (例如: http://localhost:11434/v1)",
+    "apiKeyOptional": "API 密钥 (可选)",
     "theme": {
       "light": "浅色",
       "dark": "深色",

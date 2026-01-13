@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "TextLingo Desktop",
+  "productName": "OpenKoto Desktop",
   "version": "0.2.0",
-  "identifier": "com.textlingo.desktop",
+  "identifier": "com.openkoto.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "TextLingo Desktop",
+        "title": "OpenKoto Desktop",
         "width": 1200,
         "height": 800,
         "minWidth": 900,
@@ -45,7 +45,7 @@
     ],
     "category": "Education",
     "shortDescription": "AI-powered article reader and translator",
-    "longDescription": "TextLingo Desktop is a powerful AI-powered application for reading, translating, and analyzing articles. Use your own API keys to access the latest AI models.",
+    "longDescription": "OpenKoto Desktop is a powerful AI-powered application for reading, translating, and analyzing articles. Use your own API keys to access the latest AI models.",
     "externalBin": [
       "binaries/yt-dlp",
       "binaries/ffmpeg"

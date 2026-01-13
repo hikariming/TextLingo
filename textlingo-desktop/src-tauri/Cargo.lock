@@ -2701,6 +2701,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "openkoto-desktop"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "chrono",
+ "html-escape",
+ "keyring",
+ "readability",
+ "regex",
+ "reqwest 0.12.28",
+ "scraper",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "tauri-plugin-shell",
+ "tokio",
+ "tokio-util",
+ "url",
+ "urlencoding",
+ "uuid",
+ "warp",
+]
+
+[[package]]
 name = "openssl"
 version = "0.10.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4630,33 +4657,6 @@ dependencies = [
  "futf",
  "mac",
  "utf-8",
-]
-
-[[package]]
-name = "textlingo-desktop"
-version = "0.1.0"
-dependencies = [
- "base64 0.22.1",
- "chrono",
- "html-escape",
- "keyring",
- "readability",
- "regex",
- "reqwest 0.12.28",
- "scraper",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-opener",
- "tauri-plugin-shell",
- "tokio",
- "tokio-util",
- "url",
- "urlencoding",
- "uuid",
- "warp",
 ]
 
 [[package]]

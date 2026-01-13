@@ -1,12 +1,12 @@
 [package]
-name = "textlingo-desktop"
+name = "openkoto-desktop"
 version = "0.1.0"
-description = "TextLingo Desktop - AI-powered Article Reader"
-authors = ["TextLingo Team"]
+description = "OpenKoto Desktop - AI-powered Article Reader"
+authors = ["OpenKoto Team"]
 edition = "2021"
 
 [lib]
-name = "textlingo_desktop_lib"
+name = "openkoto_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

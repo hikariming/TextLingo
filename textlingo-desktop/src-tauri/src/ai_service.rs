@@ -17,19 +17,41 @@ pub struct AIService {
     api_key: String,
     provider: String,
     model: String,
+    /// Custom base URL for openai-compatible, ollama, lmstudio providers
+    base_url: Option<String>,
 }
+
+// Default base URLs for local providers
+const OLLAMA_DEFAULT_URL: &str = "http://localhost:11434/v1/chat/completions";
+const LMSTUDIO_DEFAULT_URL: &str = "http://localhost:1234/v1/chat/completions";
 
 impl AIService {
     pub fn new(api_key: String, provider: String, model: String) -> Self {
+        Self::with_base_url(api_key, provider, model, None)
+    }
+
+    pub fn with_base_url(api_key: String, provider: String, model: String, base_url: Option<String>) -> Self {
         Self {
             client: Client::new(),
             api_key,
             provider,
             model,
+            base_url,
         }
     }
 
     fn get_api_url(&self) -> String {
+        // If custom base_url is provided, use it (append /chat/completions if needed)
+        if let Some(ref url) = self.base_url {
+            let trimmed = url.trim_end_matches('/');
+            if trimmed.ends_with("/chat/completions") {
+                return trimmed.to_string();
+            } else {
+                return format!("{}/chat/completions", trimmed);
+            }
+        }
+        
+        // Default URLs for known providers
         match self.provider.as_str() {
             "openrouter" => OPENROUTER_API_URL.to_string(),
             "deepseek" => DEEPSEEK_API_URL.to_string(),
@@ -39,6 +61,12 @@ impl AIService {
                 "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent",
                 self.model.strip_prefix("models/").unwrap_or(&self.model)
             ),
+            "ollama" => OLLAMA_DEFAULT_URL.to_string(),
+            "lmstudio" => LMSTUDIO_DEFAULT_URL.to_string(),
+            "openai-compatible" => {
+                // Should not reach here if base_url is properly set
+                OPENAI_API_URL.to_string()
+            },
             _ => OPENAI_API_URL.to_string(),
         }
     }
@@ -59,11 +87,17 @@ impl AIService {
             "temperature": temperature.unwrap_or(0.7)
         });
 
-        let response = self
+        let mut request = self
             .client
             .post(self.get_api_url())
-            .header("Authorization", format!("Bearer {}", self.api_key))
-            .header("Content-Type", "application/json")
+            .header("Content-Type", "application/json");
+        
+        // Only add Authorization header if API key is provided (local services may not need it)
+        if !self.api_key.is_empty() {
+            request = request.header("Authorization", format!("Bearer {}", self.api_key));
+        }
+
+        let response = request
             .json(&request_body)
             .send()
             .await
@@ -588,8 +622,18 @@ pub async fn get_or_create_ai_service(
     provider: String,
     model: String,
 ) -> Result<(), String> {
+    get_or_create_ai_service_with_base_url(cache, api_key, provider, model, None).await
+}
+
+pub async fn get_or_create_ai_service_with_base_url(
+    cache: &AIServiceCache,
+    api_key: String,
+    provider: String,
+    model: String,
+    base_url: Option<String>,
+) -> Result<(), String> {
     let mut cache_guard = cache.write().await;
-    *cache_guard = Some(AIService::new(api_key, provider, model));
+    *cache_guard = Some(AIService::with_base_url(api_key, provider, model, base_url));
     Ok(())
 }
 
@@ -602,6 +646,7 @@ pub async fn get_ai_service(cache: &AIServiceCache) -> Result<AIService, String>
             api_key: service.api_key.clone(),
             provider: service.provider.clone(),
             model: service.model.clone(),
+            base_url: service.base_url.clone(),
         })
         .ok_or_else(|| "AI service not initialized".to_string())
 }

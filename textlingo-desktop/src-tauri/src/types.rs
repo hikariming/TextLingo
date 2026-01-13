@@ -6,11 +6,14 @@ pub struct ModelConfig {
     pub id: String,
     pub name: String,
     pub api_key: String,
-    pub api_provider: String, // "openai", "openrouter", "deepseek", "google"
+    pub api_provider: String, // "openai", "openrouter", "deepseek", "google", "openai-compatible", "ollama", "lmstudio"
     pub model: String,
     pub is_default: bool,
     #[serde(default)]
     pub created_at: Option<String>,
+    /// Custom base URL for OpenAI-compatible services, Ollama, LM Studio, etc.
+    #[serde(default)]
+    pub base_url: Option<String>,
 }
 
 impl ModelConfig {
@@ -23,6 +26,7 @@ impl ModelConfig {
             model,
             is_default: false,
             created_at: Some(chrono::Utc::now().to_rfc3339()),
+            base_url: None,
         }
     }
 }

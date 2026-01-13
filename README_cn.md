@@ -1,34 +1,36 @@
 <div align="center">
 
-<!-- <img src="/docs/img/logo.png" alt="TextLingo Logo" height="140"> -->
+<!-- <img src="/docs/img/logo.png" alt="OpenKoto Logo" height="140"> -->
 
-# TextLingo Desktop 📕
+# OpenKoto Desktop 📕
 
 **开源语言学习工具 | Language Reactor 与 Duolingo 的免费开源替代品**
 
 <p align="center">
   <a href="https://tauri.app" target="_blank"><img src="https://img.shields.io/badge/Tauri-v2-blue.svg" alt="Tauri"></a>
-  <a href="https://github.com/hikariming/TextLingo/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/hikariming/TextLingo.svg" alt="GitHub stars"></a>
-  <a href="https://github.com/hikariming/TextLingo/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License"></a>
+  <a href="https://github.com/hikariming/OpenKoto/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/hikariming/OpenKoto.svg" alt="GitHub stars"></a>
+  <a href="https://github.com/hikariming/OpenKoto/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License"></a>
 </p>
 
 [**English**](/README.md)｜[**中文**](/README_cn.md)｜[**日本語**](/README_ja.md)
 
 </div>
 
-## 什么是 TextLingo？
+> 📢 **提示**: 本项目原名 **TextLingo**，现已更名为 **OpenKoto**（Open + 言/こと，日语中"话语"的意思），以更好地体现我们开源语言学习的愿景。
 
-TextLingo Desktop 是一款**开源的 AI 驱动语言学习应用**，让你可以通过任何感兴趣的内容进行沉浸式语言学习。与传统语言学习应用不同，TextLingo 支持从**真实内容**中学习 — 歌词、新闻、博客或任何你感兴趣的文本。
+## 什么是 OpenKoto？
+
+OpenKoto Desktop 是一款**开源的 AI 驱动语言学习应用**，让你可以通过任何感兴趣的内容进行沉浸式语言学习。与传统语言学习应用不同，OpenKoto 支持从**真实内容**中学习 — 歌词、新闻、博客或任何你感兴趣的文本。
 
 基于 **Tauri + React + Rust** 构建，本地运行，**快速、安全、保护隐私**。
 
 > 🎯 **适合人群**: 日语学习者、英语学习者、多语言爱好者，以及所有希望通过有趣内容学习语言的人！
 
-![TextLingo 主界面](docs/img/main_page.png)
+![OpenKoto 主界面](docs/img/main_page.png)
 
-## 为什么选择 TextLingo？
+## 为什么选择 OpenKoto？
 
-| 功能 | TextLingo | 传统应用 |
+| 功能 | OpenKoto | 传统应用 |
 |------|-----------|----------|
 | 📖 从任意内容学习 | ✅ 导入网页、文档、歌词 | ❌ 固定课程 |
 | 🔒 隐私保护 | ✅ 100% 本地处理 | ❌ 依赖云端 |
@@ -41,9 +43,9 @@ TextLingo Desktop 是一款**开源的 AI 驱动语言学习应用**，让你可
 
 | 版本 | 说明 | 链接 |
 |------|------|------|
-| **桌面版** | **推荐** 🖥️ 原生性能，本地数据，支持 Mac/Windows/Linux | [下载最新版本](https://github.com/hikariming/TextLingo/releases) |
-| 网页版 | 在线使用，无需安装 | [https://textlingo.app](https://textlingo.app) |
-| 源代码 | 🆓 完全开源，MIT 许可证 | [GitHub 仓库](https://github.com/hikariming/TextLingo) |
+| **桌面版** | **推荐** 🖥️ 原生性能，本地数据，支持 Mac/Windows/Linux | [下载最新版本](https://github.com/hikariming/OpenKoto/releases) |
+| 网页版 | 在线使用，无需安装 | [https://openkoto.app](https://openkoto.app) |
+| 源代码 | 🆓 完全开源，MIT 许可证 | [GitHub 仓库](https://github.com/hikariming/OpenKoto) |
 
 **国内下载**: [百度网盘](https://pan.baidu.com/s/1OGcadEHPohl0QZbRwiK32w?pwd=f2pi) (提取码: f2pi)
 
@@ -65,7 +67,7 @@ TextLingo Desktop 是一款**开源的 AI 驱动语言学习应用**，让你可
 - 🎵 **通过歌词学日语** - 掌握发音，为演唱会跟唱做准备
 - 📰 **阅读外语新闻** - 经济学人、NHK 新闻等，即时翻译理解
 - 📚 **真实内容学习** - 导入任何感兴趣的文章、博客或文档
-- � **动漫学习** - 通过转录功能理解你喜欢的日语动漫
+- 🎬 **动漫学习** - 通过转录功能理解你喜欢的日语动漫
 
 ## 即将推出
 
@@ -81,10 +83,10 @@ TextLingo Desktop 是一款**开源的 AI 驱动语言学习应用**，让你可
 
 ### 开发环境搭建
 
-1. **克隆仓库并下载依赖文件**:
+1. **克隆仓库并下载依赖文件**（ffmpeg 和 yt-dlp 用于视频功能）:
    ```bash
-   git clone https://github.com/hikariming/TextLingo.git
-   cd TextLingo
+   git clone https://github.com/hikariming/OpenKoto.git
+   cd OpenKoto
    chmod +x script/download_binaries.sh
    ./script/download_binaries.sh
    ```
@@ -107,7 +109,7 @@ TextLingo Desktop 是一款**开源的 AI 驱动语言学习应用**，让你可
 ### macOS: "应用已损坏，打不开"
 这是 macOS Gatekeeper 安全机制导致的。请在终端运行：
 ```bash
-sudo xattr -r -d com.apple.quarantine /Applications/TextLingo\ Desktop.app
+sudo xattr -r -d com.apple.quarantine /Applications/OpenKoto\ Desktop.app
 ```
 
 ## 支持语言
@@ -150,7 +152,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/TextLingo\ Desktop.app
 [usedify](https://usedify.app/) 是一个专注于 Dify 的使用学习分享站。在这里，你可以学习到 Dify 相关的使用技巧、经验分享以及各种实用的案例，助力你更好地掌握和运用 Dify 工具。
 
 ### 基于感兴趣文本学习外语的站
-[textlingo](https://textlingo.app/) 是一个基于自己感兴趣文本学习外语的站。通过该网站，你能够利用自己感兴趣的文本内容作为学习材料，以更有趣和高效的方式提升外语水平。
+[openkoto](https://openkoto.app/) 是一个基于自己感兴趣文本学习外语的站。通过该网站，你能够利用自己感兴趣的文本内容作为学习材料，以更有趣和高效的方式提升外语水平。
 
 ## 许可证
 
@@ -160,8 +162,8 @@ Apache License 2.0 - 详见 [LICENSE](LICENSE)
 
 <div align="center">
 
-**⭐ 如果 TextLingo 对你的语言学习有帮助，请给我们一个 Star！⭐**
+**⭐ 如果 OpenKoto 对你的语言学习有帮助，请给我们一个 Star！⭐**
 
-[报告问题](https://github.com/hikariming/TextLingo/issues) · [功能建议](https://github.com/hikariming/TextLingo/issues) · [参与讨论](https://github.com/hikariming/TextLingo/discussions)
+[报告问题](https://github.com/hikariming/OpenKoto/issues) · [功能建议](https://github.com/hikariming/OpenKoto/issues) · [参与讨论](https://github.com/hikariming/OpenKoto/discussions)
 
 </div>

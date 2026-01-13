@@ -1,14 +1,14 @@
 # Open Source License
 
-TextLingo is licensed under the Apache License 2.0, with the following additional conditions:
+OpenKoto is licensed under the Apache License 2.0, with the following additional conditions:
 
-1. TextLingo may be utilized commercially, including as a backend service for other applications or as an application development platform for enterprises. Should the conditions below be met, a commercial license must be obtained from the producer:
+1. OpenKoto may be utilized commercially, including as a backend service for other applications or as an application development platform for enterprises. Should the conditions below be met, a commercial license must be obtained from the producer:
 
-a. Multi-tenant service: Unless explicitly authorized by TextLingo in writing, you may not use the TextLingo source code to operate a multi-tenant environment. 
-    - Tenant Definition: Within the context of TextLingo, one tenant corresponds to one workspace. The workspace provides a separated area for each tenant's data and configurations.
+a. Multi-tenant service: Unless explicitly authorized by OpenKoto in writing, you may not use the OpenKoto source code to operate a multi-tenant environment. 
+    - Tenant Definition: Within the context of OpenKoto, one tenant corresponds to one workspace. The workspace provides a separated area for each tenant's data and configurations.
     
-b. LOGO and copyright information: In the process of using TextLingo's frontend, you may not remove or moTextLingo the LOGO or copyright information in the TextLingo console or applications. This restriction is inapplicable to uses of TextLingo that do not involve its frontend.
-    - Frontend Definition: For the purposes of this license, the "frontend" of TextLingo includes all components located in the `web/` directory when running TextLingo from the raw source code, or the "web" image when running TextLingo with Docker.
+b. LOGO and copyright information: In the process of using OpenKoto's frontend, you may not remove or modify the LOGO or copyright information in the OpenKoto console or applications. This restriction is inapplicable to uses of OpenKoto that do not involve its frontend.
+    - Frontend Definition: For the purposes of this license, the "frontend" of OpenKoto includes all components located in the `web/` directory when running OpenKoto from the raw source code, or the "web" image when running OpenKoto with Docker.
 
 
 2. As a contributor, you should agree that:

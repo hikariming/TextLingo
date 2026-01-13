@@ -1,9 +1,8 @@
 {
   "app": {
-    "title": "TextLingo Desktop",
-    "subtitle": "AI-powered Article Reader",
-    "version": "v0.1.0",
-    "loading": "Loading TextLingo...",
+    "title": "OpenKoto",
+    "subtitle": "Cross-Language Reading, Playback & Learning Tool",
+    "loading": "Loading OpenKoto...",
     "notConfigured": "Not configured"
   },
   "common": {
@@ -20,7 +19,8 @@
   },
   "footer": {
     "provider": "Provider",
-    "model": "Model"
+    "model": "Model",
+    "quickSwitch": "Quick Switch"
   },
   "articleList": {
     "title": "Your Articles",
@@ -161,8 +161,15 @@
       "siliconflow": "SiliconFlow",
       "302ai": "302.AI",
       "google": "Google (Vertex AI)",
-      "google-ai-studio": "Google AI Studio (Free)"
+      "google-ai-studio": "Google AI Studio (Free)",
+      "openai-compatible": "OpenAI Compatible",
+      "ollama": "Ollama (Local)",
+      "lmstudio": "LM Studio (Local)"
     },
+    "baseUrl": "Base URL",
+    "baseUrlPlaceholder": "https://your-api-endpoint.com/v1",
+    "baseUrlHelp": "Enter the API endpoint URL (e.g., http://localhost:11434/v1)",
+    "apiKeyOptional": "API Key (Optional)",
     "theme": {
       "light": "Light",
       "dark": "Dark",

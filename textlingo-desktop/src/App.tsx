@@ -7,6 +7,7 @@ import { ArticleReader } from "./components/features/ArticleReader";
 import { NewMaterialButton } from "./components/features/NewMaterialDialog";
 import { FavoritesPage } from "./components/features/FavoritesPage";
 import { SettingsButton } from "./components/features/SettingsDialog";
+import { ApiQuickSwitcher } from "./components/features/ApiQuickSwitcher";
 import { Button } from "./components/ui/Button";
 import type { Article, AppConfig } from "./lib/tauri";
 import { getApiClient } from "./lib/api";
@@ -103,7 +104,6 @@ function App() {
 
 
   const hasConfig = config?.model_configs && config.model_configs.length > 0 && config.active_model_id;
-  const activeConfig = config?.model_configs?.find(c => c.id === config.active_model_id);
   const selectedId: string | undefined = selectedArticle?.id;
 
   if (isLoading) {
@@ -204,11 +204,8 @@ function App() {
       {/* Footer */}
       <footer className="px-6 py-3 border-t border-border bg-card/50 text-xs text-muted-foreground">
         <div className="flex items-center justify-between">
-          <p>TextLingo Desktop {t("app.version")}</p>
-          <div className="flex items-center gap-4">
-            <span>{t("footer.provider")}: {activeConfig?.api_provider || t("app.notConfigured")}</span>
-            <span>{t("footer.model")}: {activeConfig?.model || t("app.notConfigured")}</span>
-          </div>
+          <p>OpenKoto v{__APP_VERSION__}</p>
+          <ApiQuickSwitcher config={config} onConfigChange={loadData} />
         </div>
       </footer>
     </div>

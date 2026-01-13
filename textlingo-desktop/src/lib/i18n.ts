@@ -7,7 +7,7 @@ import ja from "../locales/ja.json";
 // Get saved language preference from localStorage
 const getSavedLanguage = (): string => {
   try {
-    const saved = localStorage.getItem("textlingo-language");
+    const saved = localStorage.getItem("openkoto-language");
     if (saved && ["en", "zh", "ja"].includes(saved)) {
       return saved;
     }
@@ -40,7 +40,7 @@ i18n
 // Save language preference when it changes
 i18n.on("languageChanged", (lng) => {
   try {
-    localStorage.setItem("textlingo-language", lng);
+    localStorage.setItem("openkoto-language", lng);
   } catch {
     // Ignore localStorage errors
   }

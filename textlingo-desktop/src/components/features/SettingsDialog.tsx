@@ -16,6 +16,7 @@ interface ModelConfig {
   model: string;
   is_default: boolean;
   created_at?: string;
+  base_url?: string;
 }
 
 interface AppConfig {
@@ -38,7 +39,13 @@ interface OpenRouterModel {
   };
 }
 
-const SUPPORTED_PROVIDERS = ["openai", "openrouter", "deepseek", "siliconflow", "302ai", "google", "google-ai-studio"] as const;
+const SUPPORTED_PROVIDERS = ["openai", "openrouter", "deepseek", "siliconflow", "302ai", "google", "google-ai-studio", "openai-compatible", "ollama", "lmstudio"] as const;
+
+// Default base URLs for local providers
+const DEFAULT_BASE_URLS: Record<string, string> = {
+  "ollama": "http://localhost:11434/v1",
+  "lmstudio": "http://localhost:1234/v1",
+};
 
 // Default preset models
 const DEFAULT_MODELS = {
@@ -78,6 +85,10 @@ const DEFAULT_MODELS = {
     { value: "gemini-1.5-pro", labelKey: "settings.models.google-ai-studio.gemini-1.5-pro" },
     { value: "gemini-1.5-flash", labelKey: "settings.models.google-ai-studio.gemini-1.5-flash" },
   ],
+  // Providers that require custom model input
+  "openai-compatible": [],
+  "ollama": [],
+  "lmstudio": [],
 };
 
 interface SettingsDialogProps {
@@ -185,7 +196,9 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
       setError(t("settings.errors.configNameRequired"));
       return;
     }
-    if (!editingConfig.api_key?.trim()) {
+    // API key is optional for local providers (ollama, lmstudio)
+    const isLocalProvider = ["ollama", "lmstudio"].includes(editingConfig.api_provider || "");
+    if (!isLocalProvider && !editingConfig.api_key?.trim()) {
       setError(t("settings.errors.apiKeyRequired"));
       return;
     }
@@ -203,10 +216,11 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
     const configToSave: ModelConfig = {
       id: editingConfig.id || crypto.randomUUID(),
       name: editingConfig.name.trim(),
-      api_key: editingConfig.api_key.trim(),
+      api_key: (editingConfig.api_key || "").trim(),
       api_provider: editingConfig.api_provider || "openai",
       model: modelToUse,
       is_default: editingConfig.is_default || false,
+      base_url: editingConfig.base_url?.trim() || undefined,
     };
 
     setIsSaving(true);
@@ -464,26 +478,15 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
         ...prev,
         api_provider: provider,
         model: models?.[0]?.value || "",
-        // We usually don't want to clear api_key if the user is just looking around,
-        // but for a NEW config it matters. 
-        // If editing existing, key is already there. 
-        // If switching provider on existing config, the key is likely invalid for the new provider.
-        // So validation will fail. 
-        // So we probably shouldn't auto-sync immediately on provider switch UNLESS we know the key is valid.
-        // BUT, if the user pasted a key then switched?
-
-        // Let's keep it simple: keep the key (user might be pasting same key for compatible providers?) 
-        // OR clear it. Most apps clear it.
-        // But let's stick to just changing provider.
+        // For local providers, set default base URL
+        base_url: DEFAULT_BASE_URLS[provider] || prev?.base_url || undefined,
       };
-
-      // Trigger sync if we have a key (unlikely if we just switched and keys are unique, but possible)
-      // If we switched provider, the existing key is probably for the OLD provider.
-      // So validation will fail. 
 
       return newConfig;
     });
-    setUseCustomModel(false);
+    // For providers without preset models, enable custom model input
+    const needsCustomModel = ["openai-compatible", "ollama", "lmstudio"].includes(provider);
+    setUseCustomModel(needsCustomModel);
   };
 
   const INTERFACE_LANGUAGES = [
@@ -655,10 +658,30 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                   </Select>
                 </div>
 
+                {/* Base URL - show for openai-compatible, ollama, lmstudio */}
+                {["openai-compatible", "ollama", "lmstudio"].includes(editingConfig.api_provider || "") && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      {t("settings.baseUrl")}
+                    </label>
+                    <Input
+                      type="text"
+                      value={editingConfig.base_url || ""}
+                      onChange={(e) => setEditingConfig({ ...editingConfig, base_url: e.target.value })}
+                      placeholder={t("settings.baseUrlPlaceholder")}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("settings.baseUrlHelp")}
+                    </p>
+                  </div>
+                )}
+
                 {/* API Key */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {t("settings.apiKey")}
+                    {["ollama", "lmstudio"].includes(editingConfig.api_provider || "")
+                      ? t("settings.apiKeyOptional")
+                      : t("settings.apiKey")}
                   </label>
                   <Input
                     type="password"

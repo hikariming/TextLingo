@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    textlingo_desktop_lib::run()
+    openkoto_desktop_lib::run()
 }
