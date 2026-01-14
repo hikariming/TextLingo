@@ -26,7 +26,7 @@ OpenKoto Desktop 是一款**开源的 AI 驱动语言学习应用**，让你可�
 
 > 🎯 **适合人群**: 日语学习者、英语学习者、多语言爱好者，以及所有希望通过有趣内容学习语言的人！
 
-![OpenKoto 主界面](docs/img/main_page.png)
+![OpenKoto 主界面](img/openkoto_video.png)
 
 ## 为什么选择 OpenKoto？
 

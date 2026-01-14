@@ -26,7 +26,7 @@ OpenKoto Desktop は、**オープンソースの AI 搭載言語学習アプリ
 
 > 🎯 **こんな方におすすめ**: 英語学習者、中国語学習者、多言語学習者、そして楽しみながら言語を学びたいすべての人！
 
-![OpenKoto メイン画面](docs/img/main_page.png)
+![OpenKoto メイン画面](img/openkoto_video.png)
 
 ## なぜ OpenKoto？
 

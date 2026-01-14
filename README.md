@@ -26,7 +26,7 @@ Built with **Tauri + React + Rust**, it runs locally on your machine for **fast 
 
 > 🎯 **Perfect for**: Japanese learners, English learners, polyglots, and anyone who wants to learn languages through content they actually enjoy!
 
-![OpenKoto Main Interface](docs/img/main_page.png)
+![OpenKoto Main Interface](img/openkoto_video.png)
 
 ## Why OpenKoto?
 
