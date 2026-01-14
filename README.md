@@ -16,7 +16,7 @@
 
 </div>
 
-> 📢 **Note**: This project was previously known as **TextLingo**. We've renamed it to **OpenKoto** (Open + 言/ことば, meaning "word" in Japanese) to better reflect our vision of open-source language learning.
+> 📢 **Note**: This project was previously known as **TextLingo**. We've renamed it to **OpenKoto** (Open + 言/ことば, meaning "word" in Japanese) to better reflect our vision of open-source reading, translation, and language learning.
 
 ## What is OpenKoto?
 
@@ -45,7 +45,7 @@ Built with **Tauri + React + Rust**, it runs locally on your machine for **fast 
 |---------|-------------|------|
 | **Desktop** | **Recommended** 🖥️ Native performance, local data, Mac/Windows/Linux | [Download Latest Release](https://github.com/hikariming/OpenKoto/releases) |
 | Web | Convenient online access, no installation required | [https://openkoto.app](https://openkoto.app) |
-| Source Code | 🆓 Fully open source, MIT License | [GitHub Repository](https://github.com/hikariming/OpenKoto) |
+| Source Code | 🆓 Fully open source, Apache 2.0 License | [GitHub Repository](https://github.com/hikariming/OpenKoto) |
 
 **中国用户下载**: [百度网盘](https://pan.baidu.com/s/1OGcadEHPohl0QZbRwiK32w?pwd=f2pi) (提取码: f2pi)
 

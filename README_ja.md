@@ -16,7 +16,7 @@
 
 </div>
 
-> 📢 **お知らせ**: このプロジェクトは以前 **TextLingo** という名前でした。オープンソース言語学習のビジョンをより反映するため、**OpenKoto**（Open + 言/こと）に改名しました。
+> 📢 **お知らせ**: このプロジェクトは以前 **TextLingo** という名前でした。オープンソースのリーディング、翻訳、言語学習のビジョンをより反映するため、**OpenKoto**（Open + 言/こと）に改名しました。
 
 ## OpenKoto とは？
 
@@ -45,7 +45,7 @@ OpenKoto Desktop は、**オープンソースの AI 搭載言語学習アプリ
 |------------|------|--------|
 | **デスクトップ版** | **おすすめ** 🖥️ ネイティブ性能、ローカルデータ、Mac/Windows/Linux 対応 | [最新版をダウンロード](https://github.com/hikariming/OpenKoto/releases) |
 | Web 版 | インストール不要、オンラインで利用可能 | [https://openkoto.app](https://openkoto.app) |
-| ソースコード | 🆓 完全オープンソース、MIT ライセンス | [GitHub リポジトリ](https://github.com/hikariming/OpenKoto) |
+| ソースコード | 🆓 完全オープンソース、Apache 2.0 ライセンス | [GitHub リポジトリ](https://github.com/hikariming/OpenKoto) |
 
 ## 主な機能
 
