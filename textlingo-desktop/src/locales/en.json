@@ -97,7 +97,8 @@
     "slowResponseTip": "Response slow? Try a faster model like <1>Gemini 3 Flash</1> for instant results."
   },
   "newArticle": {
-    "title": "New Article",
+    "title": "Article Intensive Reading",
+    "hint": "This feature is for sentence-by-sentence intensive reading, deep analysis of sentence grammar, words, and language structure, suitable for language learning.",
     "titleLabel": "Title",
     "optional": "(optional)",
     "titlePlaceholder": "Enter article title...",
@@ -321,12 +322,13 @@
     "reExtract": "Re-extract"
   },
   "bookImport": {
-    "title": "Import Book",
+    "title": "Reading Materials",
+    "hint": "Supports papers, books, novels, etc. Supports PDF, TXT, EPUB formats. Used for multilingual accessible reading and learning of articles and literature.",
     "fileLabel": "Book File",
-    "filePlaceholder": "Select EPUB or TXT file...",
+    "filePlaceholder": "Select EPUB, TXT or PDF file...",
     "titleLabel": "Book Title",
     "titlePlaceholder": "Leave empty to use filename",
-    "description": "Supports EPUB and TXT ebook formats. EPUB supports complex layouts, TXT is for plain text content.",
+    "description": "Supports EPUB, TXT and PDF formats. EPUB for complex layouts, TXT for plain text, PDF preserves original formatting.",
     "import": "Import Book",
     "importing": "Importing...",
     "fileFilterName": "eBooks",
@@ -351,5 +353,15 @@
     "nextPage": "Next Page",
     "decreaseFontSize": "Decrease Font Size",
     "increaseFontSize": "Increase Font Size"
+  },
+  "pdfReader": {
+    "untitled": "Untitled PDF",
+    "loading": "Loading...",
+    "loadError": "Failed to load PDF",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit Fullscreen",
+    "nativeHint": "Using native PDF viewer - Use toolbar to zoom, search and select text"
   }
 }

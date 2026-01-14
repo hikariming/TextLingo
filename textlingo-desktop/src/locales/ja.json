@@ -295,5 +295,47 @@
     "error": "字幕の抽出に失敗しました",
     "geminiRequired": "字幕抽出にはGeminiモデルが必要です。短い動画にはGemini 3.0 Flash、長い動画にはGemini 3.0 Proを推奨します。設定で構成してください。",
     "reExtract": "再抽出"
+  },
+  "bookImport": {
+    "title": "ブックをインポート",
+    "fileLabel": "ブックファイル",
+    "filePlaceholder": "EPUB、TXTまたはPDFファイルを選択...",
+    "titleLabel": "ブックタイトル",
+    "titlePlaceholder": "空欄の場合はファイル名を使用",
+    "description": "EPUB、TXT、PDF形式をサポート。EPUBは複雑なレイアウト、TXTはプレーンテキスト、PDFは元のフォーマットを保持します。",
+    "import": "インポート",
+    "importing": "インポート中...",
+    "fileFilterName": "電子書籍",
+    "errors": {
+      "fileRequired": "ファイルを選択してください",
+      "selectFailed": "ファイル選択に失敗しました",
+      "unsupportedFormat": "サポートされていないファイル形式"
+    }
+  },
+  "epubReader": {
+    "untitled": "無題のブック",
+    "tableOfContents": "目次",
+    "prevPage": "前のページ",
+    "nextPage": "次のページ",
+    "decreaseFontSize": "フォントを小さく",
+    "increaseFontSize": "フォントを大きく",
+    "selectedText": "選択テキスト："
+  },
+  "txtReader": {
+    "untitled": "無題のテキスト",
+    "prevPage": "前のページ",
+    "nextPage": "次のページ",
+    "decreaseFontSize": "フォントを小さく",
+    "increaseFontSize": "フォントを大きく"
+  },
+  "pdfReader": {
+    "untitled": "無題のPDF",
+    "loading": "読み込み中...",
+    "loadError": "PDFの読み込みに失敗しました",
+    "refresh": "更新",
+    "retry": "再試行",
+    "fullscreen": "フルスクリーン",
+    "exitFullscreen": "フルスクリーンを終了",
+    "nativeHint": "ネイティブPDFビューアを使用中 - ツールバーで拡大、検索、テキスト選択が可能です"
   }
 }

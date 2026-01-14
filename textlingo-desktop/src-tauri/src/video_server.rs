@@ -122,6 +122,8 @@ async fn serve_file(
         "application/epub+zip"
     } else if decoded_filename.ends_with(".txt") {
         "text/plain; charset=utf-8"
+    } else if decoded_filename.ends_with(".pdf") {
+        "application/pdf"
     } else {
         "application/octet-stream"
     };

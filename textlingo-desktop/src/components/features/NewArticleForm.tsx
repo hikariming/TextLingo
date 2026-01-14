@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Textarea } from "../ui/Textarea";
-import { FileText, Loader2, Link, Clipboard, Cloud } from "lucide-react";
+import { FileText, Loader2, Link, Clipboard, Cloud, Info } from "lucide-react";
 import { getApiClient } from "../../lib/api";
 import { Article } from "../../types";
 
@@ -167,6 +167,11 @@ export function NewArticleForm({ onSave, onCancel }: NewArticleFormProps) {
                         {error}
                     </div>
                 )}
+                {/* Hint */}
+                <div className="flex gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-blue-200/90 mb-4">
+                    <Info className="w-5 h-5 shrink-0 text-blue-400 mt-0.5" />
+                    <p>{t("newArticle.hint", "This feature is for sentence-by-sentence intensive reading...")}</p>
+                </div>
 
                 {/* Title */}
                 <div>

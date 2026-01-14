@@ -8,7 +8,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui/Button";
-import { Loader2, BookOpen, FileText } from "lucide-react";
+import { Loader2, BookOpen, FileText, FileType, Info } from "lucide-react";
 import { Article } from "../../types";
 
 interface BookImportFormProps {
@@ -39,7 +39,7 @@ export function BookImportForm({ onSave, onCancel }: BookImportFormProps) {
                 filters: [
                     {
                         name: t("bookImport.fileFilterName", "电子书"),
-                        extensions: ["epub", "txt"],
+                        extensions: ["epub", "txt", "pdf"],
                     },
                 ],
             });
@@ -49,7 +49,7 @@ export function BookImportForm({ onSave, onCancel }: BookImportFormProps) {
                 setError(null);
 
                 // 从文件路径提取文件名作为默认标题
-                const fileName = selected.split(/[/\\]/).pop()?.replace(/\.(epub|txt)$/i, "") || "";
+                const fileName = selected.split(/[/\\]/).pop()?.replace(/\.(epub|txt|pdf)$/i, "") || "";
                 if (!customTitle) {
                     setCustomTitle(fileName);
                 }
@@ -91,6 +91,9 @@ export function BookImportForm({ onSave, onCancel }: BookImportFormProps) {
         if (filePath.toLowerCase().endsWith(".epub")) {
             return <BookOpen size={20} className="text-purple-500" />;
         }
+        if (filePath.toLowerCase().endsWith(".pdf")) {
+            return <FileType size={20} className="text-red-500" />;
+        }
         return <FileText size={20} className="text-blue-500" />;
     };
 
@@ -103,9 +106,10 @@ export function BookImportForm({ onSave, onCancel }: BookImportFormProps) {
     return (
         <div className="flex flex-col h-full">
             {/* 描述 */}
-            <p className="text-sm text-muted-foreground mb-6">
-                {t("bookImport.description", "支持 EPUB 和 TXT 格式的电子书。EPUB 支持复杂排版，TXT 适合纯文本内容。")}
-            </p>
+            <div className="flex gap-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg text-sm text-purple-200/90 mb-6">
+                <Info className="w-5 h-5 shrink-0 text-purple-400 mt-0.5" />
+                <p>{t("bookImport.hint", "Supports papers, books, novels, etc...")}</p>
+            </div>
 
             {/* 文件选择 */}
             <div className="space-y-4">

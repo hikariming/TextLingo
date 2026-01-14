@@ -97,7 +97,8 @@
     "slowResponseTip": "响应较慢？尝试使用 <1>Gemini 3 Flash</1> 等更快的模型以获得即时结果。"
   },
   "newArticle": {
-    "title": "新建文章",
+    "title": "文章精读",
+    "hint": "这个功能用于逐句精读，深度分析句子语法单词和语言结构，适合语言学习。",
     "titleLabel": "标题",
     "optional": "（可选）",
     "titlePlaceholder": "输入文章标题...",
@@ -321,12 +322,13 @@
     "reExtract": "重新提取"
   },
   "bookImport": {
-    "title": "导入书籍",
+    "title": "阅读素材",
+    "hint": "支持论文、书籍、小说等，支持pdf、txt、epub等格式，用于文章文献的多语言无障碍阅读、学习等。",
     "fileLabel": "书籍文件",
-    "filePlaceholder": "选择 EPUB 或 TXT 文件...",
+    "filePlaceholder": "选择 EPUB、TXT 或 PDF 文件...",
     "titleLabel": "书籍标题",
     "titlePlaceholder": "留空则使用文件名",
-    "description": "支持 EPUB 和 TXT 格式的电子书。EPUB 支持复杂排版，TXT 适合纯文本内容。",
+    "description": "支持 EPUB、TXT 和 PDF 格式。EPUB 支持复杂排版，TXT 适合纯文本，PDF 保持原始排版。",
     "import": "导入书籍",
     "importing": "导入中...",
     "fileFilterName": "电子书",
@@ -351,5 +353,15 @@
     "nextPage": "下一页",
     "decreaseFontSize": "减小字体",
     "increaseFontSize": "增大字体"
+  },
+  "pdfReader": {
+    "untitled": "未命名PDF",
+    "loading": "加载中...",
+    "loadError": "PDF加载失败",
+    "refresh": "刷新",
+    "retry": "重试",
+    "fullscreen": "全屏",
+    "exitFullscreen": "退出全屏",
+    "nativeHint": "使用浏览器原生 PDF 查看器 - 可使用工具栏缩放、搜索和选择文本"
   }
 }

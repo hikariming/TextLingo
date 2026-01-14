@@ -92,10 +92,10 @@ pub struct Article {
     pub content: String,
     pub source_url: Option<String>,
     pub media_path: Option<String>,
-    /// 书籍文件路径 (EPUB/TXT)
+    /// 书籍文件路径 (EPUB/TXT/PDF)
     #[serde(default)]
     pub book_path: Option<String>,
-    /// 书籍类型: "epub" | "txt"
+    /// 书籍类型: "epub" | "txt" | "pdf"
     #[serde(default)]
     pub book_type: Option<String>,
     pub created_at: String,

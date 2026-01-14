@@ -1150,7 +1150,7 @@ pub async fn extract_subtitles_cmd(
 }
 
 // ============================================================================
-// 书籍导入功能 - 支持 EPUB 和 TXT 格式
+// 书籍导入功能 - 支持 EPUB、TXT 和 PDF 格式
 // ============================================================================
 
 const BOOKS_DIR: &str = "books";
@@ -1171,7 +1171,7 @@ fn ensure_books_dir(app_handle: &AppHandle) -> Result<PathBuf, String> {
     Ok(books_dir)
 }
 
-/// 导入书籍文件 (EPUB/TXT)
+/// 导入书籍文件 (EPUB/TXT/PDF)
 /// 将文件复制到应用数据目录并创建 Article 记录
 #[tauri::command]
 pub async fn import_book_cmd(
@@ -1198,6 +1198,7 @@ pub async fn import_book_cmd(
     let book_type = match ext.as_str() {
         "epub" => "epub",
         "txt" => "txt",
+        "pdf" => "pdf",
         _ => return Err(format!("不支持的文件格式: {}", ext)),
     };
     
@@ -1223,14 +1224,16 @@ pub async fn import_book_cmd(
     
     let created_at = chrono::Utc::now().to_rfc3339();
     
-    // 读取 TXT 文件内容作为 content，EPUB 使用占位符
-    let content = if book_type == "txt" {
-        // 尝试读取 TXT 文件内容
-        std::fs::read_to_string(&dest_path)
-            .unwrap_or_else(|_| format!("[书籍已导入] {}", book_title))
-    } else {
-        // EPUB 文件内容由前端阅读器渲染，这里只存储元数据
-        format!("[EPUB 书籍] {}", book_title)
+    // 读取 TXT 文件内容作为 content，EPUB/PDF 使用占位符
+    let content = match book_type {
+        "txt" => {
+            // 尝试读取 TXT 文件内容
+            std::fs::read_to_string(&dest_path)
+                .unwrap_or_else(|_| format!("[书籍已导入] {}", book_title))
+        }
+        "epub" => format!("[EPUB 书籍] {}", book_title),
+        "pdf" => format!("[PDF 书籍] {}", book_title),
+        _ => format!("[书籍已导入] {}", book_title),
     };
     
     // 创建 Article 记录

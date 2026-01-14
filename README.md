@@ -51,27 +51,26 @@ Built with **Tauri + React + Rust**, it runs locally on your machine for **fast 
 
 ## Core Features
 
-- 🎯 **Smart Text Import** - One-click import from URLs, Word, Markdown, and more with automatic translation and vocabulary extraction
+- 🎯 **Smart Support** - One-click import from URLs, **PDF, EPUB, TXT**, Word, Markdown with automatic translation and vocabulary extraction
 - 📖 **Immersive Reading Mode**
-  - Professional reader interface
+  - Professional reader interface for articles and books
   - Real-time language switching
   - Instant word lookup and grammar parsing
 - 🔍 **AI Learning Assistant**
   - Intelligent word explanations in context
   - Detailed grammar breakdowns (Chinese-Japanese-English)
   - Pronunciation guidance and correction
-- 📝 **Personalized Learning** - Highlight and ask questions about any text in real-time
+- 📝 **Interactive AI Q&A** - Highlight and ask questions about any text in real-time
 
 ## Use Cases 🎬
 
+- 📚 **Study with Any Material** - Import PDFs, EPUB books, or TXT files for deep reading and analysis
 - 🎵 **Learn Japanese through Song Lyrics** - Master pronunciation for your favorite J-Pop songs and concerts
 - 📰 **Read News in Foreign Languages** - The Economist, NHK News, and more with instant translations
-- 📚 **Study with Real Content** - Import any article, blog post, or document that interests you
 - 🎬 **Anime Learning** - Understand your favorite Japanese anime with transcription support
 
 ## Coming Soon
 
-- 📝 Interactive text dialogue with AI Q&A
 - 📚 Personalized vocabulary and grammar exercise system
 - 🎥 YouTube video learning support
 

@@ -11,6 +11,7 @@ import { ChevronLeft, BookOpen, PanelRightClose, PanelRightOpen } from "lucide-r
 import { Article } from "../../types";
 import { EpubReader } from "./EpubReader";
 import { TxtReader } from "./TxtReader";
+import { PdfReader } from "./PdfReader";
 import { ArticleChatAssistant } from "./ArticleChatAssistant";
 
 interface BookReaderProps {
@@ -34,6 +35,7 @@ export function BookReader({ article, onBack }: BookReaderProps) {
     // 判断书籍类型
     const isEpub = article.book_type === "epub";
     const isTxt = article.book_type === "txt";
+    const isPdf = article.book_type === "pdf";
 
     // 处理文本选择
     const handleTextSelect = (text: string) => {
@@ -103,6 +105,13 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                     {isTxt && (
                         <TxtReader
                             content={article.content}
+                            title={article.title}
+                            onTextSelect={handleTextSelect}
+                        />
+                    )}
+                    {isPdf && (
+                        <PdfReader
+                            bookPath={getBookUrl()}
                             title={article.title}
                             onTextSelect={handleTextSelect}
                         />
