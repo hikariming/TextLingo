@@ -4,6 +4,10 @@ export interface Article {
     content: string;
     source_url?: string;
     media_path?: string;
+    /** 书籍文件路径 (EPUB/TXT) */
+    book_path?: string;
+    /** 书籍类型: "epub" | "txt" */
+    book_type?: "epub" | "txt";
     created_at: string;
     translated: boolean;
     segments?: ArticleSegment[];

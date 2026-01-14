@@ -148,6 +148,8 @@ pub async fn import_youtube_video(app: AppHandle, url: String) -> Result<Article
         content,
         source_url: Some(url),
         media_path: Some(video_path.to_string_lossy().into_owned()),
+        book_path: None,
+        book_type: None,
         created_at: Utc::now().to_rfc3339(),
         translated: false,
         segments,

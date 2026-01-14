@@ -42,6 +42,7 @@ pub fn run() {
             commands::translate_text,
             commands::analyze_text,
             commands::chat_completion,
+            commands::stream_chat_completion,
             commands::translate_article,
             commands::analyze_article,
             commands::segment_translate_explain_cmd,
@@ -55,6 +56,8 @@ pub fn run() {
             // External
             commands::import_youtube_video_cmd,
             commands::import_local_video_cmd,
+            // 书籍导入
+            commands::import_book_cmd,
             // 字幕提取
             commands::extract_subtitles_cmd,
         ])
@@ -65,11 +68,10 @@ pub fn run() {
                 // Ensure app directories exist
                 let _ = commands::init_app(app_handle.clone()).await;
                 
-                // 启动视频服务器
+                // 启动资源服务器 (视频 + 书籍)
                 let app_data_dir = app_handle.path().app_data_dir().unwrap();
-                let videos_dir = app_data_dir.join("videos");
-                if let Err(e) = video_server::start_video_server(videos_dir).await {
-                    eprintln!("[VideoServer] Failed to start: {}", e);
+                if let Err(e) = video_server::start_resource_server(app_data_dir).await {
+                    eprintln!("[ResourceServer] Failed to start: {}", e);
                 }
             });
             Ok(())

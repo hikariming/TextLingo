@@ -8,7 +8,8 @@
   "common": {
     "refresh": "刷新",
     "close": "关闭",
-    "cancel": "取消"
+    "cancel": "取消",
+    "fast": "快速翻译"
   },
   "header": {
     "configureApiKey": "配置您的 API 密钥以开始使用",
@@ -85,7 +86,15 @@
     "batch": "批量",
     "inputPlaceholder": "输入问题...",
     "attachFile": "附件",
-    "welcome": "你好！我是你的阅读助手。我可以帮你翻译、解释文本，分析语法，或讨论文章内容。"
+    "welcome": "你好！我是你的阅读助手。我可以帮你翻译、解释文本，分析语法，或讨论文章内容。",
+    "quickTranslate": "翻译",
+    "quickTranslateDesc": "翻译为目标语言",
+    "quickExplain": "解释",
+    "quickExplainDesc": "解释文本内容",
+    "quickGrammar": "语法",
+    "quickGrammarDesc": "分析语法结构",
+    "fastTranslate": "开启/关闭快速翻译",
+    "slowResponseTip": "响应较慢？尝试使用 <1>Gemini 3 Flash</1> 等更快的模型以获得即时结果。"
   },
   "newArticle": {
     "title": "新建文章",
@@ -310,5 +319,37 @@
     "error": "字幕提取失败",
     "geminiRequired": "字幕提取需要使用 Gemini 模型。短视频推荐使用 Gemini 3.0 Flash，长视频建议使用 Gemini 3.0 Pro。请在设置中配置。",
     "reExtract": "重新提取"
+  },
+  "bookImport": {
+    "title": "导入书籍",
+    "fileLabel": "书籍文件",
+    "filePlaceholder": "选择 EPUB 或 TXT 文件...",
+    "titleLabel": "书籍标题",
+    "titlePlaceholder": "留空则使用文件名",
+    "description": "支持 EPUB 和 TXT 格式的电子书。EPUB 支持复杂排版，TXT 适合纯文本内容。",
+    "import": "导入书籍",
+    "importing": "导入中...",
+    "fileFilterName": "电子书",
+    "errors": {
+      "fileRequired": "请选择文件",
+      "selectFailed": "选择文件失败",
+      "unsupportedFormat": "不支持的文件格式"
+    }
+  },
+  "epubReader": {
+    "untitled": "未命名书籍",
+    "tableOfContents": "目录",
+    "prevPage": "上一页",
+    "nextPage": "下一页",
+    "decreaseFontSize": "减小字体",
+    "increaseFontSize": "增大字体",
+    "selectedText": "已选择文本："
+  },
+  "txtReader": {
+    "untitled": "未命名文本",
+    "prevPage": "上一页",
+    "nextPage": "下一页",
+    "decreaseFontSize": "减小字体",
+    "increaseFontSize": "增大字体"
   }
 }

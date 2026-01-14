@@ -2,15 +2,15 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "../ui/Dialog";
 import { Button } from "../ui/Button";
-import { Plus, FileText, Youtube, FolderOpen } from "lucide-react";
+import { Plus, FileText, Youtube, FolderOpen, BookOpen } from "lucide-react";
 import { Article } from "../../types";
 import { NewArticleForm } from "./NewArticleForm";
 import { YouTubeImportForm } from "./YouTubeImportForm";
+import { LocalVideoImportForm } from "./LocalVideoImportForm";
+import { BookImportForm } from "./BookImportForm";
 import { cn } from "../../lib/utils";
 
-import { LocalVideoImportForm } from "./LocalVideoImportForm";
-
-type MaterialType = "article" | "youtube" | "local";
+type MaterialType = "article" | "youtube" | "local" | "book";
 
 interface NewMaterialDialogProps {
     isOpen: boolean;
@@ -61,6 +61,19 @@ export function NewMaterialDialog({ isOpen, onClose, onSave }: NewMaterialDialog
                     <button
                         className={cn(
                             "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
+                            activeTab === "book"
+                                ? "bg-purple-500/10 text-purple-500"
+                                : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                        )}
+                        onClick={() => setActiveTab("book")}
+                    >
+                        <BookOpen size={18} />
+                        {t("bookImport.title", "导入书籍")}
+                    </button>
+
+                    <button
+                        className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
                             activeTab === "youtube"
                                 ? "bg-red-500/10 text-red-500"
                                 : "hover:bg-muted text-muted-foreground hover:text-foreground"
@@ -87,10 +100,12 @@ export function NewMaterialDialog({ isOpen, onClose, onSave }: NewMaterialDialog
 
                 {/* Right Content */}
                 <div className="flex-1 p-6 overflow-hidden">
-                    {/* Remove DialogContent wrapper here since we are handling layout manually inside the dialog container */}
                     <div className="h-full">
                         {activeTab === "article" && (
                             <NewArticleForm onSave={handleSave} onCancel={handleClose} />
+                        )}
+                        {activeTab === "book" && (
+                            <BookImportForm onSave={handleSave} onCancel={handleClose} />
                         )}
                         {activeTab === "youtube" && (
                             <YouTubeImportForm onSave={handleSave} onCancel={handleClose} />

@@ -8,7 +8,8 @@
   "common": {
     "refresh": "Refresh",
     "close": "Close",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "fast": "Fast Translate"
   },
   "header": {
     "configureApiKey": "Configure your API key to get started",
@@ -85,7 +86,15 @@
     "batch": "Batch",
     "inputPlaceholder": "Ask a question...",
     "attachFile": "Attach file",
-    "welcome": "Hello! I'm your reading assistant. I can help translate, explain text, analyze grammar, or discuss the article."
+    "welcome": "Hello! I'm your reading assistant. I can help translate, explain text, analyze grammar, or discuss the article.",
+    "quickTranslate": "Translate",
+    "quickTranslateDesc": "Translate to target language",
+    "quickExplain": "Explain",
+    "quickExplainDesc": "Explain the text",
+    "quickGrammar": "Grammar",
+    "quickGrammarDesc": "Analyze grammar",
+    "fastTranslate": "Enable/Disable Fast Translate",
+    "slowResponseTip": "Response slow? Try a faster model like <1>Gemini 3 Flash</1> for instant results."
   },
   "newArticle": {
     "title": "New Article",
@@ -310,5 +319,37 @@
     "error": "Failed to extract subtitles",
     "geminiRequired": "Subtitle extraction requires a Gemini model. We recommend Gemini 3.0 Flash for short videos and Gemini 3.0 Pro for long videos. Please configure in Settings.",
     "reExtract": "Re-extract"
+  },
+  "bookImport": {
+    "title": "Import Book",
+    "fileLabel": "Book File",
+    "filePlaceholder": "Select EPUB or TXT file...",
+    "titleLabel": "Book Title",
+    "titlePlaceholder": "Leave empty to use filename",
+    "description": "Supports EPUB and TXT ebook formats. EPUB supports complex layouts, TXT is for plain text content.",
+    "import": "Import Book",
+    "importing": "Importing...",
+    "fileFilterName": "eBooks",
+    "errors": {
+      "fileRequired": "Please select a file",
+      "selectFailed": "Failed to select file",
+      "unsupportedFormat": "Unsupported file format"
+    }
+  },
+  "epubReader": {
+    "untitled": "Untitled Book",
+    "tableOfContents": "Table of Contents",
+    "prevPage": "Previous Page",
+    "nextPage": "Next Page",
+    "decreaseFontSize": "Decrease Font Size",
+    "increaseFontSize": "Increase Font Size",
+    "selectedText": "Selected text:"
+  },
+  "txtReader": {
+    "untitled": "Untitled Text",
+    "prevPage": "Previous Page",
+    "nextPage": "Next Page",
+    "decreaseFontSize": "Decrease Font Size",
+    "increaseFontSize": "Increase Font Size"
   }
 }

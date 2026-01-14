@@ -1,4 +1,5 @@
 use regex::Regex;
+use futures::StreamExt;
 use crate::types::{
     AnalysisRequest, AnalysisResponse, AnalysisType, ChatRequest, ChatResponse,
     TranslationRequest, TranslationResponse,
@@ -373,6 +374,99 @@ impl AIService {
             model: self.model.clone(),
             tokens_used: None,
         })
+    }
+
+
+
+// ... imports
+
+    pub async fn stream_chat<F>(
+        &self,
+        request: ChatRequest,
+        callback: F,
+    ) -> Result<String, String>
+    where
+        F: Fn(String) + Send + Sync + 'static,
+    {
+        // For now, only support standard OpenAI SSE streaming
+        // Google streaming requires different handling, fallback to normal chat
+        if self.is_google_provider() {
+            let response = self.chat(request).await?;
+            callback(response.content.clone());
+            return Ok(response.content);
+        }
+
+        let messages: Vec<Value> = request
+            .messages
+            .into_iter()
+            .map(|msg| {
+                json!({
+                    "role": msg.role,
+                    "content": msg.content
+                })
+            })
+            .collect();
+
+        let request_body = json!({
+            "model": self.model,
+            "messages": messages,
+            "temperature": request.temperature.unwrap_or(0.7),
+            "stream": true
+        });
+
+        let mut request_builder = self
+            .client
+            .post(self.get_api_url())
+            .header("Content-Type", "application/json");
+        
+        if !self.api_key.is_empty() {
+            request_builder = request_builder.header("Authorization", format!("Bearer {}", self.api_key));
+        }
+
+        let response = request_builder
+            .json(&request_body)
+            .send()
+            .await
+            .map_err(|e| format!("Failed to send request: {}", e))?;
+
+        if !response.status().is_success() {
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(format!("API error: {}", error_text));
+        }
+
+        let mut stream = response.bytes_stream();
+        let mut full_content = String::new();
+
+        while let Some(item) = stream.next().await {
+            let chunk = item.map_err(|e| format!("Error reading stream: {}", e))?;
+            let chunk_str = String::from_utf8_lossy(&chunk);
+            
+            for line in chunk_str.lines() {
+                let line = line.trim();
+                if line.is_empty() || !line.starts_with("data: ") {
+                    continue;
+                }
+
+                let data = &line[6..];
+                if data == "[DONE]" {
+                    continue;
+                }
+
+                if let Ok(json) = serde_json::from_str::<Value>(data) {
+                    if let Some(content) = json["choices"][0]["delta"]["content"].as_str() {
+                        if !content.is_empty() {
+                            full_content.push_str(content);
+                            callback(content.to_string());
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(full_content)
     }
 
     async fn chat_google(&self, request: ChatRequest) -> Result<ChatResponse, String> {

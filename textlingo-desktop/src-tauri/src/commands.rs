@@ -11,10 +11,11 @@ use crate::types::{
     TranslationRequest, TranslationResponse, ModelConfig, ArticleSegment,
     FavoriteVocabulary, FavoriteGrammar,
 };
-use tauri::{AppHandle, State, Manager};
+use tauri::{AppHandle, State, Manager, Emitter};
 use uuid::Uuid;
 use reqwest::Client;
 use std::time::Duration;
+use std::path::PathBuf;
 
 pub type AppState<'a> = State<'a, AIServiceCache>;
 
@@ -366,6 +367,8 @@ pub async fn create_article(
         content: content.clone(),
         source_url: source_url.clone(),
         media_path: None,
+        book_path: None,
+        book_type: None,
         created_at: created_at.clone(),
         translated: false,
         segments,
@@ -519,6 +522,26 @@ pub async fn chat_completion(
 ) -> Result<ChatResponse, String> {
     let ai_service = get_ai_service(&state).await?;
     ai_service.chat(request).await
+}
+
+#[tauri::command]
+pub async fn stream_chat_completion(
+    app_handle: AppHandle,
+    state: AppState<'_>,
+    request: ChatRequest,
+    event_id: String,
+) -> Result<String, String> {
+    let ai_service = get_ai_service(&state).await?;
+    
+    // Create a callback that emits events to the frontend
+    let app_handle_clone = app_handle.clone();
+    let event_name = format!("chat-stream://{}", event_id);
+    
+    ai_service.stream_chat(request, move |chunk| {
+        // Emit the chunk to the frontend
+        // We ignore errors here as we can't do much if emission fails
+        let _ = app_handle_clone.emit(&event_name, chunk);
+    }).await
 }
 
 #[tauri::command]
@@ -1033,6 +1056,8 @@ pub async fn import_local_video_cmd(
         content,
         source_url: Some(format!("file://{}", file_path)),
         media_path: Some(dest_path.to_string_lossy().into_owned()),
+        book_path: None,
+        book_type: None,
         created_at,
         translated: false,
         segments: Vec::new(),
@@ -1120,6 +1145,114 @@ pub async fn extract_subtitles_cmd(
     save_article(&app_handle, &article_id, &updated_json)?;
     
     println!("[ExtractSubtitles] 字幕提取完成并保存");
+    
+    Ok(article)
+}
+
+// ============================================================================
+// 书籍导入功能 - 支持 EPUB 和 TXT 格式
+// ============================================================================
+
+const BOOKS_DIR: &str = "books";
+
+/// 确保书籍存储目录存在
+fn ensure_books_dir(app_handle: &AppHandle) -> Result<PathBuf, String> {
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("获取应用数据目录失败: {}", e))?;
+    
+    let books_dir = app_data_dir.join(BOOKS_DIR);
+    if !books_dir.exists() {
+        std::fs::create_dir_all(&books_dir)
+            .map_err(|e| format!("创建书籍目录失败: {}", e))?;
+    }
+    
+    Ok(books_dir)
+}
+
+/// 导入书籍文件 (EPUB/TXT)
+/// 将文件复制到应用数据目录并创建 Article 记录
+#[tauri::command]
+pub async fn import_book_cmd(
+    app_handle: AppHandle,
+    file_path: String,
+    title: Option<String>,
+) -> Result<Article, String> {
+    use std::path::Path;
+    
+    let src_path = Path::new(&file_path);
+    
+    // 验证文件存在
+    if !src_path.exists() {
+        return Err(format!("文件不存在: {}", file_path));
+    }
+    
+    // 获取文件扩展名并验证格式
+    let ext = src_path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_lowercase())
+        .ok_or("无法识别文件格式")?;
+    
+    let book_type = match ext.as_str() {
+        "epub" => "epub",
+        "txt" => "txt",
+        _ => return Err(format!("不支持的文件格式: {}", ext)),
+    };
+    
+    // 获取文件名作为默认标题
+    let file_name = src_path
+        .file_stem()
+        .and_then(|n| n.to_str())
+        .unwrap_or("未命名书籍");
+    
+    let book_title = title.unwrap_or_else(|| file_name.to_string());
+    
+    // 确保书籍目录存在
+    let books_dir = ensure_books_dir(&app_handle)?;
+    
+    // 生成唯一 ID 和目标路径
+    let id = Uuid::new_v4().to_string();
+    let dest_name = format!("{}.{}", id, ext);
+    let dest_path = books_dir.join(&dest_name);
+    
+    // 复制文件到应用数据目录
+    std::fs::copy(src_path, &dest_path)
+        .map_err(|e| format!("复制文件失败: {}", e))?;
+    
+    let created_at = chrono::Utc::now().to_rfc3339();
+    
+    // 读取 TXT 文件内容作为 content，EPUB 使用占位符
+    let content = if book_type == "txt" {
+        // 尝试读取 TXT 文件内容
+        std::fs::read_to_string(&dest_path)
+            .unwrap_or_else(|_| format!("[书籍已导入] {}", book_title))
+    } else {
+        // EPUB 文件内容由前端阅读器渲染，这里只存储元数据
+        format!("[EPUB 书籍] {}", book_title)
+    };
+    
+    // 创建 Article 记录
+    let article = Article {
+        id: id.clone(),
+        title: book_title,
+        content,
+        source_url: Some(format!("file://{}", file_path)),
+        media_path: None,
+        book_path: Some(dest_path.to_string_lossy().into_owned()),
+        book_type: Some(book_type.to_string()),
+        created_at,
+        translated: false,
+        segments: Vec::new(), // 书籍不预分段，由阅读器处理
+    };
+    
+    // 保存文章记录
+    let article_json = serde_json::to_string(&article)
+        .map_err(|e| format!("序列化文章失败: {}", e))?;
+    save_article(&app_handle, &id, &article_json)?;
+    
+    println!("[ImportBook] 书籍导入成功: {} ({})", article.title, book_type);
     
     Ok(article)
 }

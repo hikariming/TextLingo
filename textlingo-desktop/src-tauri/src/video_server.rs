@@ -14,21 +14,36 @@ use std::io::SeekFrom;
 /// 视频服务器端口（固定使用一个不太常用的端口）
 pub const VIDEO_SERVER_PORT: u16 = 19420;
 
-/// 启动视频服务器（在后台运行）
-pub async fn start_video_server(videos_dir: PathBuf) -> Result<(), String> {
-    let videos_dir = Arc::new(videos_dir);
+/// 启动资源服务器（在后台运行）
+/// 提供视频和书籍文件的本地访问
+pub async fn start_resource_server(app_data_dir: PathBuf) -> Result<(), String> {
+    let app_data_dir = Arc::new(app_data_dir);
     
-    // 创建路由: GET /video/{filename}
+    // 视频目录: app_data_dir/videos
     let videos_dir_filter = {
-        let dir = videos_dir.clone();
-        warp::any().map(move || dir.clone())
+        let dir = app_data_dir.join("videos");
+        warp::any().map(move || Arc::new(dir.clone()))
+    };
+
+    // 书籍目录: app_data_dir/books
+    let books_dir_filter = {
+        let dir = app_data_dir.join("books");
+        warp::any().map(move || Arc::new(dir.clone()))
     };
     
+    // GET /video/{filename}
     let video_route = warp::path("video")
         .and(warp::path::param::<String>())
         .and(warp::header::optional::<String>("range"))
         .and(videos_dir_filter)
-        .and_then(serve_video);
+        .and_then(serve_file);
+
+    // GET /book/{filename}
+    let book_route = warp::path("book")
+        .and(warp::path::param::<String>())
+        .and(warp::header::optional::<String>("range"))
+        .and(books_dir_filter)
+        .and_then(serve_file);
     
     // CORS 支持（允许来自 Tauri webview 的请求）
     let cors = warp::cors()
@@ -36,11 +51,11 @@ pub async fn start_video_server(videos_dir: PathBuf) -> Result<(), String> {
         .allow_methods(vec!["GET", "HEAD", "OPTIONS"])
         .allow_headers(vec!["range", "content-type"]);
     
-    let routes = video_route.with(cors);
+    let routes = video_route.or(book_route).with(cors);
     
     // 在后台启动服务器
     tokio::spawn(async move {
-        println!("[VideoServer] Starting on port {}", VIDEO_SERVER_PORT);
+        println!("[ResourceServer] Starting on port {}", VIDEO_SERVER_PORT);
         warp::serve(routes)
             .run(([127, 0, 0, 1], VIDEO_SERVER_PORT))
             .await;
@@ -49,21 +64,23 @@ pub async fn start_video_server(videos_dir: PathBuf) -> Result<(), String> {
     Ok(())
 }
 
-/// 提供视频文件（支持 Range 请求）
-async fn serve_video(
+/// 提供文件（支持 Range 请求）
+/// 通用于视频和书籍
+async fn serve_file(
     filename: String,
     range_header: Option<String>,
-    videos_dir: Arc<PathBuf>,
+    base_dir: Arc<PathBuf>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     // URL 解码文件名
     let decoded_filename = urlencoding::decode(&filename)
         .map(|s| s.to_string())
         .unwrap_or(filename);
     
-    let file_path = videos_dir.join(&decoded_filename);
+    let file_path = base_dir.join(&decoded_filename);
     
-    // 安全检查：确保文件在视频目录内
-    if !file_path.starts_with(videos_dir.as_ref()) {
+    // 安全检查：确保文件在指定目录内
+    if !file_path.starts_with(base_dir.as_ref()) {
+        println!("[ResourceServer] Forbidden access: {:?}", file_path);
         return Ok(Response::builder()
             .status(StatusCode::FORBIDDEN)
             .body(Body::empty())
@@ -73,10 +90,11 @@ async fn serve_video(
     // 打开文件
     let mut file = match File::open(&file_path).await {
         Ok(f) => f,
-        Err(_) => {
+        Err(e) => {
+            println!("[ResourceServer] File not found: {:?} ({})", file_path, e);
             return Ok(Response::builder()
                 .status(StatusCode::NOT_FOUND)
-                .body(Body::from("Video not found"))
+                .body(Body::from("File not found"))
                 .unwrap());
         }
     };
@@ -100,6 +118,10 @@ async fn serve_video(
         "video/webm"
     } else if decoded_filename.ends_with(".mkv") {
         "video/x-matroska"
+    } else if decoded_filename.ends_with(".epub") {
+        "application/epub+zip"
+    } else if decoded_filename.ends_with(".txt") {
+        "text/plain; charset=utf-8"
     } else {
         "application/octet-stream"
     };
@@ -114,8 +136,8 @@ async fn serve_video(
         let end: u64 = if parts.len() > 1 && !parts[1].is_empty() {
             parts[1].parse().unwrap_or(file_size - 1)
         } else {
-            // 如果没有指定 end，返回一个合理的块大小（1MB）
-            std::cmp::min(start + 1024 * 1024, file_size - 1)
+            // 如果没有指定 end，返回一个合理的块大小（10MB，EPUB可能需要较大块）
+            std::cmp::min(start + 10 * 1024 * 1024, file_size - 1)
         };
         
         let end = std::cmp::min(end, file_size - 1);

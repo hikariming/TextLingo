@@ -4,6 +4,7 @@ import { BookOpen, RotateCw, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ArticleList } from "./components/features/ArticleList";
 import { ArticleReader } from "./components/features/ArticleReader";
+import { BookReader } from "./components/features/BookReader";
 import { NewMaterialButton } from "./components/features/NewMaterialDialog";
 import { FavoritesPage } from "./components/features/FavoritesPage";
 import { SettingsButton } from "./components/features/SettingsDialog";
@@ -157,15 +158,23 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">
         {selectedArticle ? (
-          <ArticleReader
-            article={selectedArticle}
-            onBack={handleBackToList}
-            onNext={handleNextArticle}
-            onPrev={handlePrevArticle}
-            hasNext={selectedIndex < articles.length - 1}
-            hasPrev={selectedIndex > 0}
-            onUpdate={handleArticleUpdate}
-          />
+          selectedArticle.book_path ? (
+            <BookReader
+              article={selectedArticle}
+              onBack={handleBackToList}
+              onUpdate={handleArticleUpdate}
+            />
+          ) : (
+            <ArticleReader
+              article={selectedArticle}
+              onBack={handleBackToList}
+              onNext={handleNextArticle}
+              onPrev={handlePrevArticle}
+              hasNext={selectedIndex < articles.length - 1}
+              hasPrev={selectedIndex > 0}
+              onUpdate={handleArticleUpdate}
+            />
+          )
         ) : showFavorites ? (
           <FavoritesPage
             onBack={handleBackFromFavorites}
