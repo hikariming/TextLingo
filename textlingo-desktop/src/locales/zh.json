@@ -163,7 +163,8 @@
     "syncErrors": {
       "providerNotOpenRouter": "该服务商不支持在线同步模型列表",
       "apiKeyRequired": "同步模型需要 API 密钥",
-      "syncFailed": "同步模型失败"
+      "syncFailed": "同步模型失败",
+      "modelHelpTooltip": "不会设置模型？点我查看文档"
     },
     "providers": {
       "openai": "OpenAI",

@@ -163,7 +163,8 @@
     "syncErrors": {
       "providerNotOpenRouter": "Model sync is not supported for this provider",
       "apiKeyRequired": "API Key is required to sync models",
-      "syncFailed": "Failed to sync models"
+      "syncFailed": "Failed to sync models",
+      "modelHelpTooltip": "Don't know how to set up? Click to view documentation"
     },
     "providers": {
       "openai": "OpenAI",

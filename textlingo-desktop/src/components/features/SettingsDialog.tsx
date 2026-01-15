@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogFooter } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
-import { Settings, Plus, Trash2, Edit2, Check, RefreshCw, Loader2 } from "lucide-react";
+import { Settings, Plus, Trash2, Edit2, Check, RefreshCw, Loader2, HelpCircle } from "lucide-react";
 import { useTheme } from "../theme-provider";
 
 interface ModelConfig {
@@ -548,9 +549,20 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
           {/* Model Configurations Section */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium text-foreground">
-                {t("settings.modelConfigs")}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-medium text-foreground">
+                  {t("settings.modelConfigs")}
+                </h3>
+                <button
+                  type="button"
+                  // 点击后在浏览器打开文档链接
+                  onClick={() => openUrl("https://www.openkoto.com/")}
+                  className="text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                  title={t("settings.syncErrors.modelHelpTooltip")}
+                >
+                  <HelpCircle size={16} />
+                </button>
+              </div>
               <Button
                 type="button"
                 variant="secondary"

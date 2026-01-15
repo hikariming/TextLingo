@@ -152,7 +152,8 @@
     "syncErrors": {
       "providerNotOpenRouter": "このプロバイダーはモデルの同期に対応していません",
       "apiKeyRequired": "モデルの同期にはAPIキーが必要です",
-      "syncFailed": "モデルの同期に失敗しました"
+      "syncFailed": "モデルの同期に失敗しました",
+      "modelHelpTooltip": "モデルの設定方法がわからない場合、ここをクリックしてドキュメントを確認してください"
     },
     "providers": {
       "openai": "OpenAI",
