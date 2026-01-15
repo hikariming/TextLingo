@@ -125,6 +125,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
     google: DEFAULT_MODELS.google.map(m => ({ value: m.value, label: t(m.labelKey) })),
     "google-ai-studio": DEFAULT_MODELS["google-ai-studio"].map(m => ({ value: m.value, label: t(m.labelKey) })),
   });
+  const [modelFilter, setModelFilter] = useState("");
 
   // Load config on mount
   useEffect(() => {
@@ -293,7 +294,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
 
     const provider = editingConfig.api_provider;
     // Ensure provider is defined and valid
-    if (!provider || !["openrouter", "openai", "deepseek", "siliconflow", "302ai", "google"].includes(provider)) {
+    if (!provider || !["openrouter", "openai", "openai-compatible", "deepseek", "siliconflow", "302ai", "google"].includes(provider)) {
       if (!isAuto) setSyncError(t("settings.syncErrors.providerNotSupported") || "Provider not supported for sync");
       return;
     }
@@ -315,8 +316,13 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
           "Authorization": `Bearer ${editingConfig.api_key}`,
           "Content-Type": "application/json",
         };
-      } else if (provider === "openai") {
-        url = "https://api.openai.com/v1/models";
+      } else if (provider === "openai" || provider === "openai-compatible") {
+        if (editingConfig.base_url) {
+          const baseUrl = editingConfig.base_url.replace(/\/$/, "");
+          url = baseUrl.endsWith("/models") ? baseUrl : `${baseUrl}/models`;
+        } else {
+          url = "https://api.openai.com/v1/models";
+        }
         headers = {
           "Authorization": `Bearer ${editingConfig.api_key}`,
           "Content-Type": "application/json",
@@ -369,10 +375,10 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
               label: m.name || m.id,
             }));
         }
-      } else if (provider === "openai") {
+      } else if (provider === "openai" || provider === "openai-compatible") {
         if (data.data && Array.isArray(data.data)) {
           syncedModels = data.data
-            .filter((m: any) => m.id.includes("gpt") || m.id.includes("o1"))
+            .filter((m: any) => provider === "openai-compatible" || m.id.includes("gpt") || m.id.includes("o1"))
             .map((m: any) => ({
               value: m.id,
               label: m.id,
@@ -446,9 +452,20 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
     }
   };
 
-  const availableModels = editingConfig?.api_provider
+  const availableModels = (editingConfig?.api_provider
     ? dynamicModels[editingConfig.api_provider] || []
-    : [];
+    : []).filter(model => {
+      if (!modelFilter) return true;
+      try {
+        const regex = new RegExp(modelFilter, "i");
+        return regex.test(model.value) || regex.test(model.label);
+      } catch (e) {
+        // Fallback to simple includes if regex is invalid
+        const lowerFilter = modelFilter.toLowerCase();
+        return model.value.toLowerCase().includes(lowerFilter) ||
+          model.label.toLowerCase().includes(lowerFilter);
+      }
+    });
 
   // Auto-sync when provider changes (if key exists)
   useEffect(() => {
@@ -659,7 +676,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                 </div>
 
                 {/* Base URL - show for openai-compatible, ollama, lmstudio */}
-                {["openai-compatible", "ollama", "lmstudio"].includes(editingConfig.api_provider || "") && (
+                {["openai", "openai-compatible", "ollama", "lmstudio"].includes(editingConfig.api_provider || "") && (
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       {t("settings.baseUrl")}
@@ -698,7 +715,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                     <label className="block text-sm font-medium text-foreground">
                       {t("settings.model")}
                     </label>
-                    {["openrouter", "openai", "deepseek", "google", "google-ai-studio"].includes(editingConfig.api_provider || "") && (
+                    {["openrouter", "openai", "deepseek", "google", "google-ai-studio", "302ai", "siliconflow"].includes(editingConfig.api_provider || "") && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -713,6 +730,17 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                       </Button>
                     )}
                   </div>
+                  {!useCustomModel && (
+                    <div className="mb-2">
+                      <Input
+                        type="text"
+                        value={modelFilter}
+                        onChange={(e) => setModelFilter(e.target.value)}
+                        placeholder={t("settings.modelFilterPlaceholder")}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                  )}
                   {!useCustomModel ? (
                     <Select
                       value={editingConfig.model || ""}

@@ -47,7 +47,7 @@ Built with **Tauri + React + Rust**, it runs locally on your machine for **fast 
 | Web | Convenient online access, no installation required | [https://openkoto.app](https://openkoto.app) |
 | Source Code | 🆓 Fully open source, Apache 2.0 License | [GitHub Repository](https://github.com/hikariming/OpenKoto) |
 
-**中国用户下载**: [百度网盘](https://pan.baidu.com/s/1OGcadEHPohl0QZbRwiK32w?pwd=f2pi) (提取码: f2pi)
+**中国用户下载**: [百度网盘](https://pan.baidu.com/s/1vo9ZL-5wcUF31hFwE-Khrg?pwd=w2ab) (提取码: w2ab)
 
 ## Core Features
 

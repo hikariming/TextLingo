@@ -139,10 +139,11 @@
     "customModel": "Custom Model...",
     "customModelPlaceholder": "Enter custom model ID (e.g., provider/model-name)",
     "usePresetModel": "Use Preset Models",
+    "modelFilterPlaceholder": "Search models (Regex supported)...",
     "syncModels": "Sync Models",
-    "syncModelsTooltip": "Fetch latest models from OpenRouter",
+    "syncModelsTooltip": "Fetch latest models from provider",
     "syncing": "Syncing...",
-    "modelsLoaded": "{{count}} models loaded from OpenRouter",
+    "modelsLoaded": "{{count}} models loaded",
     "modelConfigs": "Model Configurations",
     "addConfig": "Add Config",
     "noConfigs": "No configurations yet. Click above to add one.",
@@ -160,7 +161,7 @@
       "cannotDeleteLastConfig": "Cannot delete the last configuration"
     },
     "syncErrors": {
-      "providerNotOpenRouter": "Model sync is only available for OpenRouter",
+      "providerNotOpenRouter": "Model sync is not supported for this provider",
       "apiKeyRequired": "API Key is required to sync models",
       "syncFailed": "Failed to sync models"
     },

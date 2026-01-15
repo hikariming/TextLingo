@@ -139,10 +139,11 @@
     "customModel": "自定义模型...",
     "customModelPlaceholder": "输入自定义模型 ID（例如：provider/model-name）",
     "usePresetModel": "使用预设模型",
+    "modelFilterPlaceholder": "搜索模型 (支持正则)...",
     "syncModels": "同步模型",
-    "syncModelsTooltip": "从 OpenRouter 获取最新模型列表",
+    "syncModelsTooltip": "从服务商获取最新模型列表",
     "syncing": "同步中...",
-    "modelsLoaded": "已从 OpenRouter 加载 {{count}} 个模型",
+    "modelsLoaded": "已加载 {{count}} 个模型",
     "modelConfigs": "模型配置",
     "addConfig": "添加配置",
     "noConfigs": "暂无配置，点击上方按钮添加",
@@ -160,7 +161,7 @@
       "cannotDeleteLastConfig": "至少需要保留一个配置"
     },
     "syncErrors": {
-      "providerNotOpenRouter": "模型同步仅适用于 OpenRouter",
+      "providerNotOpenRouter": "该服务商不支持在线同步模型列表",
       "apiKeyRequired": "同步模型需要 API 密钥",
       "syncFailed": "同步模型失败"
     },

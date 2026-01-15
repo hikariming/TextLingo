@@ -715,15 +715,6 @@ pub async fn get_or_create_ai_service(
     api_key: String,
     provider: String,
     model: String,
-) -> Result<(), String> {
-    get_or_create_ai_service_with_base_url(cache, api_key, provider, model, None).await
-}
-
-pub async fn get_or_create_ai_service_with_base_url(
-    cache: &AIServiceCache,
-    api_key: String,
-    provider: String,
-    model: String,
     base_url: Option<String>,
 ) -> Result<(), String> {
     let mut cache_guard = cache.write().await;

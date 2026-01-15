@@ -127,11 +127,12 @@
     "close": "閉じる",
     "customModel": "カスタムモデル...",
     "customModelPlaceholder": "カスタムモデルIDを入力（例：provider/model-name）",
-    "usePresetModel": "プリセットモデルを使用",
+    "usePresetModel": "プリセット模型を使用",
+    "modelFilterPlaceholder": "モデルを検索 (正規表現対応)...",
     "syncModels": "モデルを同期",
-    "syncModelsTooltip": "OpenRouterから最新のモデルリストを取得",
+    "syncModelsTooltip": "プロバイダーから最新のモデルリストを取得",
     "syncing": "同期中...",
-    "modelsLoaded": "OpenRouterから{{count}}個のモデルを読み込みました",
+    "modelsLoaded": "{{count}}個のモデルを読み込みました",
     "modelConfigs": "モデル設定",
     "addConfig": "設定を追加",
     "noConfigs": "設定がありません。上のボタンをクリックして追加してください。",
@@ -149,7 +150,7 @@
       "cannotDeleteLastConfig": "最後の設定は削除できません"
     },
     "syncErrors": {
-      "providerNotOpenRouter": "モデル同期はOpenRouterのみ利用可能です",
+      "providerNotOpenRouter": "このプロバイダーはモデルの同期に対応していません",
       "apiKeyRequired": "モデルの同期にはAPIキーが必要です",
       "syncFailed": "モデルの同期に失敗しました"
     },

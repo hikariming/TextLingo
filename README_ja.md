@@ -46,6 +46,9 @@ OpenKoto Desktop は、**オープンソースの AI 搭載言語学習アプリ
 | **デスクトップ版** | **おすすめ** 🖥️ ネイティブ性能、ローカルデータ、Mac/Windows/Linux 対応 | [最新版をダウンロード](https://github.com/hikariming/OpenKoto/releases) |
 | Web 版 | インストール不要、オンラインで利用可能 | [https://openkoto.app](https://openkoto.app) |
 | ソースコード | 🆓 完全オープンソース、Apache 2.0 ライセンス | [GitHub リポジトリ](https://github.com/hikariming/OpenKoto) |
+ 
+**中国国内向けダウンロード**: [百度網盤](https://pan.baidu.com/s/1vo9ZL-5wcUF31hFwE-Khrg?pwd=w2ab) (パスワード: w2ab)
+
 
 ## 主な機能
 

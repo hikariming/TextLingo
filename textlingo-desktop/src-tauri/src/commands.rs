@@ -174,6 +174,7 @@ pub async fn get_config(
                     model_config.api_key.clone(),
                     model_config.api_provider.clone(),
                     model_config.model.clone(),
+                    model_config.base_url.clone(),
                 )
                 .await;
             }
@@ -232,6 +233,7 @@ pub async fn save_model_config(
             config.api_key.clone(),
             config.api_provider.clone(),
             config.model.clone(),
+            config.base_url.clone(),
         ).await?;
     }
 
@@ -286,6 +288,7 @@ pub async fn set_active_model_config(
         config.api_key.clone(),
         config.api_provider.clone(),
         config.model.clone(),
+        config.base_url.clone(),
     ).await?;
 
     Ok(config)
@@ -343,7 +346,7 @@ pub async fn set_api_key(
     save_config(&app_handle, &app_config)?;
 
     // Update AI service cache
-    get_or_create_ai_service(&state, config.api_key.clone(), config.api_provider.clone(), config.model.clone()).await?;
+    get_or_create_ai_service(&state, config.api_key.clone(), config.api_provider.clone(), config.model.clone(), config.base_url.clone()).await?;
 
     Ok("API key saved successfully".to_string())
 }
