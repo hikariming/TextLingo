@@ -47,7 +47,6 @@ OpenKoto Desktop 是一款**开源的 AI 驱动语言学习应用**，让你可�
 | 网页版 | 在线使用，无需安装 | [https://openkoto.app](https://openkoto.app) |
 | 源代码 | 🆓 完全开源，Apache 2.0 许可证 | [GitHub 仓库](https://github.com/hikariming/OpenKoto) |
 
-**国内下载**: [百度网盘](https://pan.baidu.com/s/1vo9ZL-5wcUF31hFwE-Khrg?pwd=w2ab) (提取码: w2ab)
 
 ## 核心特性
 
