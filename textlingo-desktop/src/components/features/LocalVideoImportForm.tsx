@@ -69,7 +69,7 @@ export function LocalVideoImportForm({ onSave, onCancel }: LocalVideoImportFormP
                 )}
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                         {t("localImport.fileLabel")}
                     </label>
                     <div className="flex gap-2">
@@ -78,7 +78,7 @@ export function LocalVideoImportForm({ onSave, onCancel }: LocalVideoImportFormP
                             readOnly
                             placeholder={t("localImport.filePlaceholder")}
                             disabled={isImporting}
-                            className="text-gray-400"
+                            className="text-muted-foreground"
                         />
                         <Button
                             variant="secondary"
@@ -89,7 +89,7 @@ export function LocalVideoImportForm({ onSave, onCancel }: LocalVideoImportFormP
                             <FolderOpen size={18} />
                         </Button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-muted-foreground mt-2">
                         {t("localImport.description")}
                     </p>
                 </div>

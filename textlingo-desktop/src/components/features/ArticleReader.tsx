@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { Button } from "../ui/Button";
 import { Textarea } from "../ui/Textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
@@ -73,9 +74,58 @@ export function ArticleReader({
 
   // 字幕提取状态
   const [isExtractingSubtitles, setIsExtractingSubtitles] = useState(false);
+  const [extractionProgress, setExtractionProgress] = useState<string | null>(null);
 
   // 成功提示消息状态
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // 字幕提取进度事件监听
+  useEffect(() => {
+    let unlisten: UnlistenFn | undefined;
+
+    const setupListener = async () => {
+      unlisten = await listen<{ phase: string; message: string; current?: number; total?: number; count?: number }>(
+        `subtitle-extraction-progress://${article.id}`,
+        (event) => {
+          console.log("[ArticleReader] Progress event:", event.payload);
+          const { phase, message, current, total, count } = event.payload;
+
+          if (phase === "chunk" && current !== undefined && total !== undefined) {
+            // 分片提取进度
+            setExtractionProgress(t("subtitleExtraction.progress.chunk", { current, total }) || `分片提取中: ${current}/${total}`);
+          } else if (phase === "audio") {
+            setExtractionProgress(t("subtitleExtraction.progress.audio") || "提取音频中...");
+          } else if (phase === "transcribe") {
+            setExtractionProgress(t("subtitleExtraction.progress.transcribe") || "转录音频中...");
+          } else if (phase === "merge") {
+            setExtractionProgress(t("subtitleExtraction.progress.merge") || "合并排序去重中...");
+          } else if (phase === "done") {
+            setExtractionProgress(t("subtitleExtraction.success"));
+            setSuccessMessage(t("subtitleExtraction.successMessage", { count: count || 0 }));
+
+            // 3秒后自动刷新页面以显示新字幕
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
+          } else if (phase === "start" || phase === "chunked") {
+            setExtractionProgress(message);
+          } else {
+            setExtractionProgress(message);
+          }
+        }
+      );
+    };
+
+    if (article.media_path) {
+      setupListener();
+    }
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, [article.id, article.media_path, t]);
 
 
 
@@ -677,6 +727,7 @@ export function ArticleReader({
                         onExtractSubtitles={handleExtractSubtitles}
                         articleTitle={article.title}
                         articleId={article.id}
+                        extractionProgress={extractionProgress}
                       />
                     );
                   })()}

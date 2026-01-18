@@ -46,13 +46,30 @@ export function YouTubeImportForm({ onSave, onCancel }: YouTubeImportFormProps) 
         <div className="flex flex-col h-full">
             <div className="flex-1 space-y-4">
                 {error && (
-                    <div className="mb-4 p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-300 text-sm break-all">
-                        {error}
+                    <div className="mb-4">
+                        <div className="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-300 text-sm break-words">
+                            {error.includes("登录") || error.includes("Sign in") || error.includes("login") || error.includes("Sign in to confirm you're not a bot") ? (
+                                <div className="space-y-3">
+                                    <p>{t("youtubeImport.errors.loginRequiredTip")}</p>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-full border-red-700 hover:bg-red-900/50 text-red-200"
+                                        onClick={() => window.open(url, "_blank")}
+                                    >
+                                        {t("youtubeImport.openInBrowser")}
+                                    </Button>
+                                    <p className="text-[10px] opacity-70 border-t border-red-700/50 pt-2 break-all">{error}</p>
+                                </div>
+                            ) : (
+                                <div className="break-all">{error}</div>
+                            )}
+                        </div>
                     </div>
                 )}
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                         {t("youtubeImport.urlLabel")}
                     </label>
                     <div className="flex gap-2">
@@ -63,7 +80,7 @@ export function YouTubeImportForm({ onSave, onCancel }: YouTubeImportFormProps) 
                             disabled={isImporting}
                         />
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-muted-foreground mt-2">
                         {t("youtubeImport.processing")} (Downloads video & subtitles)
                     </p>
                 </div>

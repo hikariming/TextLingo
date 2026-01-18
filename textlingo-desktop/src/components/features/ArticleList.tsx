@@ -64,14 +64,14 @@ export function ArticleList({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
 
   if (articles.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-muted-foreground">
         <FileText className="mx-auto h-12 w-12 mb-4 opacity-50" />
         <p className="text-lg font-medium mb-2">{t("articleList.noArticles")}</p>
         <p className="text-sm">{t("articleList.createFirst")}</p>

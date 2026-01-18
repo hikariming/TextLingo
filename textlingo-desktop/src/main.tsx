@@ -7,7 +7,7 @@ import { ThemeProvider } from "./components/theme-provider";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+    <ThemeProvider defaultThemeName="california" defaultThemeMode="system">
       <App />
     </ThemeProvider>
   </React.StrictMode>

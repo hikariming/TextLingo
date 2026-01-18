@@ -168,15 +168,15 @@ export function NewArticleForm({ onSave, onCancel }: NewArticleFormProps) {
                     </div>
                 )}
                 {/* Hint */}
-                <div className="flex gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-blue-200/90 mb-4">
-                    <Info className="w-5 h-5 shrink-0 text-blue-400 mt-0.5" />
+                <div className="flex gap-3 p-3 bg-primary/10 border border-primary/20 rounded-lg text-sm text-foreground/90 mb-4">
+                    <Info className="w-5 h-5 shrink-0 text-primary mt-0.5" />
                     <p>{t("newArticle.hint", "This feature is for sentence-by-sentence intensive reading...")}</p>
                 </div>
 
                 {/* Title */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                        {t("newArticle.titleLabel")} <span className="text-gray-500">{t("newArticle.optional")}</span>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                        {t("newArticle.titleLabel")} <span className="text-muted-foreground">{t("newArticle.optional")}</span>
                     </label>
                     <Input
                         value={title}
@@ -187,8 +187,8 @@ export function NewArticleForm({ onSave, onCancel }: NewArticleFormProps) {
 
                 {/* Source URL */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                        {t("newArticle.sourceUrlLabel")} <span className="text-gray-500">{t("newArticle.optional")}</span>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                        {t("newArticle.sourceUrlLabel")} <span className="text-muted-foreground">{t("newArticle.optional")}</span>
                     </label>
                     <div className="flex gap-2 items-center">
                         <Input
@@ -226,7 +226,7 @@ export function NewArticleForm({ onSave, onCancel }: NewArticleFormProps) {
                         </Button>
                     </div>
                     {useBackend && (
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                             Using backend API for better content extraction
                         </p>
                     )}
@@ -235,7 +235,7 @@ export function NewArticleForm({ onSave, onCancel }: NewArticleFormProps) {
                 {/* Content */}
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <label className="block text-sm font-medium text-gray-300">
+                        <label className="block text-sm font-medium text-foreground">
                             {t("newArticle.contentLabel")} <span className="text-red-500">{t("newArticle.required")}</span>
                         </label>
                         <Button variant="ghost" size="sm" onClick={handlePaste}>

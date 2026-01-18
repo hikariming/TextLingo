@@ -161,7 +161,7 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
                 {/* Translation */}
                 {(explanation?.translation || (isLoading && streamingContent)) && (
                     <Section
-                        icon={<Languages size={18} className="text-blue-500" />}
+                        icon={<Languages size={18} className="text-primary" />}
                         title={t("articleReader.translation") || "Translation"}
                     >
                         <div className="text-foreground leading-relaxed">

@@ -132,6 +132,7 @@
     "targetLanguage": "Default Target Language",
     "interfaceLanguage": "Interface Language",
     "saveSettings": "Save Settings",
+    "resetConfig": "Reset Configuration",
     "saving": "Saving...",
     "saveConfig": "Save Config",
     "cancel": "Cancel",
@@ -158,7 +159,8 @@
       "apiKeyRequired": "API Key is required",
       "modelRequired": "Model is required",
       "configNameRequired": "Config name is required",
-      "cannotDeleteLastConfig": "Cannot delete the last configuration"
+      "cannotDeleteLastConfig": "Cannot delete the last configuration",
+      "configCorrupted": "The configuration file is corrupted and existing settings cannot be read. Please reset and create a new configuration."
     },
     "syncErrors": {
       "providerNotOpenRouter": "Model sync is not supported for this provider",
@@ -181,12 +183,17 @@
     "baseUrl": "Base URL",
     "baseUrlPlaceholder": "https://your-api-endpoint.com/v1",
     "baseUrlHelp": "Enter the API endpoint URL (e.g., http://localhost:11434/v1)",
+    "baseUrlTip": "Tip: OpenAI compatible endpoints usually end with /v1 and should not include /chat/completions",
     "apiKeyOptional": "API Key (Optional)",
     "theme": {
-      "light": "Light",
-      "dark": "Dark",
+      "light": "Light Mode",
+      "dark": "Dark Mode",
       "system": "System",
-      "eyeProtection": "Eye Protection"
+      "seoul": "Seoul",
+      "tokyo": "Tokyo",
+      "california": "California",
+      "themeName": "Theme Style",
+      "themeMode": "Display Mode"
     },
     "models": {
       "siliconflow": {
@@ -299,8 +306,10 @@
     "errors": {
       "urlRequired": "Please enter a video URL",
       "urlInvalid": "Invalid YouTube URL",
-      "importFailed": "Import failed"
-    }
+      "importFailed": "Import failed",
+      "loginRequiredTip": "This video requires login to watch. Please log in in your browser and try again."
+    },
+    "openInBrowser": "Open in Browser"
   },
   "videoPlayer": {
     "original": "Original",
@@ -320,8 +329,16 @@
     "success": "Subtitles extracted successfully!",
     "successMessage": "Successfully extracted {{count}} subtitle segments!",
     "error": "Failed to extract subtitles",
-    "geminiRequired": "Subtitle extraction requires a Gemini model. We recommend Gemini 3.0 Flash for short videos and Gemini 3.0 Pro for long videos. Please configure in Settings.",
-    "reExtract": "Re-extract"
+    "geminiRequired": "Subtitle extraction requires a Gemini model. Recommended: Gemini 3.0 Flash (faster). The Pro model is accurate but transcription is extremely slow.",
+    "reExtract": "Re-extract",
+    "progress": {
+      "start": "Starting subtitle extraction...",
+      "audio": "Extracting audio...",
+      "transcribe": "Transcribing audio...",
+      "chunk": "Extracting chunks: {{current}}/{{total}}",
+      "merge": "Merging and deduplicating...",
+      "done": "Subtitle extraction complete!"
+    }
   },
   "bookImport": {
     "title": "Reading Materials",

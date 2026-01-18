@@ -94,7 +94,7 @@ export function BookImportForm({ onSave, onCancel }: BookImportFormProps) {
         if (filePath.toLowerCase().endsWith(".pdf")) {
             return <FileType size={20} className="text-red-500" />;
         }
-        return <FileText size={20} className="text-blue-500" />;
+        return <FileText size={20} className="text-primary" />;
     };
 
     // 获取文件名显示

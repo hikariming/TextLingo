@@ -1118,7 +1118,7 @@ pub async fn extract_subtitles_cmd(
         return Err("字幕提取需要使用 Gemini 模型。请在设置中配置 Gemini API (gemini-2.0-flash 或更新版本)".to_string());
     }
     
-    // 4. 调用字幕提取模块
+    // 4. 调用字幕提取模块 (使用 article_id 作为 event_id)
     let segments = crate::subtitle_extraction::extract_subtitles(
         app_handle.clone(),
         video_path,
@@ -1126,6 +1126,7 @@ pub async fn extract_subtitles_cmd(
         provider,
         api_key,
         model,
+        &article_id, // event_id 用于进度事件
     ).await?;
     
     if segments.is_empty() {

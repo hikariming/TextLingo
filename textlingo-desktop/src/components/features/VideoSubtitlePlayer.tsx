@@ -41,6 +41,8 @@ interface VideoSubtitlePlayerProps {
     articleTitle?: string;
     /** 文章ID（用于记忆播放位置） */
     articleId?: string;
+    /** 提取进度消息 */
+    extractionProgress?: string | null;
 }
 
 export function VideoSubtitlePlayer({
@@ -55,6 +57,7 @@ export function VideoSubtitlePlayer({
     onExtractSubtitles,
     articleTitle = "subtitles",
     articleId,
+    extractionProgress,
 }: VideoSubtitlePlayerProps) {
     const { t } = useTranslation();
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -247,7 +250,15 @@ export function VideoSubtitlePlayer({
                     <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-3">
                         <div className="flex-1">
                             <p className="text-foreground font-medium">{t("subtitleExtraction.noSubtitles")}</p>
-                            <p className="text-sm text-muted-foreground mt-1">{t("subtitleExtraction.geminiRequired")}</p>
+                            {isExtractingSubtitles ? (
+                                <div className="mt-2 p-2 bg-background/50 rounded-md border border-yellow-500/20">
+                                    <p className="text-sm text-yellow-600 animate-pulse font-mono">
+                                        {extractionProgress || t("subtitleExtraction.extracting")}
+                                    </p>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground mt-1">{t("subtitleExtraction.geminiRequired")}</p>
+                            )}
                         </div>
                         <Button
                             onClick={onExtractSubtitles}
@@ -305,7 +316,7 @@ export function VideoSubtitlePlayer({
                         <div className="p-2 bg-card border-t border-border">
                             <p className="text-sm font-medium line-clamp-2">{currentSubtitle.text}</p>
                             {showTranslation && currentSubtitle.translation && (
-                                <p className="text-xs text-blue-500 mt-1 line-clamp-1">{currentSubtitle.translation}</p>
+                                <p className="text-xs text-primary mt-1 line-clamp-1">{currentSubtitle.translation}</p>
                             )}
                         </div>
                     )}
@@ -382,14 +393,14 @@ export function VideoSubtitlePlayer({
 
                         {/* 译文区域 */}
                         {showTranslation && currentSubtitle.translation && (
-                            <div className="p-4 bg-blue-500/5 rounded-xl border-2 border-blue-500/30">
+                            <div className="p-4 bg-primary/5 rounded-xl border-2 border-primary/30">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xs font-medium text-blue-500/80 uppercase tracking-wider">
+                                    <span className="text-xs font-medium text-primary/80 uppercase tracking-wider">
                                         {t("videoPlayer.translation")}
                                     </span>
                                 </div>
                                 <p
-                                    className="text-blue-600 dark:text-blue-400 leading-relaxed"
+                                    className="text-primary leading-relaxed"
                                     style={{ fontSize: `${fontSize * 0.95}px` }}
                                 >
                                     {currentSubtitle.translation}
@@ -414,56 +425,67 @@ export function VideoSubtitlePlayer({
             </div>
 
             {/* 操作按钮行 */}
-            <div className="mt-4 mb-2 flex gap-2 flex-wrap">
-                {/* 展开/折叠字幕 */}
-                <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setShowFullSubtitles(!showFullSubtitles)}
-                    className="flex-1 justify-center gap-2"
-                >
-                    {showFullSubtitles ? (
-                        <>
-                            <ChevronUp size={16} />
-                            {t("videoPlayer.hideSubtitles")}
-                        </>
-                    ) : (
-                        <>
-                            <ChevronDown size={16} />
-                            {t("videoPlayer.showAllSubtitles")} ({segments.length})
-                        </>
-                    )}
-                </Button>
+            <div className="mt-4 mb-2 space-y-2">
+                <div className="flex gap-2 flex-wrap">
+                    {/* 展开/折叠字幕 */}
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setShowFullSubtitles(!showFullSubtitles)}
+                        className="flex-1 justify-center gap-2"
+                    >
+                        {showFullSubtitles ? (
+                            <>
+                                <ChevronUp size={16} />
+                                {t("videoPlayer.hideSubtitles")}
+                            </>
+                        ) : (
+                            <>
+                                <ChevronDown size={16} />
+                                {t("videoPlayer.showAllSubtitles")} ({segments.length})
+                            </>
+                        )}
+                    </Button>
 
-                {/* 导出 SRT */}
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExportSrt}
-                    className="gap-2 shrink-0"
-                    title={t("videoPlayer.exportSrt")}
-                >
-                    <Download size={16} />
-                    <span className="hidden sm:inline">{t("videoPlayer.exportSrt")}</span>
-                </Button>
-
-                {/* 重新提取字幕按钮 */}
-                {onExtractSubtitles && (
+                    {/* 导出 SRT */}
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={onExtractSubtitles}
-                        disabled={isExtractingSubtitles}
+                        onClick={handleExportSrt}
                         className="gap-2 shrink-0"
-                        title={t("subtitleExtraction.reExtract")}
+                        title={t("videoPlayer.exportSrt")}
                     >
-                        {isExtractingSubtitles ? (
-                            <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                            <FileText size={16} />
-                        )}
-                        <span className="hidden sm:inline">{t("subtitleExtraction.reExtract")}</span>
+                        <Download size={16} />
+                        <span className="hidden sm:inline">{t("videoPlayer.exportSrt")}</span>
                     </Button>
+
+                    {/* 重新提取字幕按钮 */}
+                    {onExtractSubtitles && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onExtractSubtitles}
+                            disabled={isExtractingSubtitles}
+                            className="gap-2 shrink-0"
+                            title={t("subtitleExtraction.reExtract")}
+                        >
+                            {isExtractingSubtitles ? (
+                                <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                                <FileText size={16} />
+                            )}
+                            <span className="hidden sm:inline">{t("subtitleExtraction.reExtract")}</span>
+                        </Button>
+                    )}
+                </div>
+
+                {/* 重新提取时的日志显示 */}
+                {isExtractingSubtitles && onExtractSubtitles && (
+                    <div className="p-2 bg-background/50 rounded-md border border-yellow-500/20">
+                        <p className="text-sm text-yellow-600 animate-pulse font-mono">
+                            {extractionProgress || t("subtitleExtraction.extracting")}
+                        </p>
+                    </div>
                 )}
             </div>
 
@@ -504,7 +526,7 @@ export function VideoSubtitlePlayer({
                                                 {segment.text}
                                             </p>
                                             {showTranslation && segment.translation && (
-                                                <p className="text-xs text-blue-500 mt-1 leading-relaxed">
+                                                <p className="text-xs text-primary mt-1 leading-relaxed">
                                                     {segment.translation}
                                                 </p>
                                             )}

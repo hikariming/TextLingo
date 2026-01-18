@@ -48,8 +48,13 @@ pub fn load_config(app_handle: &AppHandle) -> Result<Option<AppConfig>, String> 
     let config_content = fs::read_to_string(config_path)
         .map_err(|e| format!("Failed to read config: {}", e))?;
 
-    let config: AppConfig = serde_json::from_str(&config_content)
-        .map_err(|e| format!("Failed to parse config: {}", e))?;
+    let mut deserializer = serde_json::Deserializer::from_str(&config_content);
+    let config: AppConfig = match serde::Deserialize::deserialize(&mut deserializer) {
+        Ok(c) => c,
+        Err(e) => {
+            return Err(format!("FATAL_CONFIG_CORRUPTION: {}", e));
+        }
+    };
 
     Ok(Some(config))
 }

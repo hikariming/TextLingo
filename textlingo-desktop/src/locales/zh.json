@@ -132,6 +132,7 @@
     "targetLanguage": "默认目标语言",
     "interfaceLanguage": "界面语言",
     "saveSettings": "保存设置",
+    "resetConfig": "重置并新建配置",
     "saving": "保存中...",
     "saveConfig": "保存配置",
     "cancel": "取消",
@@ -158,7 +159,8 @@
       "apiKeyRequired": "API 密钥不能为空",
       "modelRequired": "模型不能为空",
       "configNameRequired": "配置名称不能为空",
-      "cannotDeleteLastConfig": "至少需要保留一个配置"
+      "cannotDeleteLastConfig": "至少需要保留一个配置",
+      "configCorrupted": "配置文件已损坏，无法读取现有些设置。请重置并重新新建配置。"
     },
     "syncErrors": {
       "providerNotOpenRouter": "该服务商不支持在线同步模型列表",
@@ -181,12 +183,17 @@
     "baseUrl": "服务地址",
     "baseUrlPlaceholder": "https://your-api-endpoint.com/v1",
     "baseUrlHelp": "输入 API 服务地址 (例如: http://localhost:11434/v1)",
+    "baseUrlTip": "提示：OpenAI 兼容接口通常以 /v1 结尾，不需要包含 /chat/completions",
     "apiKeyOptional": "API 密钥 (可选)",
     "theme": {
-      "light": "浅色",
-      "dark": "深色",
+      "light": "浅色模式",
+      "dark": "深色模式",
       "system": "跟随系统",
-      "eyeProtection": "护眼模式"
+      "seoul": "首尔",
+      "tokyo": "东京",
+      "california": "加利福尼亚",
+      "themeName": "主题风格",
+      "themeMode": "显示模式"
     },
     "models": {
       "siliconflow": {
@@ -299,8 +306,10 @@
     "errors": {
       "urlRequired": "请输入视频链接",
       "urlInvalid": "无效的 YouTube 链接",
-      "importFailed": "导入失败"
-    }
+      "importFailed": "导入失败",
+      "loginRequiredTip": "此视频需要登录才能观看，请在浏览器中登录后重试。"
+    },
+    "openInBrowser": "在浏览器中打开"
   },
   "videoPlayer": {
     "original": "原文",
@@ -320,8 +329,16 @@
     "success": "字幕提取成功！",
     "successMessage": "成功提取 {{count}} 个字幕片段！",
     "error": "字幕提取失败",
-    "geminiRequired": "字幕提取需要使用 Gemini 模型。短视频推荐使用 Gemini 3.0 Flash，长视频建议使用 Gemini 3.0 Pro。请在设置中配置。",
-    "reExtract": "重新提取"
+    "geminiRequired": "字幕提取需要使用 Gemini 模型。推荐使用 Gemini 3.0 Flash模型，速度较快 ，pro模型精准但转录速度极慢",
+    "reExtract": "重新提取",
+    "progress": {
+      "start": "开始提取字幕...",
+      "audio": "提取音频中...",
+      "transcribe": "转录音频中...",
+      "chunk": "分片提取中: {{current}}/{{total}}",
+      "merge": "合并排序去重中...",
+      "done": "字幕提取完成！"
+    }
   },
   "bookImport": {
     "title": "阅读素材",

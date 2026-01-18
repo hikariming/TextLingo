@@ -88,7 +88,7 @@ export function NewMaterialDialog({ isOpen, onClose, onSave }: NewMaterialDialog
                         className={cn(
                             "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
                             activeTab === "local"
-                                ? "bg-blue-500/10 text-blue-500"
+                                ? "bg-accent/10 text-accent-foreground"
                                 : "hover:bg-muted text-muted-foreground hover:text-foreground"
                         )}
                         onClick={() => setActiveTab("local")}

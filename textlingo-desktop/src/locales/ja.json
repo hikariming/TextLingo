@@ -121,6 +121,7 @@
     "targetLanguage": "デフォルトの翻訳言語",
     "interfaceLanguage": "インターフェース言語",
     "saveSettings": "設定を保存",
+    "resetConfig": "設定をリセットして新規作成",
     "saving": "保存中...",
     "saveConfig": "設定を保存",
     "cancel": "キャンセル",
@@ -147,7 +148,8 @@
       "apiKeyRequired": "APIキーは必須です",
       "modelRequired": "モデルは必須です",
       "configNameRequired": "設定名は必須です",
-      "cannotDeleteLastConfig": "最後の設定は削除できません"
+      "cannotDeleteLastConfig": "最後の設定は削除できません",
+      "configCorrupted": "設定ファイルが破損しているため、既存の設定を読み取ることができません。設定をリセットして新しく作成してください。"
     },
     "syncErrors": {
       "providerNotOpenRouter": "このプロバイダーはモデルの同期に対応していません",
@@ -170,12 +172,17 @@
     "baseUrl": "ベースURL",
     "baseUrlPlaceholder": "https://your-api-endpoint.com/v1",
     "baseUrlHelp": "APIエンドポイントURLを入力 (例: http://localhost:11434/v1)",
+    "baseUrlTip": "ヒント：OpenAI互換エンドポイントは通常 /v1 で終わります。/chat/completions を含める必要はありません",
     "apiKeyOptional": "APIキー (オプション)",
     "theme": {
-      "light": "ライト",
-      "dark": "ダーク",
+      "light": "ライトモード",
+      "dark": "ダークモード",
       "system": "システム",
-      "eyeProtection": "アイプロテクション"
+      "seoul": "ソウル",
+      "tokyo": "東京",
+      "california": "カリフォルニア",
+      "themeName": "テーマスタイル",
+      "themeMode": "表示モード"
     },
     "models": {
       "siliconflow": {
@@ -277,6 +284,22 @@
       "fileRequired": "ファイルを選択してください"
     }
   },
+  "youtubeImport": {
+    "title": "YouTube動画をインポート",
+    "urlLabel": "ビデオURL",
+    "urlPlaceholder": "https://www.youtube.com/watch?v=...",
+    "import": "インポート",
+    "importing": "ダウンロード中...",
+    "processing": "処理中...",
+    "cancel": "キャンセル",
+    "errors": {
+      "urlRequired": "ビデオURLを入力してください",
+      "urlInvalid": "無効なYouTube URL",
+      "importFailed": "インポートに失敗しました",
+      "loginRequiredTip": "このビデオを視聴するにはログインが必要です。ブラウザでログインしてから再試行してください。"
+    },
+    "openInBrowser": "ブラウザで開く"
+  },
   "videoPlayer": {
     "original": "原文",
     "translation": "翻訳",
@@ -295,8 +318,16 @@
     "success": "字幕の抽出に成功しました！",
     "successMessage": "{{count}}個の字幕セグメントを抽出しました！",
     "error": "字幕の抽出に失敗しました",
-    "geminiRequired": "字幕抽出にはGeminiモデルが必要です。短い動画にはGemini 3.0 Flash、長い動画にはGemini 3.0 Proを推奨します。設定で構成してください。",
-    "reExtract": "再抽出"
+    "geminiRequired": "字幕抽出にはGeminiモデルが必要です。Gemini 3.0 Flashモデル（高速）を推奨します。Proモデルは高精度ですが、転写速度が非常に遅いです。",
+    "reExtract": "再抽出",
+    "progress": {
+      "start": "字幕抽出を開始...",
+      "audio": "音声を抽出中...",
+      "transcribe": "音声を文字起こし中...",
+      "chunk": "チャンク抽出中: {{current}}/{{total}}",
+      "merge": "マージと重複排除中...",
+      "done": "字幕抽出完了！"
+    }
   },
   "bookImport": {
     "title": "ブックをインポート",

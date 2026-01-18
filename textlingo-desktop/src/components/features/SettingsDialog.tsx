@@ -44,6 +44,7 @@ const SUPPORTED_PROVIDERS = ["openai", "openrouter", "deepseek", "siliconflow", 
 
 // Default base URLs for local providers
 const DEFAULT_BASE_URLS: Record<string, string> = {
+  "openai": "https://api.openai.com/v1",
   "ollama": "http://localhost:11434/v1",
   "lmstudio": "http://localhost:1234/v1",
 };
@@ -100,15 +101,17 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps) {
   const { t, i18n } = useTranslation();
-  const { theme, setTheme } = useTheme();
+  const { themeName, themeMode, setThemeName, setThemeMode } = useTheme();
   const [config, setConfig] = useState<AppConfig>({
     model_configs: [],
     target_language: "zh-CN",
     interface_language: i18n.language,
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCorrupted, setIsCorrupted] = useState(false);
 
   // Model config form state
   const [editingConfig, setEditingConfig] = useState<Partial<ModelConfig> | null>(null);
@@ -149,10 +152,23 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
         }
       }
     } catch (err) {
-      setError(err as string);
+      const errorMsg = err as string;
+      if (errorMsg.includes("FATAL_CONFIG_CORRUPTION")) {
+        setIsCorrupted(true);
+        setError(t("settings.errors.configCorrupted"));
+      } else {
+        setError(errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleResetConfig = () => {
+    // Clear the error and corruption state, then start fresh
+    setIsCorrupted(false);
+    setError(null);
+    startNewConfig();
   };
 
   const startNewConfig = () => {
@@ -497,7 +513,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
         api_provider: provider,
         model: models?.[0]?.value || "",
         // For local providers, set default base URL
-        base_url: DEFAULT_BASE_URLS[provider] || prev?.base_url || undefined,
+        base_url: DEFAULT_BASE_URLS[provider] || undefined,
       };
 
       return newConfig;
@@ -530,7 +546,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
     return (
       <Dialog isOpen={isOpen} onClose={onClose}>
         <DialogContent className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </DialogContent>
       </Dialog>
     );
@@ -540,8 +556,19 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
     <Dialog isOpen={isOpen} onClose={onClose} title={t("settings.title")}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         {error && (
-          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/50 rounded-lg text-destructive text-sm">
-            {error}
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/50 rounded-lg text-destructive text-sm flex flex-col gap-2">
+            <div>{error}</div>
+            {isCorrupted && (
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                onClick={handleResetConfig}
+                className="w-fit"
+              >
+                {t("settings.resetConfig")}
+              </Button>
+            )}
           </div>
         )}
 
@@ -579,7 +606,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
             {/* Config List */}
             <div className="space-y-2 mb-4">
               {config.model_configs.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 border border-dashed border-gray-700 rounded-lg">
+                <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
                   {t("settings.noConfigs")}
                 </div>
               ) : (
@@ -688,7 +715,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                 </div>
 
                 {/* Base URL - show for openai-compatible, ollama, lmstudio */}
-                {["openai", "openai-compatible", "ollama", "lmstudio"].includes(editingConfig.api_provider || "") && (
+                {["openai-compatible", "ollama", "lmstudio"].includes(editingConfig.api_provider || "") && (
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       {t("settings.baseUrl")}
@@ -702,6 +729,12 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                     <p className="text-xs text-muted-foreground mt-1">
                       {t("settings.baseUrlHelp")}
                     </p>
+                    {editingConfig.api_provider === "openai-compatible" && editingConfig.base_url &&
+                      (editingConfig.base_url.includes("/chat/completions") || !editingConfig.base_url.endsWith("/v1")) && (
+                        <p className="text-xs text-yellow-500/80 mt-1 italic">
+                          {t("settings.baseUrlTip")}
+                        </p>
+                      )}
                   </div>
                 )}
 
@@ -830,21 +863,37 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
           {/* Other Settings */}
           <div className="border-t border-border pt-4 space-y-4">
 
-            {/* Theme */}
+            {/* Theme Name */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                {t("Theme")}
+                {t("settings.theme.themeName")}
               </label>
               <Select
-                value={theme}
-                onChange={(e) => setTheme(e.target.value as any)}
+                value={themeName}
+                onChange={(e) => setThemeName(e.target.value as any)}
+              >
+                <option value="seoul">{t("settings.theme.seoul")}</option>
+                <option value="tokyo">{t("settings.theme.tokyo")}</option>
+                <option value="california">{t("settings.theme.california")}</option>
+              </Select>
+            </div>
+
+            {/* Theme Mode */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                {t("settings.theme.themeMode")}
+              </label>
+              <Select
+                value={themeMode}
+                onChange={(e) => setThemeMode(e.target.value as any)}
               >
                 <option value="light">{t("settings.theme.light")}</option>
                 <option value="dark">{t("settings.theme.dark")}</option>
-                <option value="eye-protection">{t("settings.theme.eyeProtection")}</option>
                 <option value="system">{t("settings.theme.system")}</option>
               </Select>
             </div>
+
+
 
 
             {/* Interface Language */}
