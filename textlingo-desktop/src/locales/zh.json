@@ -437,7 +437,13 @@
       "startButton": "开启之旅"
     },
     "next": "下一步",
-    "back": "上一步",
+    "back": "返回",
     "finish": "进入系统"
+  },
+  "update": {
+    "title": "发现新版本",
+    "description": "新版本 {{version}} 现已发布，包含多项优化和改进。",
+    "action": "立即更新",
+    "dismiss": "忽略"
   }
 }

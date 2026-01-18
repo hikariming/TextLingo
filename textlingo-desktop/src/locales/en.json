@@ -439,5 +439,11 @@
     "next": "Next",
     "back": "Back",
     "finish": "Enter System"
+  },
+  "update": {
+    "title": "Update Available",
+    "description": "A new version {{version}} is available.",
+    "action": "Update Now",
+    "dismiss": "Dismiss"
   }
 }
