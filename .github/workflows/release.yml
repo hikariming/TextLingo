@@ -34,6 +34,10 @@ jobs:
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
+      - name: install dependencies (macos only)
+        if: matrix.platform == 'macos-latest'
+        run: brew install create-dmg
+
 
       - name: install frontend dependencies
         run: npm install
