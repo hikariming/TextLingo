@@ -138,7 +138,7 @@
     "apiKey": "API Key",
     "apiKeyPlaceholder": "Enter your API key...",
     "model": "Model",
-    "targetLanguage": "Default Target Language",
+    "targetLanguage": "Translation Language",
     "interfaceLanguage": "Interface Language",
     "saveSettings": "Save Settings",
     "resetConfig": "Reset Configuration",
@@ -402,5 +402,42 @@
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit Fullscreen",
     "nativeHint": "Using native PDF viewer - Use toolbar to zoom, search and select text"
+  },
+  "onboarding": {
+    "title": "Welcome to OpenKoto",
+    "subtitle": "Let's get you set up in a few simple steps to start your cross-language learning journey.",
+    "steps": {
+      "style": "Core Settings",
+      "model": "AI Model Setup",
+      "welcome": "Ready to Go"
+    },
+    "style": {
+      "title": "Preferences",
+      "desc": "Set your interface language, theme style, and the language you want to translate into.",
+      "targetLangExplain": "This is the language the system will translate original materials into.",
+      "targetLangTooltip": "The language the software will translate the original file into"
+    },
+    "model": {
+      "title": "Configure AI Model",
+      "desc": "Connect an AI service to enable translation and analysis. You can do this now or later in Settings.",
+      "recommendTitle": "Recommended Models (Google AI Studio)",
+      "recommendFlash": "Gemini 3.0 Flash Preview (Most Recommended: Balanced and Fast)",
+      "recommendPro": "Gemini 3.0 Pro Preview (Powerful: Better for complex tasks)",
+      "apiKeyLabel": "API Key",
+      "apiKeyPlaceholder": "Paste your API key here",
+      "skipButton": "Skip for Now",
+      "tip": "Tip: Once configured, features like one-click translation will be available.",
+      "helpLink": "Don't know how to configure? Visit https://www.openkoto.com/ for documentation"
+    },
+    "welcome": {
+      "title": "Congratulations!",
+      "desc": "You're all set up. Welcome to the world of OpenKoto!",
+      "celebration": "🎉 Congratulations on completing the setup!",
+      "ready": "Ready to explore",
+      "startButton": "Start Your Journey"
+    },
+    "next": "Next",
+    "back": "Back",
+    "finish": "Enter System"
   }
 }

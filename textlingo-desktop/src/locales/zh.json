@@ -138,7 +138,7 @@
     "apiKey": "API 密钥",
     "apiKeyPlaceholder": "输入您的 API 密钥...",
     "model": "模型",
-    "targetLanguage": "默认目标语言",
+    "targetLanguage": "翻译语言",
     "interfaceLanguage": "界面语言",
     "saveSettings": "保存设置",
     "resetConfig": "重置并新建配置",
@@ -402,5 +402,42 @@
     "fullscreen": "全屏",
     "exitFullscreen": "退出全屏",
     "nativeHint": "使用浏览器原生 PDF 查看器 - 可使用工具栏缩放、搜索和选择文本"
+  },
+  "onboarding": {
+    "title": "欢迎使用 OpenKoto",
+    "subtitle": "让我们几步简单的设置，开启您的跨语言学习之旅。",
+    "steps": {
+      "style": "基础设置",
+      "model": "模型设置",
+      "welcome": "准备就绪"
+    },
+    "style": {
+      "title": "偏好设置",
+      "desc": "设置您的界面语言、主题风格及希望将原文翻译成的语言。",
+      "targetLangExplain": "这是您希望软件将外语原文翻译成的目标语言。",
+      "targetLangTooltip": "该软件将原始文件翻译为何种语言"
+    },
+    "model": {
+      "title": "配置 AI 模型",
+      "desc": "连接 AI 服务以开启翻译和分析功能。您可以现在配置，或稍后在设置中完成。",
+      "recommendTitle": "推荐模型 (Google AI Studio)",
+      "recommendFlash": "Gemini 3.0 Flash Preview (强烈推荐：均衡且快速)",
+      "recommendPro": "Gemini 3.0 Pro Preview (强大：适合复杂任务)",
+      "apiKeyLabel": "API Key",
+      "apiKeyPlaceholder": "在此粘贴您的 API Key",
+      "skipButton": "暂不配置",
+      "tip": "提示：配置完成后，即可使用一键翻译等功能。",
+      "helpLink": "不会配置？ 访问 https://www.openkoto.com/ 查看配置文档"
+    },
+    "welcome": {
+      "title": "恭喜！",
+      "desc": "一切都已设置完毕。欢迎来到 OpenKoto 的世界！",
+      "celebration": "🎉 祝贺您完成设置！",
+      "ready": "准备就绪",
+      "startButton": "开启之旅"
+    },
+    "next": "下一步",
+    "back": "上一步",
+    "finish": "进入系统"
   }
 }

@@ -9,6 +9,7 @@ import { NewMaterialDialog } from "./components/features/NewMaterialDialog";
 import { FavoritesPage } from "./components/features/FavoritesPage";
 import { SettingsButton } from "./components/features/SettingsDialog";
 import { ApiQuickSwitcher } from "./components/features/ApiQuickSwitcher";
+import { OnboardingDialog } from "./components/features/OnboardingDialog";
 import { Button } from "./components/ui/Button";
 import type { Article, AppConfig } from "./lib/tauri";
 import { getApiClient } from "./lib/api";
@@ -24,6 +25,7 @@ function App() {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "card">("card");
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Load config and articles on mount
   useEffect(() => {
@@ -40,6 +42,13 @@ function App() {
       setConfig(configResult);
       if (configResult) {
         getApiClient(configResult); // Initialize API client
+        // Check if onboarding is needed (no model configs yet)
+        if (!configResult.model_configs || configResult.model_configs.length === 0) {
+          setShowOnboarding(true);
+        }
+      } else {
+        // No config at all means first time
+        setShowOnboarding(true);
       }
       setArticles(articlesResult);
       return articlesResult;
@@ -183,6 +192,13 @@ function App() {
           onClose={() => { setIsEditDialogOpen(false); setEditingArticle(null) }}
           onSave={handleArticleUpdate}
           editingArticle={editingArticle}
+        />
+        <OnboardingDialog
+          isOpen={showOnboarding}
+          onFinish={() => {
+            setShowOnboarding(false);
+            loadData();
+          }}
         />
         {selectedArticle ? (
           selectedArticle.book_path ? (

@@ -127,7 +127,7 @@
     "apiKey": "APIキー",
     "apiKeyPlaceholder": "APIキーを入力...",
     "model": "モデル",
-    "targetLanguage": "デフォルトの翻訳言語",
+    "targetLanguage": "翻訳言語",
     "interfaceLanguage": "インターフェース言語",
     "saveSettings": "設定を保存",
     "resetConfig": "設定をリセットして新規作成",
@@ -390,5 +390,42 @@
     "fullscreen": "フルスクリーン",
     "exitFullscreen": "フルスクリーンを終了",
     "nativeHint": "ネイティブPDFビューアを使用中 - ツールバーで拡大、検索、テキスト選択が可能です"
+  },
+  "onboarding": {
+    "title": "OpenKoto へようこそ",
+    "subtitle": "簡単な設定を数ステップ行い、言語学習の旅を始めましょう。",
+    "steps": {
+      "style": "基本設定",
+      "model": "モデル設定",
+      "welcome": "準備完了"
+    },
+    "style": {
+      "title": "設定",
+      "desc": "インターフェース言語、テーマスタイル、および翻訳先の言語を設定します。",
+      "targetLangExplain": "システムが元の素材を翻訳する際のターゲット言語です。",
+      "targetLangTooltip": "ソフトウェアが元のファイルを翻訳する言語を指します"
+    },
+    "model": {
+      "title": "AI モデルの設定",
+      "desc": "翻訳やAI分析を有効にするために、AIサービスを接続します。今すぐ設定するか、後で設定から行うことができます。",
+      "recommendTitle": "推奨モデル (Google AI Studio)",
+      "recommendFlash": "Gemini 3.0 Flash Preview (推奨：速度と性能のバランス)",
+      "recommendPro": "Gemini 3.0 Pro Preview (強力：複雑なタスク向け)",
+      "apiKeyLabel": "API キー",
+      "apiKeyPlaceholder": "ここにAPIキーを貼り付けてください",
+      "skipButton": "設定をスキップ",
+      "tip": "ヒント：設定完了後、字幕の一括翻訳などの機能が利用可能になります。",
+      "helpLink": "設定方法が不明な場合、https://www.openkoto.com/ にアクセスして設定ドキュメントを確認してください"
+    },
+    "welcome": {
+      "title": "おめでとうございます！",
+      "desc": "すべての設定が完了しました。OpenKoto の世界へようこそ！",
+      "celebration": "🎉 設定完了しました！",
+      "ready": "準備完了",
+      "startButton": "旅を始める"
+    },
+    "next": "次へ",
+    "back": "戻る",
+    "finish": "システムに入る"
   }
 }
