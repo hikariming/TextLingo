@@ -335,7 +335,12 @@
     "translateFirst": "请先完成翻译",
     "clickToTranslate": "点击以快速翻译所有字幕",
     "hideSubtitles": "收起字幕列表",
-    "showAllSubtitles": "查看全部字幕"
+    "showAllSubtitles": "查看全部字幕",
+    "exportOptions": {
+      "original": "原文",
+      "translation": "译文",
+      "bilingual": "双语"
+    }
   },
   "subtitleExtraction": {
     "noSubtitles": "该视频没有字幕。",

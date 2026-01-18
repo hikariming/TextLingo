@@ -208,80 +208,114 @@ export function VideoSubtitlePlayer({
     };
 
     // 导出字幕通用函数
-    const handleExport = async (format: 'srt' | 'vtt' | 'txt' | 'md' | 'json' | 'srt_original' | 'srt_translated' | 'srt_bilingual') => {
+    const handleExport = async (format: 'srt' | 'vtt' | 'txt' | 'md' | 'json', mode: 'original' | 'translation' | 'bilingual' = 'original') => {
         const sortedSegs = [...segments].sort((a, b) => a.order - b.order);
         let content = "";
         let extension = format;
 
-        switch (format) {
-            case 'srt':
-            case 'srt_original':
-            case 'srt_translated':
-            case 'srt_bilingual':
-                extension = 'srt';
-                sortedSegs.forEach((seg, index) => {
-                    const startTime = formatSrtTime(seg.start_time);
-                    const endTime = formatSrtTime(seg.end_time);
-                    content += `${index + 1}\n`;
-                    content += `${startTime} --> ${endTime}\n`;
+        // 如果是 JSON 格式，直接导出所有数据
+        if (format === 'json') {
+            content = JSON.stringify(sortedSegs.map(seg => ({
+                start: seg.start_time,
+                end: seg.end_time,
+                text: seg.text,
+                translation: seg.translation
+            })), null, 2);
+        } else {
+            // 其他格式根据模式生成内容
+            switch (format) {
+                case 'srt':
+                    extension = 'srt';
+                    sortedSegs.forEach((seg, index) => {
+                        const startTime = formatSrtTime(seg.start_time);
+                        const endTime = formatSrtTime(seg.end_time);
+                        content += `${index + 1}\n`;
+                        content += `${startTime} --> ${endTime}\n`;
 
-                    if (format === 'srt_translated') {
-                        content += `${seg.translation || ''}\n`;
-                    } else if (format === 'srt_bilingual') {
-                        content += `${seg.text}\n`;
-                        content += `${seg.translation || ''}\n`;
-                    } else {
-                        // srt or srt_original
-                        content += `${seg.text}\n`;
-                    }
-                    content += "\n";
-                });
-                break;
-            case 'vtt':
-                content = "WEBVTT\n\n";
-                sortedSegs.forEach((seg) => {
-                    const startTime = formatVttTime(seg.start_time);
-                    const endTime = formatVttTime(seg.end_time);
-                    content += `${startTime} --> ${endTime}\n`;
-                    content += `${seg.text}\n`;
-                    if (viewMode !== 'original' && seg.translation) {
-                        content += `${seg.translation}\n`;
-                    }
-                    content += "\n";
-                });
-                break;
-            case 'txt':
-                sortedSegs.forEach((seg) => {
-                    content += `${seg.text}\n`;
-                    if (viewMode !== 'original' && seg.translation) {
-                        content += `${seg.translation}\n`;
-                    }
-                    content += "\n";
-                });
-                break;
-            case 'md':
-                content += `# ${articleTitle}\n\n`;
-                sortedSegs.forEach((seg) => {
-                    const startTime = formatTime(seg.start_time);
-                    content += `**[${startTime}]** ${seg.text}\n`;
-                    if (viewMode !== 'original' && seg.translation) {
-                        content += `> ${seg.translation}\n`;
-                    }
-                    content += "\n";
-                });
-                break;
-            case 'json':
-                content = JSON.stringify(sortedSegs.map(seg => ({
-                    start: seg.start_time,
-                    end: seg.end_time,
-                    text: seg.text,
-                    translation: seg.translation
-                })), null, 2);
-                break;
+                        if (mode === 'translation') {
+                            content += `${seg.translation || ''}\n`;
+                        } else if (mode === 'bilingual') {
+                            content += `${seg.text}\n`;
+                            content += `${seg.translation || ''}\n`;
+                        } else {
+                            // original
+                            content += `${seg.text}\n`;
+                        }
+                        content += "\n";
+                    });
+                    break;
+                case 'vtt':
+                    content = "WEBVTT\n\n";
+                    sortedSegs.forEach((seg) => {
+                        const startTime = formatVttTime(seg.start_time);
+                        const endTime = formatVttTime(seg.end_time);
+                        content += `${startTime} --> ${endTime}\n`;
+
+                        if (mode === 'translation') {
+                            content += `${seg.translation || ''}\n`;
+                        } else if (mode === 'bilingual') {
+                            content += `${seg.text}\n`;
+                            if (seg.translation) {
+                                content += `${seg.translation}\n`;
+                            }
+                        } else {
+                            // original
+                            content += `${seg.text}\n`;
+                        }
+                        content += "\n";
+                    });
+                    break;
+                case 'txt':
+                    sortedSegs.forEach((seg) => {
+                        if (mode === 'translation') {
+                            if (seg.translation) {
+                                content += `${seg.translation}\n`;
+                            }
+                        } else if (mode === 'bilingual') {
+                            content += `${seg.text}\n`;
+                            if (seg.translation) {
+                                content += `${seg.translation}\n`;
+                            }
+                        } else {
+                            // original
+                            content += `${seg.text}\n`;
+                        }
+                        content += "\n";
+                    });
+                    break;
+                case 'md':
+                    content += `# ${articleTitle}\n\n`;
+                    sortedSegs.forEach((seg) => {
+                        const startTime = formatTime(seg.start_time);
+
+                        if (mode === 'translation') {
+                            if (seg.translation) {
+                                content += `**[${startTime}]** ${seg.translation}\n`;
+                            }
+                        } else if (mode === 'bilingual') {
+                            content += `**[${startTime}]** ${seg.text}\n`;
+                            if (seg.translation) {
+                                content += `> ${seg.translation}\n`;
+                            }
+                        } else {
+                            // original
+                            content += `**[${startTime}]** ${seg.text}\n`;
+                        }
+                        content += "\n";
+                    });
+                    break;
+            }
         }
 
         try {
-            const defaultPath = `${articleTitle.replace(/[/\\?%*:|"<>]/g, "-")}.${extension}`;
+            // 构建文件名： Title_[Mode].[Ext]
+            let filenameMode = "";
+            if (format !== 'json') {
+                if (mode === 'translation') filenameMode = "_translated";
+                else if (mode === 'bilingual') filenameMode = "_bilingual";
+            }
+
+            const defaultPath = `${articleTitle.replace(/[/\\?%*:|"<>]/g, "-")}${filenameMode}.${extension}`;
             const filePath = await save({
                 defaultPath,
                 filters: [{
@@ -307,16 +341,25 @@ export function VideoSubtitlePlayer({
     // 检查是否有缺失的翻译
     const hasMissingTranslations = segments.some(s => !s.translation || !s.translation.trim());
 
-    // 处理需要翻译的导出
-    const handleTranslatedExport = (format: 'srt_translated' | 'srt_bilingual') => {
-        if (hasMissingTranslations) {
-            if (onQuickTranslate) {
-                onQuickTranslate();
-            }
+    // 检查是否应该禁用翻译相关的导出选项
+    // 我们总是允许导出，但在没有翻译时可能会导出空内容，这里不做强制禁用，而是依靠 hasMissingTranslations 给用户提示
+    const checkAndExport = (format: 'srt' | 'vtt' | 'txt' | 'md', mode: 'original' | 'translation' | 'bilingual') => {
+        if ((mode === 'translation' || mode === 'bilingual') && hasMissingTranslations) {
+            // 可以在这里加一个确认弹窗，或者只是简单的 toast 提示
+            // 目前需求是做二级菜单，并没有明确说要阻断
+        }
+
+        // 如果是翻译模式且有缺失，尝试触发快速翻译（可选，保留之前的逻辑）
+        if ((mode === 'translation' || mode === 'bilingual') && hasMissingTranslations && onQuickTranslate && segments.every(s => !s.translation)) {
+            // 如果完全没有翻译，则引导翻译
+            onQuickTranslate();
             return;
         }
-        handleExport(format);
+
+        handleExport(format, mode);
     };
+
+
 
     // 点击字幕跳转视频
     const handleSubtitleClick = (segment: ArticleSegment) => {
@@ -574,49 +617,86 @@ export function VideoSubtitlePlayer({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleExport('srt_original')}>
-                                <FileText className="mr-2 h-4 w-4" />
-                                <span>{t("videoPlayer.exportSrtOriginal")}</span>
-                            </DropdownMenuItem>
+                            {/* SRT Export Submenu */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger className="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground w-full">
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    <span className="flex-1 text-left">SRT (.srt)</span>
+                                    <ChevronDown className="ml-2 h-4 w-4 -rotate-90" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="ml-1">
+                                    <DropdownMenuItem onClick={() => checkAndExport('srt', 'original')}>
+                                        <span>{t("videoPlayer.exportOptions.original")}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => checkAndExport('srt', 'translation')}>
+                                        <span>{t("videoPlayer.exportOptions.translation")}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => checkAndExport('srt', 'bilingual')}>
+                                        <span>{t("videoPlayer.exportOptions.bilingual")}</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
-                            {/* 译文导出 - 如果缺少翻译则提示并引导快速翻译 */}
-                            <DropdownMenuItem
-                                onClick={() => handleTranslatedExport('srt_translated')}
-                                className={hasMissingTranslations ? "text-yellow-600 focus:text-yellow-700 focus:bg-yellow-50" : ""}
-                                title={hasMissingTranslations ? t("videoPlayer.clickToTranslate") : ""}
-                            >
-                                <FileText className="mr-2 h-4 w-4" />
-                                <span>
-                                    {t("videoPlayer.exportSrtTranslated")}
-                                    {hasMissingTranslations && " (!)"}
-                                </span>
-                            </DropdownMenuItem>
+                            {/* VTT Export Submenu */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger className="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground w-full">
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    <span className="flex-1 text-left">VTT (.vtt)</span>
+                                    <ChevronDown className="ml-2 h-4 w-4 -rotate-90" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="ml-1">
+                                    <DropdownMenuItem onClick={() => checkAndExport('vtt', 'original')}>
+                                        <span>{t("videoPlayer.exportOptions.original")}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => checkAndExport('vtt', 'translation')}>
+                                        <span>{t("videoPlayer.exportOptions.translation")}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => checkAndExport('vtt', 'bilingual')}>
+                                        <span>{t("videoPlayer.exportOptions.bilingual")}</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
-                            {/* 双语导出 - 如果缺少翻译则提示并引导快速翻译 */}
-                            <DropdownMenuItem
-                                onClick={() => handleTranslatedExport('srt_bilingual')}
-                                className={hasMissingTranslations ? "text-yellow-600 focus:text-yellow-700 focus:bg-yellow-50" : ""}
-                                title={hasMissingTranslations ? t("videoPlayer.clickToTranslate") : ""}
-                            >
-                                <FileText className="mr-2 h-4 w-4" />
-                                <span>
-                                    {t("videoPlayer.exportSrtBilingual")}
-                                    {hasMissingTranslations && " (!)"}
-                                </span>
-                            </DropdownMenuItem>
+                            {/* Text Export Submenu */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger className="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground w-full">
+                                    <FileType className="mr-2 h-4 w-4" />
+                                    <span className="flex-1 text-left">Text (.txt)</span>
+                                    <ChevronDown className="ml-2 h-4 w-4 -rotate-90" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="ml-1">
+                                    <DropdownMenuItem onClick={() => checkAndExport('txt', 'original')}>
+                                        <span>{t("videoPlayer.exportOptions.original")}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => checkAndExport('txt', 'translation')}>
+                                        <span>{t("videoPlayer.exportOptions.translation")}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => checkAndExport('txt', 'bilingual')}>
+                                        <span>{t("videoPlayer.exportOptions.bilingual")}</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
-                            <DropdownMenuItem onClick={() => handleExport('vtt')}>
-                                <FileText className="mr-2 h-4 w-4" />
-                                <span>VTT (.vtt)</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleExport('txt')}>
-                                <FileType className="mr-2 h-4 w-4" />
-                                <span>Text (.txt)</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleExport('md')}>
-                                <FileType className="mr-2 h-4 w-4" />
-                                <span>Markdown (.md)</span>
-                            </DropdownMenuItem>
+                            {/* Markdown Export Submenu */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger className="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground w-full">
+                                    <FileType className="mr-2 h-4 w-4" />
+                                    <span className="flex-1 text-left">Markdown (.md)</span>
+                                    <ChevronDown className="ml-2 h-4 w-4 -rotate-90" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="ml-1">
+                                    <DropdownMenuItem onClick={() => checkAndExport('md', 'original')}>
+                                        <span>{t("videoPlayer.exportOptions.original")}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => checkAndExport('md', 'translation')}>
+                                        <span>{t("videoPlayer.exportOptions.translation")}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => checkAndExport('md', 'bilingual')}>
+                                        <span>{t("videoPlayer.exportOptions.bilingual")}</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
                             <DropdownMenuItem onClick={() => handleExport('json')}>
                                 <FileJson className="mr-2 h-4 w-4" />
                                 <span>JSON (.json)</span>

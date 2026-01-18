@@ -324,7 +324,12 @@
     "translateFirst": "翻訳がありません",
     "clickToTranslate": "クリックして全字幕を翻訳",
     "hideSubtitles": "字幕を非表示",
-    "showAllSubtitles": "すべての字幕を表示"
+    "showAllSubtitles": "すべての字幕を表示",
+    "exportOptions": {
+      "original": "原文",
+      "translation": "翻訳",
+      "bilingual": "対訳"
+    }
   },
   "subtitleExtraction": {
     "noSubtitles": "この動画には字幕がありません。",

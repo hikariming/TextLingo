@@ -335,7 +335,12 @@
     "translateFirst": "Translation missing",
     "clickToTranslate": "Click to Quick Translate all subtitles",
     "hideSubtitles": "Hide Subtitles",
-    "showAllSubtitles": "Show All Subtitles"
+    "showAllSubtitles": "Show All Subtitles",
+    "exportOptions": {
+      "original": "Original",
+      "translation": "Translation",
+      "bilingual": "Bilingual"
+    }
   },
   "subtitleExtraction": {
     "noSubtitles": "No subtitles found for this video.",
