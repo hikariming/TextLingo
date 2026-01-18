@@ -60,6 +60,13 @@
     "fullAnalysis": "完整分析",
     "segment": "分段",
     "resegment": "重新分段",
+    "translated": "已翻译",
+    "parsed": "已精讲",
+    "viewMode": {
+      "original": "仅原文",
+      "bilingual": "对照阅读",
+      "translation": "仅译文"
+    },
     "resegmentConfirm": "这将替换现有的段落分段。是否继续？",
     "selectSegmentHint": "选择一个段落",
     "selectSegmentDesc": "点击文章中的任意句子查看详细讲解。",
@@ -68,7 +75,7 @@
     "segmentNumber": "第 {{number}} 段",
     "noSegments": "暂无段落",
     "segmentArticleHint": "点击「分段」按钮将文章拆分为段落，便于深入学习。",
-    "analyzeAll": "全部分析",
+    "analyzeAll": "精讲翻译",
     "analyzeAllConfirm": "本次将分析 {{count}} 个段落，可能消耗较多Token。\n（每次并行处理3个段落）\n\n是否继续？",
     "allSegmentsAnalyzed": "所有段落已分析完成",
     "explanation": "讲解",

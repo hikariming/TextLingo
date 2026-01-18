@@ -30,7 +30,7 @@ function App() {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (): Promise<Article[]> => {
     setIsLoading(true);
     try {
       const [configResult, articlesResult] = await Promise.all([
@@ -42,8 +42,10 @@ function App() {
         getApiClient(configResult); // Initialize API client
       }
       setArticles(articlesResult);
+      return articlesResult;
     } catch (err) {
       console.error("Failed to load data:", err);
+      return [];
     } finally {
       setIsLoading(false);
     }
@@ -85,8 +87,16 @@ function App() {
     setShowFavorites(false);
   };
 
-  const handleArticleUpdate = () => {
-    loadData();
+  const handleArticleUpdate = async () => {
+    const refreshedArticles = await loadData();
+    // 如果当前有选中的文章，用最新数据更新它
+    if (selectedArticle) {
+      const updatedArticle = refreshedArticles.find(a => a.id === selectedArticle.id);
+      if (updatedArticle) {
+        console.log("[App] Refreshed selectedArticle with", updatedArticle.segments?.length, "segments");
+        setSelectedArticle(updatedArticle);
+      }
+    }
   };
 
   const handleDeleteArticle = async (id: string) => {

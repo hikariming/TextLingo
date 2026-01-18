@@ -16,9 +16,10 @@ import {
   PanelRightOpen,
   PanelRightClose,
   Eye,
-  EyeOff,
   Minus,
-  Plus
+  Plus,
+  Check,
+  ChevronDown
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
@@ -26,7 +27,13 @@ import { AnalysisType, AppConfig } from "../../lib/tauri";
 import { Article, SegmentExplanation } from "../../types";
 import { ArticleChatAssistant } from "./ArticleChatAssistant";
 import { ArticleExplanationPanel } from "./ArticleExplanationPanel";
-import { VideoSubtitlePlayer } from "./VideoSubtitlePlayer";
+import { VideoSubtitlePlayer, ViewMode } from "./VideoSubtitlePlayer";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "../ui/DropdownMenu";
 
 interface ArticleReaderProps {
   article: Article;
@@ -58,7 +65,7 @@ export function ArticleReader({
   const [error, setError] = useState<string | null>(null);
   const [showAssistant, setShowAssistant] = useState(true);
   const [selectedText, setSelectedText] = useState<string>("");
-  const [showTranslation, setShowTranslation] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("original");
   const [fontSize, setFontSize] = useState(18);
 
   // Segment Explorer State
@@ -79,19 +86,40 @@ export function ArticleReader({
   // 成功提示消息状态
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Translation Progress State
+  const [translationProgress, setTranslationProgress] = useState<{ current: number; total: number } | null>(null);
+
+  // 刷新文章数据 - 仅更新本地状态，不触发父组件更新
+  const refreshArticle = async () => {
+    try {
+      console.log("[ArticleReader] Refreshing article data...");
+      const freshArticle = await invoke<Article>("get_article", { id: article.id });
+      if (freshArticle) {
+        console.log("[ArticleReader] Article refreshed, segments:", freshArticle.segments?.length);
+        // 直接更新本地状态，这将立即触发 UI 更新
+        setLocalSegments(freshArticle.segments || []);
+        setContent(freshArticle.content);
+      }
+    } catch (err) {
+      console.error("[ArticleReader] Failed to refresh article:", err);
+    }
+  };
+
+
   // 字幕提取进度事件监听
   useEffect(() => {
-    let unlisten: UnlistenFn | undefined;
+    let unlistenExtract: UnlistenFn | undefined;
+    let unlistenTranslate: UnlistenFn | undefined;
 
-    const setupListener = async () => {
-      unlisten = await listen<{ phase: string; message: string; current?: number; total?: number; count?: number }>(
+    const setupListeners = async () => {
+      // Subtitle Extraction Listener
+      unlistenExtract = await listen<{ phase: string; message: string; current?: number; total?: number; count?: number }>(
         `subtitle-extraction-progress://${article.id}`,
         (event) => {
           console.log("[ArticleReader] Progress event:", event.payload);
           const { phase, message, current, total, count } = event.payload;
 
           if (phase === "chunk" && current !== undefined && total !== undefined) {
-            // 分片提取进度
             setExtractionProgress(t("subtitleExtraction.progress.chunk", { current, total }) || `分片提取中: ${current}/${total}`);
           } else if (phase === "audio") {
             setExtractionProgress(t("subtitleExtraction.progress.audio") || "提取音频中...");
@@ -102,10 +130,9 @@ export function ArticleReader({
           } else if (phase === "done") {
             setExtractionProgress(t("subtitleExtraction.success"));
             setSuccessMessage(t("subtitleExtraction.successMessage", { count: count || 0 }));
-
-            // 3秒后自动刷新页面以显示新字幕
+            refreshArticle();
             setTimeout(() => {
-              window.location.reload();
+              setSuccessMessage(null);
             }, 3000);
           } else if (phase === "start" || phase === "chunked") {
             setExtractionProgress(message);
@@ -114,18 +141,29 @@ export function ArticleReader({
           }
         }
       );
+
+      // Translation Progress Listener
+      unlistenTranslate = await listen<{ current: number; total: number; message: string }>(
+        `translation-progress://${article.id}`,
+        (event) => {
+          console.log("[ArticleReader] Translation progress:", event.payload);
+          setTranslationProgress({
+            current: event.payload.current,
+            total: event.payload.total
+          });
+        }
+      );
     };
 
-    if (article.media_path) {
-      setupListener();
+    if (article.media_path || (article.segments && article.segments.length > 0)) {
+      setupListeners();
     }
 
     return () => {
-      if (unlisten) {
-        unlisten();
-      }
+      if (unlistenExtract) unlistenExtract();
+      if (unlistenTranslate) unlistenTranslate();
     };
-  }, [article.id, article.media_path, t]);
+  }, [article.id, article.media_path, t, article.segments]);
 
 
 
@@ -165,22 +203,7 @@ export function ArticleReader({
     }
   }, [selectedSegmentId, article.media_path]);
 
-  // 刷新文章数据
-  const refreshArticle = async () => {
-    try {
-      console.log("[ArticleReader] Refreshing article data...");
-      const freshArticle = await invoke<Article>("get_article", { id: article.id });
-      if (freshArticle) {
-        console.log("[ArticleReader] Article refreshed, segments:", freshArticle.segments?.length);
-        setLocalSegments(freshArticle.segments || []);
-        setContent(freshArticle.content);
-        // 通知父组件更新，但也更新本地状态以确保响应速度
-        onUpdate?.();
-      }
-    } catch (err) {
-      console.error("[ArticleReader] Failed to refresh article:", err);
-    }
-  };
+
 
   const handleSaveContent = async () => {
     try {
@@ -197,6 +220,7 @@ export function ArticleReader({
 
   const handleTranslate = async () => {
     setIsTranslating(true);
+    setTranslationProgress(null);
     setError(null);
     try {
       const result = await invoke<Article>("translate_article", {
@@ -213,6 +237,8 @@ export function ArticleReader({
 
       // 强制刷新一次以确保状态同步（尤其是VideoSubtitlePlayer）
       await refreshArticle();
+      // 通知父组件刷新 articles 数组，确保离开页面后再回来数据不丢失
+      onUpdate?.();
     } catch (err) {
       setError(err as string);
     } finally {
@@ -267,6 +293,8 @@ export function ArticleReader({
       }
 
       onUpdate?.();
+      // 确保本地状态完全同步
+      await refreshArticle();
     } catch (err) {
       console.error("[ArticleReader] Subtitle extraction failed:", err);
       setError(t("subtitleExtraction.error") + ": " + String(err));
@@ -410,7 +438,8 @@ export function ArticleReader({
       console.log("[ArticleReader] Batch translation completed, syncing to parent");
       // 批量处理完成后，调用 refreshArticle 确保所有状态同步
       await refreshArticle();
-
+      // 通知父组件刷新 articles 数组
+      onUpdate?.();
 
     } catch (e) {
       console.error("Batch translation failed", e);
@@ -546,12 +575,27 @@ export function ArticleReader({
               </h1>
               {hasSegments && (
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-muted rounded-md border border-border">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></div>
-                    <span className="text-xs text-muted-foreground font-medium">
-                      {localSegments.filter(s => s.explanation).length} / {localSegments.length}
-                    </span>
-                    <span className="text-xs text-muted-foreground/80 hidden sm:inline">Parsed</span>
+                  {/* 合并后的状态指示器 */}
+                  <div className="flex items-center gap-3 px-2 py-0.5 bg-muted/40 rounded-md border border-border/50">
+                    {/* 翻译计数 */}
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-1.5 w-1.5 rounded-full bg-yellow-500"></div>
+                      <span className="text-[10px] text-muted-foreground font-medium">
+                        {localSegments.filter(s => s.translation).length} / {localSegments.length}
+                        <span className="ml-1 opacity-80">{t("articleReader.translated") || "已翻译"}</span>
+                      </span>
+                    </div>
+
+                    <div className="w-px h-3 bg-border/50" />
+
+                    {/* 解析计数 */}
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                      <span className="text-[10px] text-muted-foreground font-medium">
+                        {localSegments.filter(s => s.explanation).length} / {localSegments.length}
+                        <span className="ml-1 opacity-80">{t("articleReader.parsed") || "已解析"}</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -597,18 +641,44 @@ export function ArticleReader({
 
             {hasSegments ? (
               <>
-                <Button
-                  variant={showTranslation ? "default" : "secondary"}
-                  size="sm"
-                  onClick={() => setShowTranslation(!showTranslation)}
-                  title={showTranslation ? t("articleReader.hideTranslation") : t("articleReader.showTranslation")}
-                  className="h-8 md:h-9"
-                >
-                  {showTranslation ? <EyeOff size={16} /> : <Eye size={16} />}
-                  <span className="ml-2 hidden xl:inline">
-                    {showTranslation ? t("articleReader.hideTranslation") : t("articleReader.showTranslation")}
-                  </span>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant={viewMode !== 'original' ? "default" : "secondary"}
+                      size="sm"
+                      title={t("articleReader.viewMode") || "View Mode"}
+                      className="h-8 md:h-9"
+                    >
+                      {viewMode === 'original' && <Eye size={16} />}
+                      {viewMode === 'bilingual' && <Split size={16} />}
+                      {viewMode === 'translation' && <Languages size={16} />}
+                      <span className="ml-2 hidden xl:inline">
+                        {t(`articleReader.viewMode.${viewMode}`) || (viewMode === 'original' ? "Original" : viewMode === 'bilingual' ? "Bilingual" : "Translation")}
+                      </span>
+                      <ChevronDown size={14} className="ml-1 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setViewMode('original')}>
+                      <div className="flex items-center justify-between w-full min-w-[120px]">
+                        <span>{t("articleReader.viewMode.original") || "Original"}</span>
+                        {viewMode === 'original' && <Check size={14} />}
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setViewMode('bilingual')}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{t("articleReader.viewMode.bilingual") || "Bilingual"}</span>
+                        {viewMode === 'bilingual' && <Check size={14} />}
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setViewMode('translation')}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{t("articleReader.viewMode.translation") || "Translation"}</span>
+                        {viewMode === 'translation' && <Check size={14} />}
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 {isBatchTranslating ? (
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md border border-border h-8 md:h-9">
@@ -627,60 +697,87 @@ export function ArticleReader({
                     className="h-8 md:h-9"
                   >
                     <Sparkles size={16} />
-                    <span className="ml-2 hidden xl:inline">{t("articleReader.analyzeAll") || "Analyze All"}</span>
+                    <span className="ml-2 hidden xl:inline">{t("articleReader.analyzeAll") || "Deep Dive Translate"}</span>
                   </Button>
                 )}
 
-                {/* Resegment Button moved here */}
+                {/* Resegment Button - Hide for Video */}
+                {!article.media_path && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleResegment}
+                    disabled={isResegmenting}
+                    className="h-8 md:h-9"
+                    title={t("articleReader.resegment")}
+                  >
+                    {isResegmenting ? <Loader2 size={16} className="animate-spin" /> : <Split size={16} />}
+                    <span className="ml-2 hidden xl:inline">{t("articleReader.segment")}</span>
+                  </Button>
+                )}
+              </>
+            ) : (
+              // No Segments - Show Segment buttons if NOT video (Wait, video should extract subtitles, not segmentation usually)
+              // If video has no segments, it usually implies subtitles extraction needed.
+              // Let's keep logic: Hide Segment/Edit button for video.
+              !article.media_path ? (
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={handleResegment}
                   disabled={isResegmenting}
                   className="h-8 md:h-9"
-                  title={t("articleReader.resegment")}
                 >
                   {isResegmenting ? <Loader2 size={16} className="animate-spin" /> : <Split size={16} />}
                   <span className="ml-2 hidden xl:inline">{t("articleReader.segment")}</span>
                 </Button>
-              </>
-            ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleResegment}
-                disabled={isResegmenting}
-                className="h-8 md:h-9"
-              >
-                {isResegmenting ? <Loader2 size={16} className="animate-spin" /> : <Split size={16} />}
-                <span className="ml-2 hidden xl:inline">{t("articleReader.segment")}</span>
-              </Button>
+              ) : null
             )}
 
             <div className="w-px h-4 bg-border mx-1" />
 
-            {/* Edit & Translate */}
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsEditing(!isEditing)}
-              className="h-8 md:h-9"
-              title={t("articleReader.edit")}
-            >
-              <FileText size={16} />
-              <span className="ml-2 hidden xl:inline">{isEditing ? t("articleReader.cancel") : t("articleReader.edit")}</span>
-            </Button>
+            {/* Edit & Translate - Hide Edit for Video */}
+            {!article.media_path && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsEditing(!isEditing)}
+                className="h-8 md:h-9"
+                title={t("articleReader.edit")}
+              >
+                <FileText size={16} />
+                <span className="ml-2 hidden xl:inline">{isEditing ? t("articleReader.cancel") : t("articleReader.edit")}</span>
+              </Button>
+            )}
 
             <Button
               size="sm"
               onClick={handleTranslate}
               disabled={isTranslating}
-              className="gap-2 h-8 md:h-9"
+              className="gap-2 h-8 md:h-9 relative overflow-hidden"
               title={t("articleReader.translate")}
               variant="secondary"
             >
-              {isTranslating ? <Loader2 size={16} className="animate-spin" /> : <Languages size={16} />}
-              <span className="hidden xl:inline">{t("articleReader.translate")}</span>
+              {/* Progress Bar Background */}
+              {isTranslating && translationProgress && translationProgress.total > 0 && (
+                <div
+                  className="absolute inset-0 bg-primary/10 transition-all duration-300"
+                  style={{ width: `${Math.min(100, (translationProgress.current / translationProgress.total) * 100)}%` }}
+                />
+              )}
+
+              {isTranslating ? (
+                translationProgress && translationProgress.total > 0 ? (
+                  <span className="text-xs font-mono z-10 text-primary">
+                    {Math.round((translationProgress.current / translationProgress.total) * 100)}%
+                  </span>
+                ) : (
+                  <Loader2 size={16} className="animate-spin" />
+                )
+              ) : (
+                <Languages size={16} />
+              )}
+              <span className="hidden xl:inline z-10">{t("articleReader.translate")}</span>
             </Button>
 
             <div className="w-px h-4 bg-border mx-1" />
@@ -744,7 +841,7 @@ export function ArticleReader({
                         selectedSegmentId={selectedSegmentId}
                         onSegmentClick={handleSegmentClick}
                         fontSize={fontSize}
-                        showTranslation={showTranslation}
+                        viewMode={viewMode}
                         isExtractingSubtitles={isExtractingSubtitles}
                         onExtractSubtitles={handleExtractSubtitles}
                         articleTitle={article.title}
@@ -753,6 +850,7 @@ export function ArticleReader({
                         extractionProgress={extractionProgress}
                         isTranslating={isTranslating}
                         onQuickTranslate={handleTranslate}
+                        translationProgress={translationProgress}
                       />
                     );
                   })()}
@@ -810,7 +908,7 @@ export function ArticleReader({
                                         boxDecorationBreak: 'clone'
                                       }}
                                     >
-                                      {segment.text}
+                                      {viewMode === 'translation' && segment.translation ? segment.translation : segment.text}
                                     </span>
                                     {segIndex < group.length - 1 && " "}
                                   </React.Fragment>
@@ -820,7 +918,7 @@ export function ArticleReader({
 
                             {group.map((segment) => {
                               const isSelected = segment.id === selectedSegmentId;
-                              const hasTranslationContent = showTranslation && !!segment.translation;
+                              const hasTranslationContent = viewMode === 'bilingual' && !!segment.translation;
                               const shouldShow = isSelected || hasTranslationContent;
                               const hasContent = segment.reading_text || hasTranslationContent;
 
@@ -828,7 +926,7 @@ export function ArticleReader({
 
                               return (
                                 <div key={`detail-${segment.id}`} className="mt-4 px-4 py-3 bg-muted/30 rounded-xl border border-border animate-in fade-in slide-in-from-top-2">
-                                  {segment.reading_text && (
+                                  {viewMode !== 'translation' && segment.reading_text && (
                                     <p
                                       className="text-muted-foreground leading-relaxed mb-2 font-mono"
                                       style={{ fontSize: `${fontSize * 0.85}px` }}
@@ -837,7 +935,7 @@ export function ArticleReader({
                                     </p>
                                   )}
 
-                                  {showTranslation && segment.translation && (
+                                  {viewMode === 'bilingual' && segment.translation && (
                                     <div className="text-primary leading-relaxed">
                                       <p style={{ fontSize: `${fontSize * 0.95}px` }}>
                                         {segment.translation}

@@ -26,6 +26,8 @@ import { ArticleSegment } from "../../types";
 // 播放位置存储的 key 前缀
 const PLAYBACK_POSITION_KEY_PREFIX = "textlingo_video_position_";
 
+export type ViewMode = 'original' | 'bilingual' | 'translation';
+
 interface VideoSubtitlePlayerProps {
     /** 视频URL */
     videoUrl: string;
@@ -39,8 +41,8 @@ interface VideoSubtitlePlayerProps {
     onTimeUpdate?: (time: number) => void;
     /** 字体大小 */
     fontSize: number;
-    /** 是否显示翻译 */
-    showTranslation: boolean;
+    /** 视图模式 */
+    viewMode: ViewMode;
     /** 是否正在提取字幕 */
     isExtractingSubtitles?: boolean;
     /** 提取字幕回调 */
@@ -55,7 +57,10 @@ interface VideoSubtitlePlayerProps {
     /** 是否正在翻译 */
     isTranslating?: boolean;
     /** 快速翻译回调 */
+    /** 快速翻译回调 */
     onQuickTranslate?: () => void;
+    /** 翻译进度 */
+    translationProgress?: { current: number; total: number } | null;
 }
 
 export function VideoSubtitlePlayer({
@@ -65,7 +70,7 @@ export function VideoSubtitlePlayer({
     onSegmentClick,
     onTimeUpdate,
     fontSize,
-    showTranslation,
+    viewMode,
     isExtractingSubtitles = false,
     onExtractSubtitles,
     articleTitle = "subtitles",
@@ -73,6 +78,7 @@ export function VideoSubtitlePlayer({
     extractionProgress,
     isTranslating = false,
     onQuickTranslate,
+    translationProgress,
 }: VideoSubtitlePlayerProps) {
     const { t } = useTranslation();
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -238,7 +244,7 @@ export function VideoSubtitlePlayer({
                     const endTime = formatVttTime(seg.end_time);
                     content += `${startTime} --> ${endTime}\n`;
                     content += `${seg.text}\n`;
-                    if (showTranslation && seg.translation) {
+                    if (viewMode !== 'original' && seg.translation) {
                         content += `${seg.translation}\n`;
                     }
                     content += "\n";
@@ -247,7 +253,7 @@ export function VideoSubtitlePlayer({
             case 'txt':
                 sortedSegs.forEach((seg) => {
                     content += `${seg.text}\n`;
-                    if (showTranslation && seg.translation) {
+                    if (viewMode !== 'original' && seg.translation) {
                         content += `${seg.translation}\n`;
                     }
                     content += "\n";
@@ -258,7 +264,7 @@ export function VideoSubtitlePlayer({
                 sortedSegs.forEach((seg) => {
                     const startTime = formatTime(seg.start_time);
                     content += `**[${startTime}]** ${seg.text}\n`;
-                    if (showTranslation && seg.translation) {
+                    if (viewMode !== 'original' && seg.translation) {
                         content += `> ${seg.translation}\n`;
                     }
                     content += "\n";
@@ -417,8 +423,13 @@ export function VideoSubtitlePlayer({
                     {/* 迷你字幕 */}
                     {currentSubtitle && (
                         <div className="p-2 bg-card border-t border-border">
-                            <p className="text-sm font-medium line-clamp-2">{currentSubtitle.text}</p>
-                            {showTranslation && currentSubtitle.translation && (
+                            {viewMode === 'translation' && currentSubtitle.translation ? (
+                                <p className="text-sm font-medium line-clamp-2">{currentSubtitle.translation}</p>
+                            ) : (
+                                <p className="text-sm font-medium line-clamp-2">{currentSubtitle.text}</p>
+                            )}
+
+                            {viewMode === 'bilingual' && currentSubtitle.translation && (
                                 <p className="text-xs text-primary mt-1 line-clamp-1">{currentSubtitle.translation}</p>
                             )}
                         </div>
@@ -463,47 +474,42 @@ export function VideoSubtitlePlayer({
             {/* 当前字幕卡片 - 始终显示 */}
             <div className={`${isMiniMode ? 'mt-0' : 'mt-3'} space-y-3`}>
                 {currentSubtitle ? (
-                    <>
-                        {/* 原文区域 */}
-                        <div
-                            className="p-4 bg-card rounded-xl border-2 border-red-500/30 shadow-sm cursor-pointer hover:border-red-500/50 transition-colors"
-                            onClick={() => handleSubtitleClick(currentSubtitle)}
-                        >
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xs font-medium text-red-500/80 uppercase tracking-wider">
-                                    {t("videoPlayer.original")}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                    {formatTime(currentSubtitle.start_time)} - {formatTime(currentSubtitle.end_time)}
-                                </span>
-                            </div>
+                    <div
+                        className="p-4 bg-card/60 backdrop-blur-sm rounded-xl border border-border shadow-sm cursor-pointer hover:bg-card/80 transition-all active:scale-[0.99]"
+                        onClick={() => handleSubtitleClick(currentSubtitle)}
+                    >
+                        {/* 内容显示：根据视图模式调整 */}
+                        {viewMode === 'translation' && currentSubtitle.translation ? (
+                            <p
+                                className="text-foreground font-medium leading-relaxed"
+                                style={{ fontSize: `${fontSize}px` }}
+                            >
+                                {currentSubtitle.translation}
+                            </p>
+                        ) : (
                             <p
                                 className="text-foreground font-medium leading-relaxed"
                                 style={{ fontSize: `${fontSize}px` }}
                             >
                                 {currentSubtitle.text}
                             </p>
-                            {/* 注音/读法 */}
-                            {currentSubtitle.reading_text && (
-                                <p
-                                    className="text-muted-foreground mt-2 font-mono"
-                                    style={{ fontSize: `${fontSize * 0.8}px` }}
-                                >
-                                    {currentSubtitle.reading_text}
-                                </p>
-                            )}
-                        </div>
+                        )}
 
-                        {/* 译文区域 */}
-                        {showTranslation && currentSubtitle.translation && (
-                            <div className="p-4 bg-primary/5 rounded-xl border-2 border-primary/30">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xs font-medium text-primary/80 uppercase tracking-wider">
-                                        {t("videoPlayer.translation")}
-                                    </span>
-                                </div>
+                        {/* 注音/读法 (非纯译文模式显示) */}
+                        {viewMode !== 'translation' && currentSubtitle.reading_text && (
+                            <p
+                                className="text-muted-foreground mt-1.5 font-mono opacity-80"
+                                style={{ fontSize: `${fontSize * 0.8}px` }}
+                            >
+                                {currentSubtitle.reading_text}
+                            </p>
+                        )}
+
+                        {/* 译文 - 双语模式显示在下方 */}
+                        {viewMode === 'bilingual' && currentSubtitle.translation && (
+                            <div className="mt-3 pt-3 border-t border-border/40">
                                 <p
-                                    className="text-primary leading-relaxed"
+                                    className="text-primary/90 leading-relaxed font-medium"
                                     style={{ fontSize: `${fontSize * 0.95}px` }}
                                 >
                                     {currentSubtitle.translation}
@@ -511,15 +517,8 @@ export function VideoSubtitlePlayer({
                             </div>
                         )}
 
-                        {/* 如果没有译文，显示提示 */}
-                        {!currentSubtitle.translation && !currentSubtitle.explanation && (
-                            <div className="p-3 bg-muted/30 rounded-xl border border-border">
-                                <p className="text-sm text-muted-foreground text-center">
-                                    {t("videoPlayer.noTranslationYet")}
-                                </p>
-                            </div>
-                        )}
-                    </>
+                        {/* 如果没有译文，也不显示提示 */}
+                    </div>
                 ) : (
                     <div className="p-4 bg-muted/30 rounded-xl border border-border text-center text-muted-foreground">
                         <p>{t("videoPlayer.playToShowSubtitle")}</p>
@@ -565,7 +564,11 @@ export function VideoSubtitlePlayer({
                                     <Download size={16} />
                                 )}
                                 <span className="hidden sm:inline">
-                                    {isTranslating ? (t("articleReader.translating") || "翻译中...") : (t("videoPlayer.exportSubtitles") || "导出字幕")}
+                                    {isTranslating ? (
+                                        translationProgress && translationProgress.total > 0 ?
+                                            `${t("articleReader.translating") || "翻译中..."} ${Math.round((translationProgress.current / translationProgress.total) * 100)}%`
+                                            : (t("articleReader.translating") || "翻译中...")
+                                    ) : (t("videoPlayer.exportSubtitles") || "导出字幕")}
                                 </span>
                                 <ChevronDown size={14} className="opacity-50" />
                             </Button>
@@ -684,10 +687,17 @@ export function VideoSubtitlePlayer({
 
                                         {/* 内容区域 */}
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-sm leading-relaxed ${isActive ? "text-foreground font-medium" : "text-foreground"}`}>
-                                                {segment.text}
-                                            </p>
-                                            {showTranslation && segment.translation && (
+                                            {viewMode === 'translation' && segment.translation ? (
+                                                <p className={`text-sm leading-relaxed ${isActive ? "text-foreground font-medium" : "text-foreground"}`}>
+                                                    {segment.translation}
+                                                </p>
+                                            ) : (
+                                                <p className={`text-sm leading-relaxed ${isActive ? "text-foreground font-medium" : "text-foreground"}`}>
+                                                    {segment.text}
+                                                </p>
+                                            )}
+
+                                            {viewMode === 'bilingual' && segment.translation && (
                                                 <p className="text-xs text-primary mt-1 leading-relaxed">
                                                     {segment.translation}
                                                 </p>

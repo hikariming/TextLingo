@@ -602,6 +602,14 @@ pub async fn translate_article(
                         }
                     }
                     println!("[Article] Chunk {}/{} completed successfully", i + 1, total_chunks);
+                    
+                    // Emit progress event
+                    let progress = serde_json::json!({
+                        "current": (i + 1) * BATCH_SIZE,
+                        "total": total_count,
+                        "message": format!("Translating chunk {}/{}", i + 1, total_chunks)
+                    });
+                    let _ = app_handle.emit(&format!("translation-progress://{}", article_id), progress);
                 }
                 Err(e) => {
                     // 批量翻译失败，记录错误但继续
@@ -610,6 +618,13 @@ pub async fn translate_article(
             }
         }
     }
+    
+    // Emit complete event
+    let _ = app_handle.emit(&format!("translation-progress://{}", article_id), serde_json::json!({
+        "current": untranslated.len(),
+        "total": untranslated.len(),
+        "message": "Translation completed"
+    }));
 
     println!("[Article] Quick translation completed for article: {}", article_id);
     article.translated = true;

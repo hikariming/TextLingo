@@ -58,6 +58,13 @@
     "fullAnalysis": "完全分析",
     "segment": "セグメント",
     "resegment": "再セグメント化",
+    "translated": "翻訳済み",
+    "parsed": "精読済み",
+    "viewMode": {
+      "original": "原文のみ",
+      "bilingual": "対訳",
+      "translation": "訳文のみ"
+    },
     "resegmentConfirm": "既存のセグメントが置き換えられます。続行しますか？",
     "selectSegmentHint": "セグメントを選択",
     "selectSegmentDesc": "記事内の文をクリックして詳細な説明を表示します。",
@@ -66,7 +73,7 @@
     "segmentNumber": "セグメント {{number}}",
     "noSegments": "セグメントがありません",
     "segmentArticleHint": "「セグメント」ボタンをクリックして、記事を段落に分割して詳しく学習できます。",
-    "analyzeAll": "すべて分析",
+    "analyzeAll": "精読翻訳",
     "analyzeAllConfirm": "{{count}}個のセグメントを分析します。多くのトークンを消費する可能性があります。\n（3セグメントずつ並行処理）\n\n続行しますか？",
     "allSegmentsAnalyzed": "すべてのセグメントは分析済みです。",
     "explanation": "解説",

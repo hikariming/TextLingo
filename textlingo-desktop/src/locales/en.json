@@ -60,6 +60,13 @@
     "fullAnalysis": "Full Analysis",
     "segment": "Segment",
     "resegment": "Resegment Article",
+    "translated": "Translated",
+    "parsed": "Deep Dived",
+    "viewMode": {
+      "original": "Original",
+      "bilingual": "Bilingual",
+      "translation": "Translation"
+    },
     "resegmentConfirm": "This will replace existing segments. Continue?",
     "selectSegmentHint": "Select a segment",
     "selectSegmentDesc": "Click on any sentence in the article to view its detailed explanation.",
@@ -68,7 +75,7 @@
     "segmentNumber": "Segment {{number}}",
     "noSegments": "No segments yet",
     "segmentArticleHint": "Click the Segment button to split this article into segments for detailed learning.",
-    "analyzeAll": "Analyze All",
+    "analyzeAll": "Deep Dive Translate",
     "analyzeAllConfirm": "This will analyze {{count}} segments. This might consume significant tokens.\n(Note: Will process 3 segments at a time)\n\nContinue?",
     "allSegmentsAnalyzed": "All segments already have explanations.",
     "explanation": "Explanation",
