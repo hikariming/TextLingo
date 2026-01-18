@@ -583,8 +583,15 @@ pub async fn translate_article(
         
         // 批量翻译（每批最多30条）
         const BATCH_SIZE: usize = 30;
-        for chunk in untranslated.chunks(BATCH_SIZE) {
+        let total_count = untranslated.len();
+        let total_chunks = (total_count + BATCH_SIZE - 1) / BATCH_SIZE;
+
+        println!("[Article] Starting quick translation for article: {}, items: {}", article_id, total_count);
+
+        for (i, chunk) in untranslated.chunks(BATCH_SIZE).enumerate() {
+            println!("[Article] Translating chunk {}/{} ({} items)...", i + 1, total_chunks, chunk.len());
             let batch_items: Vec<(String, String)> = chunk.to_vec();
+
             
             match ai_service.batch_translate(batch_items, &target_language).await {
                 Ok(translations) => {
@@ -594,15 +601,17 @@ pub async fn translate_article(
                             seg.translation = Some(translation);
                         }
                     }
+                    println!("[Article] Chunk {}/{} completed successfully", i + 1, total_chunks);
                 }
                 Err(e) => {
                     // 批量翻译失败，记录错误但继续
-                    eprintln!("Batch translation error: {}", e);
+                    eprintln!("[Article] Batch translation error in chunk {}/{}: {}", i + 1, total_chunks, e);
                 }
             }
         }
     }
 
+    println!("[Article] Quick translation completed for article: {}", article_id);
     article.translated = true;
 
     let article_json = serde_json::to_string(&article).unwrap();
@@ -1264,3 +1273,43 @@ pub async fn import_book_cmd(
     Ok(article)
 }
 
+
+// File System Commands
+#[tauri::command]
+pub async fn write_text_file(path: String, content: String) -> Result<(), String> {
+    use std::fs;
+    fs::write(path, content).map_err(|e| format!("Failed to write file: {}", e))
+}
+
+#[tauri::command]
+pub async fn delete_article_subtitles_cmd(app_handle: AppHandle, id: String) -> Result<(), String> {
+    let article_json = load_article(&app_handle, &id)?;
+    let mut article: Article = serde_json::from_str(&article_json)
+        .map_err(|e| format!("Failed to parse article: {}", e))?;
+
+    article.segments = Vec::new();
+    article.translated = false;
+
+    let updated_json = serde_json::to_string(&article).unwrap();
+    save_article(&app_handle, &id, &updated_json)?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn delete_article_analysis_cmd(app_handle: AppHandle, id: String) -> Result<(), String> {
+    let article_json = load_article(&app_handle, &id)?;
+    let mut article: Article = serde_json::from_str(&article_json)
+        .map_err(|e| format!("Failed to parse article: {}", e))?;
+
+    for segment in &mut article.segments {
+        segment.translation = None;
+        segment.explanation = None;
+    }
+    article.translated = false;
+
+    let updated_json = serde_json::to_string(&article).unwrap();
+    save_article(&app_handle, &id, &updated_json)?;
+
+    Ok(())
+}

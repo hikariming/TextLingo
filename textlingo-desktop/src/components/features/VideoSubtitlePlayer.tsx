@@ -11,7 +11,15 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/Button";
-import { ChevronDown, ChevronUp, Loader2, FileText, Minimize2, Download, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, FileText, Minimize2, Download, X, FileJson, FileType } from "lucide-react";
+import { save } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+} from "../ui/DropdownMenu";
 import { useTranslation } from "react-i18next";
 import { ArticleSegment } from "../../types";
 
@@ -42,7 +50,12 @@ interface VideoSubtitlePlayerProps {
     /** 文章ID（用于记忆播放位置） */
     articleId?: string;
     /** 提取进度消息 */
+
     extractionProgress?: string | null;
+    /** 是否正在翻译 */
+    isTranslating?: boolean;
+    /** 快速翻译回调 */
+    onQuickTranslate?: () => void;
 }
 
 export function VideoSubtitlePlayer({
@@ -58,6 +71,8 @@ export function VideoSubtitlePlayer({
     articleTitle = "subtitles",
     articleId,
     extractionProgress,
+    isTranslating = false,
+    onQuickTranslate,
 }: VideoSubtitlePlayerProps) {
     const { t } = useTranslation();
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -174,33 +189,107 @@ export function VideoSubtitlePlayer({
         return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
     };
 
-    // 导出 SRT 字幕
-    const handleExportSrt = () => {
+
+
+    // 辅助函数：格式化时间为 VTT 格式 (HH:MM:SS.mmm)
+    const formatVttTime = (seconds?: number): string => {
+        if (seconds === undefined || seconds === null) return "00:00:00.000";
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = Math.floor(seconds % 60);
+        const ms = Math.floor((seconds % 1) * 1000);
+        return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
+    };
+
+    // 导出字幕通用函数
+    const handleExport = async (format: 'srt' | 'vtt' | 'txt' | 'md' | 'json' | 'srt_original' | 'srt_translated' | 'srt_bilingual') => {
         const sortedSegs = [...segments].sort((a, b) => a.order - b.order);
-        let srtContent = "";
+        let content = "";
+        let extension = format;
 
-        sortedSegs.forEach((seg, index) => {
-            const startTime = formatSrtTime(seg.start_time);
-            const endTime = formatSrtTime(seg.end_time);
-            srtContent += `${index + 1}\n`;
-            srtContent += `${startTime} --> ${endTime}\n`;
-            srtContent += `${seg.text}\n`;
-            if (showTranslation && seg.translation) {
-                srtContent += `${seg.translation}\n`;
+        switch (format) {
+            case 'srt':
+            case 'srt_original':
+            case 'srt_translated':
+            case 'srt_bilingual':
+                extension = 'srt';
+                sortedSegs.forEach((seg, index) => {
+                    const startTime = formatSrtTime(seg.start_time);
+                    const endTime = formatSrtTime(seg.end_time);
+                    content += `${index + 1}\n`;
+                    content += `${startTime} --> ${endTime}\n`;
+
+                    if (format === 'srt_translated') {
+                        content += `${seg.translation || ''}\n`;
+                    } else if (format === 'srt_bilingual') {
+                        content += `${seg.text}\n`;
+                        content += `${seg.translation || ''}\n`;
+                    } else {
+                        // srt or srt_original
+                        content += `${seg.text}\n`;
+                    }
+                    content += "\n";
+                });
+                break;
+            case 'vtt':
+                content = "WEBVTT\n\n";
+                sortedSegs.forEach((seg) => {
+                    const startTime = formatVttTime(seg.start_time);
+                    const endTime = formatVttTime(seg.end_time);
+                    content += `${startTime} --> ${endTime}\n`;
+                    content += `${seg.text}\n`;
+                    if (showTranslation && seg.translation) {
+                        content += `${seg.translation}\n`;
+                    }
+                    content += "\n";
+                });
+                break;
+            case 'txt':
+                sortedSegs.forEach((seg) => {
+                    content += `${seg.text}\n`;
+                    if (showTranslation && seg.translation) {
+                        content += `${seg.translation}\n`;
+                    }
+                    content += "\n";
+                });
+                break;
+            case 'md':
+                content += `# ${articleTitle}\n\n`;
+                sortedSegs.forEach((seg) => {
+                    const startTime = formatTime(seg.start_time);
+                    content += `**[${startTime}]** ${seg.text}\n`;
+                    if (showTranslation && seg.translation) {
+                        content += `> ${seg.translation}\n`;
+                    }
+                    content += "\n";
+                });
+                break;
+            case 'json':
+                content = JSON.stringify(sortedSegs.map(seg => ({
+                    start: seg.start_time,
+                    end: seg.end_time,
+                    text: seg.text,
+                    translation: seg.translation
+                })), null, 2);
+                break;
+        }
+
+        try {
+            const defaultPath = `${articleTitle.replace(/[/\\?%*:|"<>]/g, "-")}.${extension}`;
+            const filePath = await save({
+                defaultPath,
+                filters: [{
+                    name: format.toUpperCase(),
+                    extensions: [extension]
+                }]
+            });
+
+            if (filePath) {
+                await invoke('write_text_file', { path: filePath, content });
             }
-            srtContent += "\n";
-        });
-
-        // 创建并下载文件
-        const blob = new Blob([srtContent], { type: "text/plain;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${articleTitle.replace(/[/\\?%*:|"<>]/g, "-")}.srt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Failed to export:', error);
+        }
     };
 
     // 找到当前时间对应的字幕
@@ -208,6 +297,20 @@ export function VideoSubtitlePlayer({
         s => s.start_time !== undefined && s.end_time !== undefined &&
             currentTime >= s.start_time && currentTime < s.end_time
     );
+
+    // 检查是否有缺失的翻译
+    const hasMissingTranslations = segments.some(s => !s.translation || !s.translation.trim());
+
+    // 处理需要翻译的导出
+    const handleTranslatedExport = (format: 'srt_translated' | 'srt_bilingual') => {
+        if (hasMissingTranslations) {
+            if (onQuickTranslate) {
+                onQuickTranslate();
+            }
+            return;
+        }
+        handleExport(format);
+    };
 
     // 点击字幕跳转视频
     const handleSubtitleClick = (segment: ArticleSegment) => {
@@ -447,17 +550,76 @@ export function VideoSubtitlePlayer({
                         )}
                     </Button>
 
-                    {/* 导出 SRT */}
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleExportSrt}
-                        className="gap-2 shrink-0"
-                        title={t("videoPlayer.exportSrt")}
-                    >
-                        <Download size={16} />
-                        <span className="hidden sm:inline">{t("videoPlayer.exportSrt")}</span>
-                    </Button>
+                    {/* 导出菜单 */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2 shrink-0"
+                                disabled={isTranslating}
+                            >
+                                {isTranslating ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                    <Download size={16} />
+                                )}
+                                <span className="hidden sm:inline">
+                                    {isTranslating ? (t("articleReader.translating") || "翻译中...") : (t("videoPlayer.exportSubtitles") || "导出字幕")}
+                                </span>
+                                <ChevronDown size={14} className="opacity-50" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleExport('srt_original')}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                <span>{t("videoPlayer.exportSrtOriginal")}</span>
+                            </DropdownMenuItem>
+
+                            {/* 译文导出 - 如果缺少翻译则提示并引导快速翻译 */}
+                            <DropdownMenuItem
+                                onClick={() => handleTranslatedExport('srt_translated')}
+                                className={hasMissingTranslations ? "text-yellow-600 focus:text-yellow-700 focus:bg-yellow-50" : ""}
+                                title={hasMissingTranslations ? t("videoPlayer.clickToTranslate") : ""}
+                            >
+                                <FileText className="mr-2 h-4 w-4" />
+                                <span>
+                                    {t("videoPlayer.exportSrtTranslated")}
+                                    {hasMissingTranslations && " (!)"}
+                                </span>
+                            </DropdownMenuItem>
+
+                            {/* 双语导出 - 如果缺少翻译则提示并引导快速翻译 */}
+                            <DropdownMenuItem
+                                onClick={() => handleTranslatedExport('srt_bilingual')}
+                                className={hasMissingTranslations ? "text-yellow-600 focus:text-yellow-700 focus:bg-yellow-50" : ""}
+                                title={hasMissingTranslations ? t("videoPlayer.clickToTranslate") : ""}
+                            >
+                                <FileText className="mr-2 h-4 w-4" />
+                                <span>
+                                    {t("videoPlayer.exportSrtBilingual")}
+                                    {hasMissingTranslations && " (!)"}
+                                </span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem onClick={() => handleExport('vtt')}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                <span>VTT (.vtt)</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport('txt')}>
+                                <FileType className="mr-2 h-4 w-4" />
+                                <span>Text (.txt)</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport('md')}>
+                                <FileType className="mr-2 h-4 w-4" />
+                                <span>Markdown (.md)</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport('json')}>
+                                <FileJson className="mr-2 h-4 w-4" />
+                                <span>JSON (.json)</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
                     {/* 重新提取字幕按钮 */}
                     {onExtractSubtitles && (

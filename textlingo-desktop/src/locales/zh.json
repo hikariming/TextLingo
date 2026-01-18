@@ -33,7 +33,9 @@
     "translated": "已翻译",
     "openSource": "打开来源",
     "delete": "删除",
-    "deleteConfirm": "确定要删除这篇文章吗？"
+    "deleteConfirm": "确定要删除这篇文章吗？",
+    "deleteSubtitles": "删除字幕",
+    "deleteAnalysis": "删除翻译解析"
   },
   "articleReader": {
     "untitled": "未命名文章",
@@ -319,6 +321,12 @@
     "miniMode": "迷你模式",
     "exitMiniMode": "退出迷你模式",
     "exportSrt": "导出SRT字幕",
+    "exportSubtitles": "导出字幕",
+    "exportSrtOriginal": "导出 SRT (原文)",
+    "exportSrtTranslated": "导出 SRT (译文)",
+    "exportSrtBilingual": "导出 SRT (双语)",
+    "translateFirst": "请先完成翻译",
+    "clickToTranslate": "点击以快速翻译所有字幕",
     "hideSubtitles": "收起字幕列表",
     "showAllSubtitles": "查看全部字幕"
   },

@@ -31,7 +31,9 @@
     "translated": "翻訳済み",
     "openSource": "ソースを開く",
     "delete": "削除",
-    "deleteConfirm": "この記事を削除してもよろしいですか？"
+    "deleteConfirm": "この記事を削除してもよろしいですか？",
+    "deleteSubtitles": "字幕を削除",
+    "deleteAnalysis": "分析を削除"
   },
   "articleReader": {
     "untitled": "無題の記事",
@@ -308,6 +310,12 @@
     "miniMode": "ミニモード",
     "exitMiniMode": "ミニモードを終了",
     "exportSrt": "SRT出力",
+    "exportSubtitles": "字幕をエクスポート",
+    "exportSrtOriginal": "SRT出力 (原文)",
+    "exportSrtTranslated": "SRT出力 (翻訳)",
+    "exportSrtBilingual": "SRT出力 (対訳)",
+    "translateFirst": "翻訳がありません",
+    "clickToTranslate": "クリックして全字幕を翻訳",
     "hideSubtitles": "字幕を非表示",
     "showAllSubtitles": "すべての字幕を表示"
   },

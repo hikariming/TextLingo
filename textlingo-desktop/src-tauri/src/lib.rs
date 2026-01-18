@@ -60,6 +60,11 @@ pub fn run() {
             commands::import_book_cmd,
             // 字幕提取
             commands::extract_subtitles_cmd,
+            // 文件操作
+            commands::write_text_file,
+            // 删除操作
+            commands::delete_article_subtitles_cmd,
+            commands::delete_article_analysis_cmd,
         ])
         .setup(|app| {
             // Initialize app on startup

@@ -16,6 +16,8 @@
 
 </div>
 
+🌐 **Official Website & Documentation**: [openkoto.com](https://www.openkoto.com/)
+
 > 📢 **Note**: This project was previously known as **TextLingo**. We've renamed it to **OpenKoto** (Open + 言/ことば, meaning "word" in Japanese) to better reflect our vision of open-source reading, translation, and language learning.
 
 ## What is OpenKoto?

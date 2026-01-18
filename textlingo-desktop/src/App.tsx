@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { BookOpen, RotateCw, Star } from "lucide-react";
+import { BookOpen, RotateCw, Star, LayoutGrid, List, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ArticleList } from "./components/features/ArticleList";
 import { ArticleReader } from "./components/features/ArticleReader";
 import { BookReader } from "./components/features/BookReader";
-import { NewMaterialButton } from "./components/features/NewMaterialDialog";
+import { NewMaterialDialog } from "./components/features/NewMaterialDialog";
 import { FavoritesPage } from "./components/features/FavoritesPage";
 import { SettingsButton } from "./components/features/SettingsDialog";
 import { ApiQuickSwitcher } from "./components/features/ApiQuickSwitcher";
@@ -21,6 +21,9 @@ function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "card">("card");
 
   // Load config and articles on mount
   useEffect(() => {
@@ -86,11 +89,6 @@ function App() {
     loadData();
   };
 
-  const handleNewArticle = () => {
-    // Reload full list to ensure sort order and consistency
-    loadData();
-  };
-
   const handleDeleteArticle = async (id: string) => {
     console.log("App: handleDeleteArticle called for id:", id);
     try {
@@ -100,6 +98,16 @@ function App() {
     } catch (e) {
       console.error("App: Failed to delete article", e);
     }
+  };
+
+  const handleCreateMaterial = () => {
+    setEditingArticle(null);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditArticle = (article: Article) => {
+    setEditingArticle(article);
+    setIsEditDialogOpen(true);
   };
 
 
@@ -149,7 +157,10 @@ function App() {
               {t("header.favorites", "收藏夹")}
             </Button>
 
-            <NewMaterialButton onSave={() => handleNewArticle()} />
+            <Button onClick={handleCreateMaterial} className="gap-2">
+              <Plus size={16} />
+              {t("header.newMaterial")}
+            </Button>
             <SettingsButton onSave={handleArticleUpdate} />
           </div>
         </header>
@@ -157,6 +168,12 @@ function App() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">
+        <NewMaterialDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => { setIsEditDialogOpen(false); setEditingArticle(null) }}
+          onSave={handleArticleUpdate}
+          editingArticle={editingArticle}
+        />
         {selectedArticle ? (
           selectedArticle.book_path ? (
             <BookReader
@@ -183,7 +200,27 @@ function App() {
         ) : (
           <div className="h-full max-w-4xl mx-auto p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold">{t("articleList.title")}</h2>
+              <h2 className="text-xl font-semibold">{t("articleList.title").replace("我的文章", "我的素材")}</h2>
+              <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border border-border">
+                <Button
+                  variant={viewMode === "list" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className="h-7 px-2"
+                  title={t("articleList.listView")}
+                >
+                  <List size={14} />
+                </Button>
+                <Button
+                  variant={viewMode === "card" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("card")}
+                  className="h-7 px-2"
+                  title={t("articleList.cardView")}
+                >
+                  <LayoutGrid size={14} />
+                </Button>
+              </div>
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
@@ -194,9 +231,6 @@ function App() {
                 >
                   <RotateCw size={16} className={isLoading ? "animate-spin" : ""} />
                 </Button>
-                <p className="text-sm text-muted-foreground">
-                  {t("articleList.count_other", { count: articles.length })}
-                </p>
               </div>
             </div>
             <ArticleList
@@ -204,7 +238,11 @@ function App() {
               isLoading={isLoading}
               onSelectArticle={handleSelectArticle}
               onDelete={handleDeleteArticle}
+              onEdit={handleEditArticle}
+              onNewMaterial={handleCreateMaterial}
+              onUpdate={handleArticleUpdate}
               selectedId={selectedId}
+              viewMode={viewMode}
             />
           </div>
         )}

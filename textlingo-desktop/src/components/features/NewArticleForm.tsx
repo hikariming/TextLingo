@@ -11,13 +11,14 @@ import { Article } from "../../types";
 interface NewArticleFormProps {
     onSave?: (article: Article) => void;
     onCancel: () => void;
+    initialArticle?: Article;
 }
 
-export function NewArticleForm({ onSave, onCancel }: NewArticleFormProps) {
+export function NewArticleForm({ onSave, onCancel, initialArticle }: NewArticleFormProps) {
     const { t } = useTranslation();
-    const [title, setTitle] = useState("");
-    const [content, setContent] = useState("");
-    const [sourceUrl, setSourceUrl] = useState("");
+    const [title, setTitle] = useState(initialArticle?.title || "");
+    const [content, setContent] = useState(initialArticle?.content || "");
+    const [sourceUrl, setSourceUrl] = useState(initialArticle?.source_url || "");
     const [isSaving, setIsSaving] = useState(false);
     const [isFetching, setIsFetching] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -46,11 +47,23 @@ export function NewArticleForm({ onSave, onCancel }: NewArticleFormProps) {
         setIsSaving(true);
         setError(null);
         try {
-            const article = await invoke<Article>("create_article", {
-                title: title.trim() || t("articleList.untitled"),
-                content,
-                sourceUrl: sourceUrl.trim() || undefined,
-            });
+            let article: Article;
+            if (initialArticle) {
+                // Update existing article
+                article = await invoke<Article>("update_article", {
+                    id: initialArticle.id,
+                    title: title.trim() || t("articleList.untitled"),
+                    content,
+                    sourceUrl: sourceUrl.trim() || undefined,
+                });
+            } else {
+                // Create new article
+                article = await invoke<Article>("create_article", {
+                    title: title.trim() || t("articleList.untitled"),
+                    content,
+                    sourceUrl: sourceUrl.trim() || undefined,
+                });
+            }
             onSave?.(article);
         } catch (err) {
             setError(err as string);

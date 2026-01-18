@@ -16,6 +16,8 @@
 
 </div>
 
+🌐 **官网与文档**: [openkoto.com](https://www.openkoto.com/)
+
 > 📢 **提示**: 本项目原名 **TextLingo**，现已更名为 **OpenKoto**（Open + 言/こと，日语中"话语"的意思），以更好地体现我们开源阅读、翻译和语言学习的愿景。
 
 ## 什么是 OpenKoto？

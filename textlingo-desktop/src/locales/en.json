@@ -33,7 +33,9 @@
     "translated": "Translated",
     "openSource": "Open source",
     "delete": "Delete",
-    "deleteConfirm": "Are you sure you want to delete this article?"
+    "deleteConfirm": "Are you sure you want to delete this article?",
+    "deleteSubtitles": "Delete Subtitles",
+    "deleteAnalysis": "Delete Analysis"
   },
   "articleReader": {
     "untitled": "Untitled Article",
@@ -319,6 +321,12 @@
     "miniMode": "Mini Mode",
     "exitMiniMode": "Exit Mini Mode",
     "exportSrt": "Export SRT",
+    "exportSubtitles": "Export Subtitles",
+    "exportSrtOriginal": "Export SRT (Original)",
+    "exportSrtTranslated": "Export SRT (Translated)",
+    "exportSrtBilingual": "Export SRT (Bilingual)",
+    "translateFirst": "Translation missing",
+    "clickToTranslate": "Click to Quick Translate all subtitles",
     "hideSubtitles": "Hide Subtitles",
     "showAllSubtitles": "Show All Subtitles"
   },

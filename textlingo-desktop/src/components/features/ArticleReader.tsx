@@ -165,6 +165,23 @@ export function ArticleReader({
     }
   }, [selectedSegmentId, article.media_path]);
 
+  // 刷新文章数据
+  const refreshArticle = async () => {
+    try {
+      console.log("[ArticleReader] Refreshing article data...");
+      const freshArticle = await invoke<Article>("get_article", { id: article.id });
+      if (freshArticle) {
+        console.log("[ArticleReader] Article refreshed, segments:", freshArticle.segments?.length);
+        setLocalSegments(freshArticle.segments || []);
+        setContent(freshArticle.content);
+        // 通知父组件更新，但也更新本地状态以确保响应速度
+        onUpdate?.();
+      }
+    } catch (err) {
+      console.error("[ArticleReader] Failed to refresh article:", err);
+    }
+  };
+
   const handleSaveContent = async () => {
     try {
       await invoke("update_article", {
@@ -186,12 +203,16 @@ export function ArticleReader({
         articleId: article.id,
         targetLanguage: "zh-CN", // Default, could be from settings
       });
+      console.log("[ArticleReader] Translation completed, result segments:", result.segments?.length);
+
       // 更新本地段落状态，使翻译立即渲染
       if (result.segments && result.segments.length > 0) {
         setLocalSegments(result.segments);
       }
       setContent(result.content);
-      onUpdate?.();
+
+      // 强制刷新一次以确保状态同步（尤其是VideoSubtitlePlayer）
+      await refreshArticle();
     } catch (err) {
       setError(err as string);
     } finally {
@@ -387,8 +408,9 @@ export function ArticleReader({
       await Promise.all([worker(), worker(), worker()]);
 
       console.log("[ArticleReader] Batch translation completed, syncing to parent");
-      // 批量处理完成后，只调用一次 onUpdate 同步到父组件
-      onUpdate?.();
+      // 批量处理完成后，调用 refreshArticle 确保所有状态同步
+      await refreshArticle();
+
 
     } catch (e) {
       console.error("Batch translation failed", e);
@@ -727,7 +749,10 @@ export function ArticleReader({
                         onExtractSubtitles={handleExtractSubtitles}
                         articleTitle={article.title}
                         articleId={article.id}
+
                         extractionProgress={extractionProgress}
+                        isTranslating={isTranslating}
+                        onQuickTranslate={handleTranslate}
                       />
                     );
                   })()}
