@@ -1343,7 +1343,6 @@ pub async fn translate_pdf_document(
     base_url: Option<String>,
 ) -> Result<serde_json::Value, String> {
     use std::process::Command;
-    use std::env;
     
     println!("[PDF Translate] Starting translation: {} -> {}", lang_in, lang_out);
     println!("[PDF Translate] Provider: {}, Model: {}", provider, model);

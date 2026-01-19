@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,7 +16,18 @@ const appVersion = tauriConf.version || "0.0.0";
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // 复制 PDF.js worker 文件到构建输出目录
+    viteStaticCopy({
+      targets: [
+        {
+          src: "node_modules/pdfjs-dist/build/pdf.worker.min.mjs",
+          dest: "assets",
+        },
+      ],
+    }),
+  ],
 
   // Define global constants
   define: {

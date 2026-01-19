@@ -24,12 +24,12 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../ui/Button";
 import { formatDate, truncateText } from "../../lib/utils";
 import { Article } from "../../types";
-import { Document, Page, pdfjs } from "react-pdf";
+import { Document, Page } from "react-pdf";
 import ePub from "epubjs";
+// 使用统一的 PDF.js worker 配置
+import "../../lib/pdfConfig";
 
-// 配置 PDF Worker
-import workerUrl from "react-pdf/dist/pdf.worker.entry.js?url";
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+
 
 // EPUB 封面组件
 function EpubCover({ url, title, className, typeIcon }: { url: string; title: string, className: string, typeIcon: React.ReactNode }) {

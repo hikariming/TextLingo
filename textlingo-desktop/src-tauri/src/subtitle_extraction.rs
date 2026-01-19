@@ -447,7 +447,7 @@ async fn extract_subtitles_chunked(
                 model.to_string(),
             ).await?;
             
-            completed_chunks += 1;
+
             
             // 跳过第一个字幕（与前一片段重叠）
             let mid_segments: Vec<TranscriptionSegment> = mid_result.segments.into_iter().skip(1).collect();

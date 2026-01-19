@@ -5,9 +5,11 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
+import { Document, Page } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
+// 使用统一的 PDF.js worker 配置
+import "../../lib/pdfConfig";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui/Button";
 import {
@@ -22,10 +24,7 @@ import {
     Plus,
 } from "lucide-react";
 
-// 配置 PDF.js worker
-// 使用 react-pdf 内置的 pdfjs 版本以确保版本匹配
-import workerUrl from "react-pdf/dist/pdf.worker.entry.js?url";
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+
 
 interface PdfReaderProps {
     /** PDF 文件的 URL */

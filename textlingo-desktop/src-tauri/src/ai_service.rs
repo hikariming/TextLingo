@@ -27,6 +27,7 @@ const OLLAMA_DEFAULT_URL: &str = "http://localhost:11434/v1/chat/completions";
 const LMSTUDIO_DEFAULT_URL: &str = "http://localhost:1234/v1/chat/completions";
 
 impl AIService {
+    #[allow(dead_code)]
     pub fn new(api_key: String, provider: String, model: String) -> Self {
         Self::with_base_url(api_key, provider, model, None)
     }

@@ -49,10 +49,6 @@ export function BookReader({ article, onBack }: BookReaderProps) {
 
     // PDF翻译状态
     const [isTranslating, setIsTranslating] = useState(false);
-    const [translationResult, setTranslationResult] = useState<{
-        mono_pdf?: string;
-        dual_pdf?: string;
-    } | null>(null);
 
     // 判断书籍类型
     const isEpub = article.book_type === "epub";
@@ -184,7 +180,7 @@ export function BookReader({ article, onBack }: BookReaderProps) {
 
         try {
             setIsTranslating(true);
-            setTranslationResult(null);
+
 
             // 获取配置
             const config = await invoke<{
@@ -230,11 +226,6 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                 setAvailableVersions({
                     mono: result.mono_pdf,
                     dual: result.dual_pdf,
-                });
-
-                setTranslationResult({
-                    mono_pdf: result.mono_pdf,
-                    dual_pdf: result.dual_pdf,
                 });
 
                 // 提示并询问是否切换查看
