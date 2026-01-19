@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Loader2, Download, AlertTriangle, Terminal, Package, RefreshCw, FolderOpen, Cog } from 'lucide-react';
+import { Download, AlertTriangle, Terminal, Package, RefreshCw, FolderOpen, Cog } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from "../ui/Button";
 
