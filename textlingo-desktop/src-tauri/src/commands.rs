@@ -1468,3 +1468,47 @@ pub async fn translate_pdf_document(
         }
     }
 }
+
+#[derive(serde::Serialize)]
+pub struct TranslationFiles {
+    pub mono_path: Option<String>,
+    pub dual_path: Option<String>,
+}
+
+#[tauri::command]
+pub async fn check_pdf_translation_files(pdf_path: String) -> Result<TranslationFiles, String> {
+    use std::path::Path;
+    let path = Path::new(&pdf_path);
+    if !path.exists() {
+        return Ok(TranslationFiles {
+            mono_path: None,
+            dual_path: None,
+        });
+    }
+
+    let parent = path.parent().unwrap_or(Path::new("."));
+    
+    // Safety check: ensure file stem exists
+    let stem = match path.file_stem() {
+        Some(s) => s.to_string_lossy(),
+        None => return Ok(TranslationFiles { mono_path: None, dual_path: None }),
+    };
+
+    let mono_name = format!("{}-mono.pdf", stem);
+    let dual_name = format!("{}-dual.pdf", stem);
+
+    let mono_path = parent.join(&mono_name);
+    let dual_path = parent.join(&dual_name);
+
+    Ok(TranslationFiles {
+        mono_path: if mono_path.exists() { Some(mono_path.to_string_lossy().into_owned()) } else { None },
+        dual_path: if dual_path.exists() { Some(dual_path.to_string_lossy().into_owned()) } else { None },
+    })
+}
+
+#[tauri::command]
+pub async fn export_file_cmd(src_path: String, dest_path: String) -> Result<(), String> {
+    std::fs::copy(&src_path, &dest_path)
+        .map_err(|e| format!("Failed to export file: {}", e))?;
+    Ok(())
+}

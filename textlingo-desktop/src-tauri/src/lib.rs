@@ -67,6 +67,8 @@ pub fn run() {
             commands::delete_article_analysis_cmd,
             // PDF翻译
             commands::translate_pdf_document,
+            commands::check_pdf_translation_files,
+            commands::export_file_cmd,
         ])
         .setup(|app| {
             // Initialize app on startup

@@ -3,12 +3,19 @@
  * 左侧是 EPUB/TXT 阅读器，右侧是 AI 助手面板
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
+import { save } from "@tauri-apps/plugin-dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
 import { Button } from "../ui/Button";
-import { ChevronLeft, BookOpen, PanelRightClose, PanelRightOpen, Languages, Loader2 } from "lucide-react";
+import { ChevronLeft, BookOpen, PanelRightClose, PanelRightOpen, Languages, Loader2, Download, FileText, Split, File } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../ui/DropdownMenu";
 import { Article } from "../../types";
 import { EpubReader } from "./EpubReader";
 import { TxtReader } from "./TxtReader";
@@ -33,6 +40,13 @@ export function BookReader({ article, onBack }: BookReaderProps) {
     // 当前活动的助手标签
     const [activeTab, setActiveTab] = useState<"chat">("chat");
 
+    // PDF版本控制
+    const [pdfVersion, setPdfVersion] = useState<"original" | "mono" | "dual">("original");
+    const [availableVersions, setAvailableVersions] = useState<{
+        mono?: string;
+        dual?: string;
+    }>({});
+
     // PDF翻译状态
     const [isTranslating, setIsTranslating] = useState(false);
     const [translationResult, setTranslationResult] = useState<{
@@ -44,6 +58,103 @@ export function BookReader({ article, onBack }: BookReaderProps) {
     const isEpub = article.book_type === "epub";
     const isTxt = article.book_type === "txt";
     const isPdf = article.book_type === "pdf";
+
+    // 检查已存在的翻译文件
+    useEffect(() => {
+        if (isPdf && article.book_path) {
+            checkTranslationFiles();
+        }
+    }, [isPdf, article.book_path]);
+
+    const checkTranslationFiles = async () => {
+        try {
+            const files = await invoke<{ mono_path?: string; dual_path?: string }>("check_pdf_translation_files", {
+                pdfPath: article.book_path
+            });
+
+            // Map keys from backend snake_case to what we want
+            // Actually Tauri might map return values to camelCase automatically? 
+            // Let's assume snake_case for now based on previous experience or inspect config.
+            // Wait, previous issue was sending args. Returning structs usually respects serde serialization.
+            // If backend fields are pub, they are serialized as is unless #[serde(rename_all="camelCase")]
+            // The TranslationFiles struct has no rename attribute, so it sends snake_case.
+
+            setAvailableVersions({
+                mono: files.mono_path,
+                dual: files.dual_path
+            });
+        } catch (e) {
+            console.error("Failed to check translation files:", e);
+        }
+    };
+
+    // 获取当前显示的 PDF 路径
+    const getCurrentPdfPath = () => {
+        if (!isPdf) return getBookUrl();
+
+        switch (pdfVersion) {
+            case "mono":
+                if (availableVersions.mono) {
+                    const filename = availableVersions.mono.split(/[/\\]/).pop();
+                    return `http://127.0.0.1:19420/book/${encodeURIComponent(filename || "")}`;
+                }
+                break;
+            case "dual":
+                if (availableVersions.dual) {
+                    const filename = availableVersions.dual.split(/[/\\]/).pop();
+                    return `http://127.0.0.1:19420/book/${encodeURIComponent(filename || "")}`;
+                }
+                break;
+        }
+        return getBookUrl();
+    };
+
+    // 导出文件
+    const handleDownload = async (version: "original" | "mono" | "dual") => {
+        try {
+            let srcPath = article.book_path;
+            let defaultName = article.title;
+
+            if (version === "mono" && availableVersions.mono) {
+                srcPath = availableVersions.mono;
+                defaultName = `${article.title}_译文`;
+            } else if (version === "dual" && availableVersions.dual) {
+                srcPath = availableVersions.dual;
+                defaultName = `${article.title}_双语`;
+            } else if (version !== "original") {
+                return; // 文件不存在
+            }
+
+            if (!srcPath) return;
+
+            // 使用 save 对话框选择保存位置
+            const destPath = await save({
+                defaultPath: `${defaultName}.pdf`,
+                filters: [{
+                    name: 'PDF Document',
+                    extensions: ['pdf']
+                }]
+            });
+
+            if (destPath) {
+                await invoke("export_file_cmd", {
+                    srcPath: srcPath,
+                    destPath: destPath
+                });
+                alert(t("common.exportSuccess", "导出成功！"));
+            }
+
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    // Simpler download implementation using HTML anchor for now if it's served via localhost,
+    // OR use the tauri dialog if I can specific imports.
+    // Let's stick to the Implementation Plan: "Add a View Selector... Add a Download Menu"
+
+    // ... (rest of the file)
+
 
     // 处理文本选择
     const handleTextSelect = (text: string) => {
@@ -115,14 +226,21 @@ export function BookReader({ article, onBack }: BookReaderProps) {
             });
 
             if (result.success) {
+                // 更新可用版本
+                setAvailableVersions({
+                    mono: result.mono_pdf,
+                    dual: result.dual_pdf,
+                });
+
                 setTranslationResult({
                     mono_pdf: result.mono_pdf,
                     dual_pdf: result.dual_pdf,
                 });
-                alert(t("pdfTranslate.success", "PDF翻译完成！\n\n纯译文: {{mono}}\n双语对照: {{dual}}", {
-                    mono: result.mono_pdf,
-                    dual: result.dual_pdf,
-                }));
+
+                // 提示并询问是否切换查看
+                if (confirm(t("pdfTranslate.successSwitch", "翻译完成！是否切换到双语对照模式？"))) {
+                    setPdfVersion("dual");
+                }
             }
         } catch (error) {
             console.error("[PDF Translate] Error:", error);
@@ -156,38 +274,91 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        {/* PDF 全文翻译按钮 */}
                         {isPdf && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handlePdfTranslate}
-                                disabled={isTranslating}
-                                title={t("pdfTranslate.button", "翻译全文")}
-                                className="flex items-center gap-1.5"
-                            >
-                                {isTranslating ? (
-                                    <Loader2 size={16} className="animate-spin" />
-                                ) : (
-                                    <Languages size={16} />
-                                )}
-                                <span>{isTranslating ? t("pdfTranslate.translating", "翻译中...") : t("pdfTranslate.button", "翻译全文")}</span>
-                            </Button>
-                        )}
+                            <>
+                                {/* 版本切换器 */}
+                                <div className="flex bg-muted/50 rounded-lg p-0.5 mr-2">
+                                    <button
+                                        onClick={() => setPdfVersion("original")}
+                                        className={`px-3 py-1 text-xs rounded-md transition-all flex items-center gap-1.5 ${pdfVersion === "original"
+                                            ? "bg-background text-foreground shadow-sm font-medium"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                                            }`}
+                                    >
+                                        <File size={14} /> 原文
+                                    </button>
 
-                        {/* 翻译结果查看按钮 */}
-                        {translationResult && (
-                            <div className="flex items-center gap-1">
+                                    {availableVersions.mono && (
+                                        <button
+                                            onClick={() => setPdfVersion("mono")}
+                                            className={`px-3 py-1 text-xs rounded-md transition-all flex items-center gap-1.5 ${pdfVersion === "mono"
+                                                ? "bg-background text-foreground shadow-sm font-medium"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                                                }`}
+                                        >
+                                            <FileText size={14} /> 译文
+                                        </button>
+                                    )}
+
+                                    {availableVersions.dual && (
+                                        <button
+                                            onClick={() => setPdfVersion("dual")}
+                                            className={`px-3 py-1 text-xs rounded-md transition-all flex items-center gap-1.5 ${pdfVersion === "dual"
+                                                ? "bg-background text-foreground shadow-sm font-medium"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                                                }`}
+                                        >
+                                            <Split size={14} /> 双语对照
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* PDF 全文翻译按钮 */}
                                 <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
-                                    onClick={() => window.open(`file://${translationResult.dual_pdf}`, '_blank')}
-                                    title={t("pdfTranslate.viewDual", "查看双语对照")}
-                                    className="text-green-600"
+                                    onClick={handlePdfTranslate}
+                                    disabled={isTranslating}
+                                    title={t("pdfTranslate.button", "翻译全文")}
+                                    className="flex items-center gap-1.5"
                                 >
-                                    📖 {t("pdfTranslate.dual", "双语")}
+                                    {isTranslating ? (
+                                        <Loader2 size={16} className="animate-spin" />
+                                    ) : (
+                                        <Languages size={16} />
+                                    )}
+                                    <span className="hidden sm:inline">
+                                        {isTranslating ? t("pdfTranslate.translating", "翻译中...") : t("pdfTranslate.button", "翻译全文")}
+                                    </span>
                                 </Button>
-                            </div>
+
+                                {/* 下载按钮 */}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" title="下载">
+                                            <Download size={18} />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => handleDownload("original")}>
+                                            <File className="mr-2 h-4 w-4" />
+                                            下载原文 PDF
+                                        </DropdownMenuItem>
+                                        {availableVersions.mono && (
+                                            <DropdownMenuItem onClick={() => handleDownload("mono")}>
+                                                <FileText className="mr-2 h-4 w-4" />
+                                                下载纯译文 PDF
+                                            </DropdownMenuItem>
+                                        )}
+                                        {availableVersions.dual && (
+                                            <DropdownMenuItem onClick={() => handleDownload("dual")}>
+                                                <Split className="mr-2 h-4 w-4" />
+                                                下载双语对照 PDF
+                                            </DropdownMenuItem>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </>
                         )}
 
                         <Button
@@ -220,7 +391,7 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                     )}
                     {isPdf && (
                         <PdfReader
-                            bookPath={getBookUrl()}
+                            bookPath={getCurrentPdfPath()}
                             title={article.title}
                             onTextSelect={handleTextSelect}
                         />
