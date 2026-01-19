@@ -1,0 +1,60 @@
+[project]
+name = "openkoto-pdf-translator"
+version = "0.1.0"
+description = "PDF Translator Plugin for OpenKoto - Preserves layout and supports bilingual output"
+authors = [
+    { name = "Byaidu", email = "byaidux@gmail.com" },
+    { name = "OpenKoto Team" }
+]
+license = "AGPL-3.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "requests",
+    "pymupdf<1.25.3",
+    "tqdm",
+    "tenacity",
+    "numpy",
+    "openai>=1.0.0",
+    "huggingface_hub",
+    "onnx",
+    "onnxruntime",
+    "opencv-python-headless",
+    "pdfminer-six==20250416",
+    "pikepdf",
+    "peewee>=3.17.8",
+    "fontTools",
+    "babeldoc>=0.1.22, <0.3.0",
+    "rich",
+]
+
+[project.optional-dependencies]
+# Additional translation services (optional)
+extra-translators = [
+    "ollama",
+    "deepl",
+    "xinference-client",
+    "azure-ai-translation-text<=1.0.1",
+    "tencentcloud-sdk-python-tmt",
+]
+gui = [
+    "gradio<5.36",
+    "gradio_pdf>=0.0.21",
+]
+
+[project.urls]
+Homepage = "https://github.com/hikariming/TextLingo"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["openkoto_pdf_translator"]
+
+[project.scripts]
+openkoto-pdf-translate = "openkoto_pdf_translator.pdf2zh:main"
