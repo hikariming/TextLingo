@@ -9,7 +9,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
 import { Button } from "../ui/Button";
-import { ChevronLeft, BookOpen, PanelRightClose, PanelRightOpen, Languages, Loader2, Download, FileText, Split, File } from "lucide-react";
+import { ChevronLeft, BookOpen, PanelRightClose, PanelRightOpen, Languages, Loader2, Download, FileText, Split, File, Columns } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -41,7 +41,7 @@ export function BookReader({ article, onBack }: BookReaderProps) {
     const [activeTab, setActiveTab] = useState<"chat">("chat");
 
     // PDF版本控制
-    const [pdfVersion, setPdfVersion] = useState<"original" | "mono" | "dual">("original");
+    const [pdfVersion, setPdfVersion] = useState<"original" | "mono" | "dual" | "split">("original");
     const [availableVersions, setAvailableVersions] = useState<{
         mono?: string;
         dual?: string;
@@ -300,6 +300,18 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                                         </button>
                                     )}
 
+                                    {availableVersions.mono && (
+                                        <button
+                                            onClick={() => setPdfVersion("split")}
+                                            className={`px-3 py-1 text-xs rounded-md transition-all flex items-center gap-1.5 ${pdfVersion === "split"
+                                                ? "bg-background text-foreground shadow-sm font-medium"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                                                }`}
+                                        >
+                                            <Columns size={14} /> 对照
+                                        </button>
+                                    )}
+
                                     {availableVersions.dual && (
                                         <button
                                             onClick={() => setPdfVersion("dual")}
@@ -308,7 +320,7 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                                                 : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                                                 }`}
                                         >
-                                            <Split size={14} /> 双语对照
+                                            <Split size={14} /> 双语文件
                                         </button>
                                     )}
                                 </div>
@@ -390,11 +402,32 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                         />
                     )}
                     {isPdf && (
-                        <PdfReader
-                            bookPath={getCurrentPdfPath()}
-                            title={article.title}
-                            onTextSelect={handleTextSelect}
-                        />
+                        <>
+                            {pdfVersion === "split" ? (
+                                <div className="flex h-full w-full">
+                                    <div className="flex-1 border-r border-border min-w-0">
+                                        <PdfReader
+                                            bookPath={getBookUrl()}
+                                            title="原文"
+                                            onTextSelect={handleTextSelect}
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <PdfReader
+                                            bookPath={availableVersions.mono ? `http://127.0.0.1:19420/book/${encodeURIComponent(availableVersions.mono.split(/[/\\]/).pop() || "")}` : ""}
+                                            title="译文"
+                                            onTextSelect={handleTextSelect}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <PdfReader
+                                    bookPath={getCurrentPdfPath()}
+                                    title={article.title}
+                                    onTextSelect={handleTextSelect}
+                                />
+                            )}
+                        </>
                     )}
                 </div>
             </div>
