@@ -256,7 +256,26 @@
     "testConnection": "接続テスト",
     "backendConnected": "バックエンド接続成功！",
     "backendError": "バックエンドエラー",
-    "backendConnectionFailed": "バックエンド接続に失敗しました"
+    "backendConnectionFailed": "バックエンド接続に失敗しました",
+    "plugins": {
+      "title": "プラグイン管理",
+      "devMode": "開発者モード",
+      "userMode": "ユーザーモード",
+      "location": "場所",
+      "version": "バージョン",
+      "checkUpdates": "更新を確認",
+      "noPlugins": "プラグインが見つかりません",
+      "devModeWarning": "Pythonスクリプトを直接実行",
+      "userModeWarning": "パッケージ化された実行ファイルを使用",
+      "devEnvDetected": "開発環境が検出されました",
+      "devEnvTip": "開発環境で実行中のようです。プラグインを開発者モードに切り替えることをお勧めします。",
+      "switchToDev": "開発者モードに切り替え",
+      "notInstalled": "未インストール",
+      "notInstalledDesc": "プラグインが見つかりません。パッケージ版をダウンロードするか、開発環境を設定してください。",
+      "download": "ダウンロード",
+      "refresh": "再読み込み",
+      "activeMode": "実行モード"
+    }
   },
   "favorites": {
     "title": "お気に入り",

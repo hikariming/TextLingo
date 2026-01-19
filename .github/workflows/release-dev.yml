@@ -1,9 +1,12 @@
-name: "publish"
+# 开发版本构建工作流
+# 用于测试新功能，不会触发用户更新弹窗
+# 使用方法：git tag dev-xxx && git push origin dev-xxx
+name: "publish-dev"
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'dev-*'   # 匹配 dev-xxx 格式的 tag
 
 jobs:
   publish-tauri:
@@ -53,11 +56,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ 
-          releaseName: "App v__VERSION__"
-          releaseBody: "See the assets to download this version and install."
-          releaseDraft: true
-          prerelease: false
+          tagName: ${{ github.ref_name }}
+          releaseName: "🧪 Dev Build ${{ github.ref_name }}"
+          releaseBody: |
+            ⚠️ **开发测试版本 / Development Build**
+            
+            此版本仅供开发测试使用，不建议普通用户安装。
+            This is a development build for testing purposes only.
+            
+            ---
+            Tag: `${{ github.ref_name }}`
+          releaseDraft: false
+          prerelease: true   # 关键：标记为预发布，不会触发用户更新弹窗
           projectPath: "./textlingo-desktop"
           args: ${{ matrix.args }}
 

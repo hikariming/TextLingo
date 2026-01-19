@@ -1343,7 +1343,8 @@ pub async fn translate_pdf_document(
     base_url: Option<String>,
 ) -> Result<serde_json::Value, String> {
     use std::process::Command;
-    
+    use crate::plugin_manager;
+
     println!("[PDF Translate] Starting translation: {} -> {}", lang_in, lang_out);
     println!("[PDF Translate] Provider: {}, Model: {}", provider, model);
     
@@ -1367,23 +1368,42 @@ pub async fn translate_pdf_document(
     if let Some(ref url) = base_url {
         envs.push(("OPENKOTO_BASE_URL", url.clone()));
     }
+
+    // 使用 PluginManager 获取执行命令
+    // 假设插件名称为 "openkoto-pdf-translator"
+    let plugin_name = "openkoto-pdf-translator";
     
-    // 尝试查找 openkoto-pdf-translate 可执行文件或 Python 模块
-    // 方式1: 检查是否有sidecar可执行文件
-    // 方式2: 使用 python -m openkoto_pdf_translator
+    let (cmd, mut args, plugin_dir) = match plugin_manager::get_plugin_execution_command(&app_handle, plugin_name) {
+        Ok(res) => res,
+        Err(e) => return Err(format!("Plugin error: {}", e)),
+    };
+
+    // 动态添加参数
+    // 我们约定 entry_point.args 包含固定前缀，如 ["-m", "openkoto_pdf_translator.pdf2zh"]
+    // 我们需要追加 PDF 相关的参数
+    // 原 args: -m openkoto_pdf_translator.pdf2zh [input] -li ...
     
-    let result = Command::new("python")
-        .args([
-            "-m", "openkoto_pdf_translator.pdf2zh",
-            &pdf_path,
-            "-li", &lang_in,
-            "-lo", &lang_out,
-            "-s", "openkoto",
-            "-o", &output_dir,
-        ])
+    args.push(pdf_path.clone());
+    args.push("-li".to_string());
+    args.push(lang_in);
+    args.push("-lo".to_string());
+    args.push(lang_out);
+    args.push("-s".to_string());
+    args.push("openkoto".to_string());
+    args.push("-o".to_string());
+    args.push(output_dir.clone());
+
+    println!("[Plugin] Executing: {} {:?}", cmd, args);
+    println!("[Plugin] CWD: {:?}", plugin_dir);
+    
+    // 在插件目录下执行，以确保 Python 模块导入正确 (如果是 Dev 模式)
+    // 或者对于 Prod 模式，通常也不影响
+    let result = Command::new(&cmd)
+        .args(&args)
         .envs(envs.iter().map(|(k, v)| (*k, v.as_str())))
+        .current_dir(&plugin_dir) // 关键：设置工作目录为插件目录
         .output();
-    
+
     match result {
         Ok(output) => {
             let stdout = String::from_utf8_lossy(&output.stdout);
@@ -1406,64 +1426,11 @@ pub async fn translate_pdf_document(
                     "original_pdf": pdf_path,
                 }))
             } else {
-                Err(format!("PDF翻译失败: {}", stderr))
+                Err(format!("PDF translation failed: {}", stderr))
             }
         }
         Err(e) => {
-            // Python不可用，尝试直接调用可执行文件
-            println!("[PDF Translate] Python not available, trying executable: {}", e);
-            
-            // 获取插件目录
-            let plugins_dir = app_handle.path().app_data_dir()
-                .map(|p| p.join("plugins"))
-                .unwrap_or_default();
-            
-            #[cfg(target_os = "windows")]
-            let exe_name = "openkoto-pdf-translator-win-x64.exe";
-            #[cfg(target_os = "macos")]
-            let exe_name = if cfg!(target_arch = "aarch64") {
-                "openkoto-pdf-translator-macos-arm64"
-            } else {
-                "openkoto-pdf-translator-macos-x64"
-            };
-            #[cfg(target_os = "linux")]
-            let exe_name = "openkoto-pdf-translator-linux-x64";
-            
-            let exe_path = plugins_dir.join(exe_name);
-            
-            if exe_path.exists() {
-                let result = Command::new(&exe_path)
-                    .args([
-                        &pdf_path,
-                        "-li", &lang_in,
-                        "-lo", &lang_out,
-                        "-s", "openkoto",
-                        "-o", &output_dir,
-                    ])
-                    .envs(envs.iter().map(|(k, v)| (*k, v.as_str())))
-                    .output()
-                    .map_err(|e| format!("执行插件失败: {}", e))?;
-                
-                if result.status.success() {
-                    let mono_path = format!("{}/{}-mono.pdf", output_dir, filename_stem);
-                    let dual_path = format!("{}/{}-dual.pdf", output_dir, filename_stem);
-                    
-                    Ok(serde_json::json!({
-                        "success": true,
-                        "mono_pdf": mono_path,
-                        "dual_pdf": dual_path,
-                        "original_pdf": pdf_path,
-                    }))
-                } else {
-                    let stderr = String::from_utf8_lossy(&result.stderr);
-                    Err(format!("PDF翻译插件执行失败: {}", stderr))
-                }
-            } else {
-                Err(format!(
-                    "PDF翻译插件未安装。请安装 Python 并运行: pip install -e plugins/openkoto-pdf-translator，或下载插件可执行文件到: {:?}",
-                    exe_path
-                ))
-            }
+             Err(format!("Failed to execute plugin command '{}': {}", cmd, e))
         }
     }
 }

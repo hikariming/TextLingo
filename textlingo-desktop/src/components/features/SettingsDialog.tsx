@@ -8,6 +8,7 @@ import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
 import { Settings, Plus, Trash2, Edit2, Check, RefreshCw, Loader2, HelpCircle } from "lucide-react";
 import { useTheme } from "../theme-provider";
+import { PluginSettings } from "./PluginSettings";
 
 interface ModelConfig {
   id: string;
@@ -928,6 +929,14 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                   </option>
                 ))}
               </Select>
+            </div>
+
+            {/* Plugins Section */}
+            <div className="pt-6 border-t border-border">
+              <h3 className="text-lg font-medium text-foreground mb-3">
+                {t("settings.plugins.title") || "Plugins"}
+              </h3>
+              <PluginSettings />
             </div>
           </div>
         </div>

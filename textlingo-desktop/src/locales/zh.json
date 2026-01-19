@@ -267,7 +267,26 @@
     "testConnection": "测试连接",
     "backendConnected": "后端连接成功！",
     "backendError": "后端错误",
-    "backendConnectionFailed": "后端连接失败"
+    "backendConnectionFailed": "后端连接失败",
+    "plugins": {
+      "title": "插件管理",
+      "devMode": "开发者模式",
+      "userMode": "用户模式",
+      "location": "位置",
+      "version": "版本",
+      "checkUpdates": "检查更新",
+      "noPlugins": "未找到插件",
+      "devModeWarning": "直接运行 Python 脚本",
+      "userModeWarning": "使用打包的可执行程序",
+      "devEnvDetected": "检测到开发环境",
+      "devEnvTip": "您似乎正在使用开发环境启动。建议将插件设置为开发者模式。",
+      "switchToDev": "切换至开发者模式",
+      "notInstalled": "未安装",
+      "notInstalledDesc": "未检测到插件。您可以下载打包版本，或配置开发环境。",
+      "download": "下载插件",
+      "refresh": "刷新列表",
+      "activeMode": "运行模式"
+    }
   },
   "favorites": {
     "title": "我的收藏",

@@ -6,6 +6,7 @@ mod types;
 mod video_server;
 mod youtube;
 mod subtitle_extraction;
+mod plugin_manager;
 
 // Re-exports
 use ai_service::AIServiceCache;
@@ -69,6 +70,11 @@ pub fn run() {
             commands::translate_pdf_document,
             commands::check_pdf_translation_files,
             commands::export_file_cmd,
+            // 插件管理
+            plugin_manager::list_plugins_cmd,
+            plugin_manager::open_plugins_directory,
+            plugin_manager::set_plugin_mode_cmd,
+            plugin_manager::get_plugin_modes_cmd,
         ])
         .setup(|app| {
             // Initialize app on startup

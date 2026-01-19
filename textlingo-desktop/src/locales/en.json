@@ -267,7 +267,26 @@
     "testConnection": "Test Connection",
     "backendConnected": "Backend connection successful!",
     "backendError": "Backend error",
-    "backendConnectionFailed": "Backend connection failed"
+    "backendConnectionFailed": "Backend connection failed",
+    "plugins": {
+      "title": "Plugins",
+      "devMode": "Developer Mode",
+      "userMode": "User Mode",
+      "location": "Location",
+      "version": "Version",
+      "checkUpdates": "Check Updates",
+      "noPlugins": "No plugins found",
+      "devModeWarning": "Running Python script directly",
+      "userModeWarning": "Using packaged executable",
+      "devEnvDetected": "Dev Environment Detected",
+      "devEnvTip": "It looks like you are running in a dev environment. We recommend switching plugins to Developer Mode.",
+      "switchToDev": "Switch to Developer Mode",
+      "notInstalled": "Not Installed",
+      "notInstalledDesc": "Plugin not found. You can download the packaged version or set up the development environment.",
+      "download": "Download",
+      "refresh": "Refresh",
+      "activeMode": "Active Mode"
+    }
   },
   "favorites": {
     "title": "My Favorites",

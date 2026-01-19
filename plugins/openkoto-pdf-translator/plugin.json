@@ -1,0 +1,20 @@
+{
+    "name": "openkoto-pdf-translator",
+    "display_name": "PDF 翻译插件",
+    "version": "0.1.0",
+    "description": "提供本地 PDF 文档的翻译功能，支持生成纯译文和双语对照版。",
+    "entry_points": {
+        "dev": {
+            "command": "python",
+            "args": [
+                "-m",
+                "openkoto_pdf_translator.pdf2zh"
+            ]
+        },
+        "prod": {
+            "command": "./openkoto-pdf-translator",
+            "args": []
+        }
+    },
+    "release_repo": "hikariming/textlingo-desktop"
+}
