@@ -5,9 +5,10 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { invoke } from "@tauri-apps/api/core";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
 import { Button } from "../ui/Button";
-import { ChevronLeft, BookOpen, PanelRightClose, PanelRightOpen } from "lucide-react";
+import { ChevronLeft, BookOpen, PanelRightClose, PanelRightOpen, Languages, Loader2 } from "lucide-react";
 import { Article } from "../../types";
 import { EpubReader } from "./EpubReader";
 import { TxtReader } from "./TxtReader";
@@ -31,6 +32,13 @@ export function BookReader({ article, onBack }: BookReaderProps) {
 
     // 当前活动的助手标签
     const [activeTab, setActiveTab] = useState<"chat">("chat");
+
+    // PDF翻译状态
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [translationResult, setTranslationResult] = useState<{
+        mono_pdf?: string;
+        dual_pdf?: string;
+    } | null>(null);
 
     // 判断书籍类型
     const isEpub = article.book_type === "epub";
@@ -59,6 +67,71 @@ export function BookReader({ article, onBack }: BookReaderProps) {
         return article.book_path;
     };
 
+    // PDF全文翻译处理
+    const handlePdfTranslate = async () => {
+        if (!article.book_path || isTranslating) return;
+
+        try {
+            setIsTranslating(true);
+            setTranslationResult(null);
+
+            // 获取配置
+            const config = await invoke<{
+                target_language?: string;
+                active_model_id?: string;
+                model_configs?: Array<{ id: string; api_provider: string; api_key: string; model: string; base_url?: string }>;
+            }>("get_config");
+
+            console.log("[PDF Translate] Config loaded:", config);
+
+            const activeModel = config.model_configs?.find(m => m.id === config.active_model_id);
+            if (!activeModel) {
+                console.error("[PDF Translate] No active model found. Active ID:", config.active_model_id);
+                throw new Error(t("pdfTranslate.noActiveModel", "请先在设置中配置并激活一个AI模型"));
+            }
+
+            const targetLang = config.target_language || "zh";
+            const sourceLang = "en"; // 默认源语言
+
+            console.log("[PDF Translate] Starting with:", {
+                provider: activeModel.api_provider,
+                model: activeModel.model,
+                targetLang,
+            });
+
+            const result = await invoke<{
+                success: boolean;
+                mono_pdf: string;
+                dual_pdf: string;
+                original_pdf: string;
+            }>("translate_pdf_document", {
+                pdfPath: article.book_path,
+                langIn: sourceLang,
+                langOut: targetLang,
+                provider: activeModel.api_provider,
+                apiKey: activeModel.api_key,
+                model: activeModel.model,
+                baseUrl: activeModel.base_url,
+            });
+
+            if (result.success) {
+                setTranslationResult({
+                    mono_pdf: result.mono_pdf,
+                    dual_pdf: result.dual_pdf,
+                });
+                alert(t("pdfTranslate.success", "PDF翻译完成！\n\n纯译文: {{mono}}\n双语对照: {{dual}}", {
+                    mono: result.mono_pdf,
+                    dual: result.dual_pdf,
+                }));
+            }
+        } catch (error) {
+            console.error("[PDF Translate] Error:", error);
+            alert(t("pdfTranslate.error", "翻译失败: {{error}}", { error: String(error) }));
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
     return (
         <div className="h-full flex overflow-hidden bg-background">
             {/* 左侧：书籍阅读器 */}
@@ -82,15 +155,51 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                         </div>
                     </div>
 
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowAssistant(!showAssistant)}
-                        title={showAssistant ? "隐藏助手" : "显示助手"}
-                        className="h-8 w-8 p-0"
-                    >
-                        {showAssistant ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        {/* PDF 全文翻译按钮 */}
+                        {isPdf && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handlePdfTranslate}
+                                disabled={isTranslating}
+                                title={t("pdfTranslate.button", "翻译全文")}
+                                className="flex items-center gap-1.5"
+                            >
+                                {isTranslating ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                    <Languages size={16} />
+                                )}
+                                <span>{isTranslating ? t("pdfTranslate.translating", "翻译中...") : t("pdfTranslate.button", "翻译全文")}</span>
+                            </Button>
+                        )}
+
+                        {/* 翻译结果查看按钮 */}
+                        {translationResult && (
+                            <div className="flex items-center gap-1">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => window.open(`file://${translationResult.dual_pdf}`, '_blank')}
+                                    title={t("pdfTranslate.viewDual", "查看双语对照")}
+                                    className="text-green-600"
+                                >
+                                    📖 {t("pdfTranslate.dual", "双语")}
+                                </Button>
+                            </div>
+                        )}
+
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowAssistant(!showAssistant)}
+                            title={showAssistant ? "隐藏助手" : "显示助手"}
+                            className="h-8 w-8 p-0"
+                        >
+                            {showAssistant ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+                        </Button>
+                    </div>
                 </div>
 
                 {/* 阅读器内容 */}

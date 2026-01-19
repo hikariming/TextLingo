@@ -1328,3 +1328,143 @@ pub async fn delete_article_analysis_cmd(app_handle: AppHandle, id: String) -> R
 
     Ok(())
 }
+
+/// PDF全文翻译命令
+/// 调用 Python PDF翻译插件进行翻译，生成纯译文和双语对照PDF
+#[tauri::command]
+pub async fn translate_pdf_document(
+    app_handle: AppHandle,
+    pdf_path: String,
+    lang_in: String,
+    lang_out: String,
+    provider: String,
+    api_key: String,
+    model: String,
+    base_url: Option<String>,
+) -> Result<serde_json::Value, String> {
+    use std::process::Command;
+    use std::env;
+    
+    println!("[PDF Translate] Starting translation: {} -> {}", lang_in, lang_out);
+    println!("[PDF Translate] Provider: {}, Model: {}", provider, model);
+    
+    // 获取输出目录（与原PDF相同目录）
+    let pdf_path_buf = PathBuf::from(&pdf_path);
+    let output_dir = pdf_path_buf.parent()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|| ".".to_string());
+    
+    let filename_stem = pdf_path_buf.file_stem()
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_else(|| "output".to_string());
+    
+    // 构建环境变量
+    let mut envs: Vec<(&str, String)> = vec![
+        ("OPENKOTO_PROVIDER", provider.clone()),
+        ("OPENKOTO_API_KEY", api_key.clone()),
+        ("OPENKOTO_MODEL", model.clone()),
+    ];
+    
+    if let Some(ref url) = base_url {
+        envs.push(("OPENKOTO_BASE_URL", url.clone()));
+    }
+    
+    // 尝试查找 openkoto-pdf-translate 可执行文件或 Python 模块
+    // 方式1: 检查是否有sidecar可执行文件
+    // 方式2: 使用 python -m openkoto_pdf_translator
+    
+    let result = Command::new("python")
+        .args([
+            "-m", "openkoto_pdf_translator.pdf2zh",
+            &pdf_path,
+            "-li", &lang_in,
+            "-lo", &lang_out,
+            "-s", "openkoto",
+            "-o", &output_dir,
+        ])
+        .envs(envs.iter().map(|(k, v)| (*k, v.as_str())))
+        .output();
+    
+    match result {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            
+            println!("[PDF Translate] stdout: {}", stdout);
+            if !stderr.is_empty() {
+                println!("[PDF Translate] stderr: {}", stderr);
+            }
+            
+            if output.status.success() {
+                // 构建输出文件路径
+                let mono_path = format!("{}/{}-mono.pdf", output_dir, filename_stem);
+                let dual_path = format!("{}/{}-dual.pdf", output_dir, filename_stem);
+                
+                Ok(serde_json::json!({
+                    "success": true,
+                    "mono_pdf": mono_path,
+                    "dual_pdf": dual_path,
+                    "original_pdf": pdf_path,
+                }))
+            } else {
+                Err(format!("PDF翻译失败: {}", stderr))
+            }
+        }
+        Err(e) => {
+            // Python不可用，尝试直接调用可执行文件
+            println!("[PDF Translate] Python not available, trying executable: {}", e);
+            
+            // 获取插件目录
+            let plugins_dir = app_handle.path().app_data_dir()
+                .map(|p| p.join("plugins"))
+                .unwrap_or_default();
+            
+            #[cfg(target_os = "windows")]
+            let exe_name = "openkoto-pdf-translator-win-x64.exe";
+            #[cfg(target_os = "macos")]
+            let exe_name = if cfg!(target_arch = "aarch64") {
+                "openkoto-pdf-translator-macos-arm64"
+            } else {
+                "openkoto-pdf-translator-macos-x64"
+            };
+            #[cfg(target_os = "linux")]
+            let exe_name = "openkoto-pdf-translator-linux-x64";
+            
+            let exe_path = plugins_dir.join(exe_name);
+            
+            if exe_path.exists() {
+                let result = Command::new(&exe_path)
+                    .args([
+                        &pdf_path,
+                        "-li", &lang_in,
+                        "-lo", &lang_out,
+                        "-s", "openkoto",
+                        "-o", &output_dir,
+                    ])
+                    .envs(envs.iter().map(|(k, v)| (*k, v.as_str())))
+                    .output()
+                    .map_err(|e| format!("执行插件失败: {}", e))?;
+                
+                if result.status.success() {
+                    let mono_path = format!("{}/{}-mono.pdf", output_dir, filename_stem);
+                    let dual_path = format!("{}/{}-dual.pdf", output_dir, filename_stem);
+                    
+                    Ok(serde_json::json!({
+                        "success": true,
+                        "mono_pdf": mono_path,
+                        "dual_pdf": dual_path,
+                        "original_pdf": pdf_path,
+                    }))
+                } else {
+                    let stderr = String::from_utf8_lossy(&result.stderr);
+                    Err(format!("PDF翻译插件执行失败: {}", stderr))
+                }
+            } else {
+                Err(format!(
+                    "PDF翻译插件未安装。请安装 Python 并运行: pip install -e plugins/openkoto-pdf-translator，或下载插件可执行文件到: {:?}",
+                    exe_path
+                ))
+            }
+        }
+    }
+}

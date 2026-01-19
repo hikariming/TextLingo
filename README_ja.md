@@ -96,9 +96,17 @@ OpenKoto Desktop は、**オープンソースの AI 搭載言語学習アプリ
    npm install
    ```
 
-3. **開発モードで実行**:
+   **オプション A: コアアプリのみ** (高速、Python プラグインなし)
    ```bash
    npm run tauri dev
+   ```
+
+   **オプション B: プラグイン付き完全版** (推奨、PDF 翻訳機能など)
+   Python 環境、依存関係、プラグイン設定を自動的に処理します。
+   ```bash
+   # プロジェクトのルートディレクトリにいることを確認
+   chmod +x dev.sh
+   ./dev.sh
    ```
 
 詳細は [開発ドキュメント](docs/HowToRun_en.md) をご覧ください。

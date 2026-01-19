@@ -433,5 +433,16 @@
     "description": "新しいバージョン {{version}} が利用可能です。",
     "action": "今すぐ更新",
     "dismiss": "閉じる"
+  },
+  "pdfTranslate": {
+    "button": "全文翻訳",
+    "translating": "翻訳中...",
+    "success": "PDF翻訳完了！\n\n翻訳版: {{mono}}\nバイリンガル版: {{dual}}",
+    "error": "翻訳失敗: {{error}}",
+    "noActiveModel": "設定でAIモデルを設定して有効化してください",
+    "viewDual": "バイリンガル版を見る",
+    "viewMono": "翻訳版を見る",
+    "dual": "バイリンガル",
+    "mono": "翻訳版"
   }
 }

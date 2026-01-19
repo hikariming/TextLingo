@@ -97,9 +97,17 @@ Built with **Tauri + React + Rust**, it runs locally on your machine for **fast 
    npm install
    ```
 
-3. **Run in development mode**:
+   **Option A: Core Application Only** (Faster, no Python plugins)
    ```bash
    npm run tauri dev
+   ```
+
+   **Option B: Full Application with Plugins** (Recommended for PDF translation)
+   This script handles Python environment, dependencies, and plugin setup automatically.
+   ```bash
+   # Make sure you are in the root directory
+   chmod +x dev.sh
+   ./dev.sh
    ```
 
 For more details, see [Development Documentation](docs/HowToRun_en.md).

@@ -445,5 +445,16 @@
     "description": "A new version {{version}} is available.",
     "action": "Update Now",
     "dismiss": "Dismiss"
+  },
+  "pdfTranslate": {
+    "button": "Translate PDF",
+    "translating": "Translating...",
+    "success": "PDF translation complete!\n\nTranslated: {{mono}}\nBilingual: {{dual}}",
+    "error": "Translation failed: {{error}}",
+    "noActiveModel": "Please configure and activate an AI model in settings first",
+    "viewDual": "View bilingual",
+    "viewMono": "View translated",
+    "dual": "Bilingual",
+    "mono": "Translated"
   }
 }

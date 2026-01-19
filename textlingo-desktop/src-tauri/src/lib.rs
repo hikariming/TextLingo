@@ -65,6 +65,8 @@ pub fn run() {
             // 删除操作
             commands::delete_article_subtitles_cmd,
             commands::delete_article_analysis_cmd,
+            // PDF翻译
+            commands::translate_pdf_document,
         ])
         .setup(|app| {
             // Initialize app on startup

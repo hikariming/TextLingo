@@ -11,7 +11,7 @@ import sys
 from string import Template
 from typing import List, Optional
 
-from pdf2zh import __version__, log
+from . import __version__, log
 from .high_level import translate, download_remote_fonts
 from .doclayout import OnnxModel, ModelInstance
 import os
