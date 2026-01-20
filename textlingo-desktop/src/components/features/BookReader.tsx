@@ -21,6 +21,7 @@ import { EpubReader } from "./EpubReader";
 import { TxtReader } from "./TxtReader";
 import { PdfReader } from "./PdfReader";
 import { ArticleChatAssistant } from "./ArticleChatAssistant";
+import { PluginInstallDialog } from "./PluginInstallDialog";
 
 interface BookReaderProps {
     article: Article;
@@ -49,6 +50,9 @@ export function BookReader({ article, onBack }: BookReaderProps) {
 
     // PDF翻译状态
     const [isTranslating, setIsTranslating] = useState(false);
+
+    // 插件安装对话框
+    const [showPluginInstallDialog, setShowPluginInstallDialog] = useState(false);
 
     // 判断书籍类型
     const isEpub = article.book_type === "epub";
@@ -179,8 +183,18 @@ export function BookReader({ article, onBack }: BookReaderProps) {
         if (!article.book_path || isTranslating) return;
 
         try {
-            setIsTranslating(true);
+            // 首先检查插件是否已安装
+            const isInstalled = await invoke<boolean>("check_plugin_installed_cmd", {
+                pluginName: "openkoto-pdf-translator"
+            });
 
+            if (!isInstalled) {
+                // 未安装则弹出安装对话框
+                setShowPluginInstallDialog(true);
+                return;
+            }
+
+            setIsTranslating(true);
 
             // 获取配置
             const config = await invoke<{
@@ -450,6 +464,17 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                     </Tabs>
                 </div>
             )}
+
+            {/* 插件安装对话框 */}
+            <PluginInstallDialog
+                isOpen={showPluginInstallDialog}
+                onClose={() => setShowPluginInstallDialog(false)}
+                onInstallComplete={() => {
+                    setShowPluginInstallDialog(false);
+                    // 安装完成后自动重试翻译
+                    handlePdfTranslate();
+                }}
+            />
         </div>
     );
 }

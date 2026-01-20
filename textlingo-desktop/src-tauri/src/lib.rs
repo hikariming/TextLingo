@@ -75,6 +75,10 @@ pub fn run() {
             plugin_manager::open_plugins_directory,
             plugin_manager::set_plugin_mode_cmd,
             plugin_manager::get_plugin_modes_cmd,
+            // 插件自动安装
+            plugin_manager::check_plugin_installed_cmd,
+            plugin_manager::get_plugin_release_info_cmd,
+            plugin_manager::install_plugin_cmd,
         ])
         .setup(|app| {
             // Initialize app on startup

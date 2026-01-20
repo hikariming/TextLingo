@@ -1,0 +1,84 @@
+name: Build PDF Translator Plugin
+
+on:
+  push:
+    tags:
+      - 'pdf-translator-v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-x64
+          - os: macos-13
+            platform: macos-x64
+          - os: macos-14
+            platform: macos-arm64
+          - os: windows-latest
+            platform: win-x64
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: plugins/openkoto-pdf-translator
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -e .
+
+      - name: Build executable
+        working-directory: plugins/openkoto-pdf-translator
+        run: python build.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openkoto-pdf-translator-${{ matrix.platform }}
+          path: plugins/openkoto-pdf-translator/dist/openkoto-pdf-translator-*
+          retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: PDF Translator Plugin ${{ github.ref_name }}
+          body: |
+            ## OpenKoto PDF Translator Plugin
+            
+            下载适合您系统的版本：
+            - **Windows**: `openkoto-pdf-translator-win-x64.exe`
+            - **macOS (Intel)**: `openkoto-pdf-translator-macos-x64`
+            - **macOS (Apple Silicon)**: `openkoto-pdf-translator-macos-arm64`
+            - **Linux**: `openkoto-pdf-translator-linux-x64`
+            
+            ### 使用方法
+            1. 下载后放到 OpenKoto 的 plugins 目录
+            2. 在 OpenKoto 中打开 PDF，点击"翻译全文"
+            
+          files: dist/*
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -2723,6 +2723,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "futures",
+ "futures-util",
  "html-escape",
  "keyring",
  "readability",
