@@ -41,7 +41,7 @@ interface OpenRouterModel {
   };
 }
 
-const SUPPORTED_PROVIDERS = ["openai", "openrouter", "deepseek", "siliconflow", "302ai", "google", "google-ai-studio", "openai-compatible", "ollama", "lmstudio"] as const;
+const SUPPORTED_PROVIDERS = ["openai", "openrouter", "deepseek", "siliconflow", "302ai", "google", "google-ai-studio", "moonshot", "openai-compatible", "ollama", "lmstudio"] as const;
 
 // Default base URLs for local providers
 const DEFAULT_BASE_URLS: Record<string, string> = {
@@ -88,6 +88,12 @@ const DEFAULT_MODELS = {
     { value: "gemini-1.5-pro", labelKey: "settings.models.google-ai-studio.gemini-1.5-pro" },
     { value: "gemini-1.5-flash", labelKey: "settings.models.google-ai-studio.gemini-1.5-flash" },
   ],
+  moonshot: [
+    { value: "kimi-k2.5", labelKey: "settings.models.moonshot.kimi-k2.5" },
+    { value: "moonshot-v1-128k", labelKey: "settings.models.moonshot.moonshot-v1-128k" },
+    { value: "moonshot-v1-32k", labelKey: "settings.models.moonshot.moonshot-v1-32k" },
+    { value: "moonshot-v1-8k", labelKey: "settings.models.moonshot.moonshot-v1-8k" },
+  ],
   // Providers that require custom model input
   "openai-compatible": [],
   "ollama": [],
@@ -129,6 +135,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
     "302ai": DEFAULT_MODELS["302ai"].map(m => ({ value: m.value, label: t(m.labelKey) })),
     google: DEFAULT_MODELS.google.map(m => ({ value: m.value, label: t(m.labelKey) })),
     "google-ai-studio": DEFAULT_MODELS["google-ai-studio"].map(m => ({ value: m.value, label: t(m.labelKey) })),
+    moonshot: DEFAULT_MODELS.moonshot.map(m => ({ value: m.value, label: t(m.labelKey) })),
   });
   const [modelFilter, setModelFilter] = useState("");
 
@@ -312,7 +319,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
 
     const provider = editingConfig.api_provider;
     // Ensure provider is defined and valid
-    if (!provider || !["openrouter", "openai", "openai-compatible", "deepseek", "siliconflow", "302ai", "google"].includes(provider)) {
+    if (!provider || !["openrouter", "openai", "openai-compatible", "deepseek", "siliconflow", "302ai", "google", "moonshot"].includes(provider)) {
       if (!isAuto) setSyncError(t("settings.syncErrors.providerNotSupported") || "Provider not supported for sync");
       return;
     }
@@ -366,10 +373,13 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
           "Authorization": `Bearer ${editingConfig.api_key}`,
           "Content-Type": "application/json",
         };
-      } else if (provider === "google" || provider === "google-ai-studio") {
-        url = `https://generativelanguage.googleapis.com/v1beta/models?key=${editingConfig.api_key}`;
-        // Google API key is in URL, no auth header needed for this endpoint usually,
         headers = {
+          "Content-Type": "application/json",
+        };
+      } else if (provider === "moonshot") {
+        url = "https://api.moonshot.cn/v1/models";
+        headers = {
+          "Authorization": `Bearer ${editingConfig.api_key}`,
           "Content-Type": "application/json",
         };
       }
@@ -434,14 +444,18 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
         if (data.models && Array.isArray(data.models)) {
           syncedModels = data.models
             .map((m: any) => ({
-              // Google model names are like "models/gemini-1.5-flash"
-              // We usually want just "gemini-1.5-flash" for the value if the client handles the prefix,
-              // BUT check how types.rs/ai_service.rs handles it.
-              // Usually the user inputs just the model name. Let's strip "models/" if present.
               value: m.name.replace("models/", ""),
               label: m.displayName || m.name.replace("models/", ""),
             }))
             .filter((m: { value: string }) => m.value.includes("gemini"));
+        }
+      } else if (provider === "moonshot") {
+        if (data.data && Array.isArray(data.data)) {
+          syncedModels = data.data
+            .map((m: any) => ({
+              value: m.id,
+              label: m.id,
+            }));
         }
       }
 
@@ -761,7 +775,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                     <label className="block text-sm font-medium text-foreground">
                       {t("settings.model")}
                     </label>
-                    {["openrouter", "openai", "deepseek", "google", "google-ai-studio", "302ai", "siliconflow"].includes(editingConfig.api_provider || "") && (
+                    {["openrouter", "openai", "deepseek", "google", "google-ai-studio", "302ai", "siliconflow", "moonshot"].includes(editingConfig.api_provider || "") && (
                       <Button
                         type="button"
                         variant="ghost"

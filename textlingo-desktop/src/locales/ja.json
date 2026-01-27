@@ -176,7 +176,8 @@
       "google-ai-studio": "Google AI Studio (無料)",
       "openai-compatible": "OpenAI互換",
       "ollama": "Ollama (ローカル)",
-      "lmstudio": "LM Studio (ローカル)"
+      "lmstudio": "LM Studio (ローカル)",
+      "moonshot": "Moonshot AI"
     },
     "baseUrl": "ベースURL",
     "baseUrlPlaceholder": "https://your-api-endpoint.com/v1",
@@ -229,6 +230,12 @@
         "gemini-3-pro-preview": "Gemini 3 Pro Preview",
         "gemini-1.5-pro": "Gemini 1.5 Pro",
         "gemini-1.5-flash": "Gemini 1.5 Flash"
+      },
+      "moonshot": {
+        "kimi-k2.5": "Kimi k2.5",
+        "moonshot-v1-128k": "Moonshot v1 128k",
+        "moonshot-v1-32k": "Moonshot v1 32k",
+        "moonshot-v1-8k": "Moonshot v1 8k"
       }
     },
     "languages": {
@@ -427,9 +434,22 @@
     "model": {
       "title": "AI モデルの設定",
       "desc": "翻訳やAI分析を有効にするために、AIサービスを接続します。今すぐ設定するか、後で設定から行うことができます。",
+      "regionTitle": "地域を選択",
+      "globalUser": "グローバルユーザー",
+      "chinaUser": "中国ユーザー",
+      "chinaProviderTitle": "プロバイダーを選択",
+      "302aiDesc": "マルチモデル統合",
+      "kimiDesc": "検索/動画理解",
       "recommendTitle": "推奨モデル (Google AI Studio)",
       "recommendFlash": "Gemini 3.0 Flash Preview (推奨：速度と性能のバランス)",
       "recommendPro": "Gemini 3.0 Pro Preview (強力：複雑なタスク向け)",
+      "302ai": {
+        "flash": "推奨：高速でスマート",
+        "pro": "強力：複雑なタスクに最適"
+      },
+      "kimi": {
+        "k25": "推奨：検索と動画理解をサポート"
+      },
       "apiKeyLabel": "API キー",
       "apiKeyPlaceholder": "ここにAPIキーを貼り付けてください",
       "skipButton": "設定をスキップ",

@@ -238,6 +238,13 @@ pub struct ContentPart {
     pub image_url: Option<ImageUrl>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file_data: Option<FileData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub video_url: Option<VideoUrl>, // For Kimi model video input
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoUrl {
+    pub url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

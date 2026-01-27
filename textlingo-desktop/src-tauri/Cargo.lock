@@ -2718,7 +2718,7 @@ dependencies = [
 
 [[package]]
 name = "openkoto-desktop"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -3468,6 +3468,7 @@ dependencies = [
  "js-sys",
  "log",
  "mime",
+ "mime_guess",
  "native-tls",
  "percent-encoding",
  "pin-project-lite",

@@ -23,6 +23,10 @@ export function OnboardingDialog({ isOpen, onFinish }: OnboardingDialogProps) {
     const [apiKey, setApiKey] = useState("");
     const [selectedModel, setSelectedModel] = useState("models/gemini-3-flash-preview");
     const [isFinishing, setIsFinishing] = useState(false);
+    // 用户区域选择：global = Google AI Studio, china = 302.ai / Kimi
+    const [userRegion, setUserRegion] = useState<"global" | "china">("global");
+    // 中国用户的服务商选择：302ai 或 moonshot (Kimi)
+    const [chinaProvider, setChinaProvider] = useState<"302ai" | "moonshot">("302ai");
 
     const INTERFACE_LANGUAGES = [
         { value: "en", label: "English" },
@@ -61,12 +65,34 @@ export function OnboardingDialog({ isOpen, onFinish }: OnboardingDialogProps) {
 
             // 2. If API Key is provided, save the model config
             if (apiKey.trim()) {
+                // 根据用户区域选择不同的服务商和模型
+                let apiProvider: string;
+                let modelId: string;
+                let configName: string;
+
+                if (userRegion === "global") {
+                    // 全球用户使用 Google AI Studio
+                    apiProvider = "google-ai-studio";
+                    modelId = selectedModel;
+                    configName = "Gemini";
+                } else {
+                    // 中国用户使用 302.ai 或 Kimi
+                    apiProvider = chinaProvider;
+                    if (chinaProvider === "302ai") {
+                        modelId = selectedModel; // 如 gpt-4o 或 claude-3-5-sonnet
+                        configName = "302.AI";
+                    } else {
+                        modelId = selectedModel; // 如 kimi-k2.5
+                        configName = "Kimi";
+                    }
+                }
+
                 const modelConfig: ModelConfig = {
                     id: crypto.randomUUID(),
-                    name: "Gemini",
+                    name: configName,
                     api_key: apiKey.trim(),
-                    api_provider: "google-ai-studio",
-                    model: selectedModel,
+                    api_provider: apiProvider,
+                    model: modelId,
                     is_default: true,
                 };
                 await invoke("save_model_config", { config: modelConfig });
@@ -201,48 +227,206 @@ export function OnboardingDialog({ isOpen, onFinish }: OnboardingDialogProps) {
                             </div>
 
                             <div className="space-y-4">
+                                {/* 区域选择器 */}
                                 <div className="space-y-3">
-                                    <label className="text-xs font-semibold uppercase text-muted-foreground">{t("onboarding.model.recommendTitle")}</label>
-                                    <div className="space-y-2">
+                                    <label className="text-xs font-semibold uppercase text-muted-foreground">{t("onboarding.model.regionTitle")}</label>
+                                    <div className="grid grid-cols-2 gap-2">
                                         <button
-                                            onClick={() => setSelectedModel("models/gemini-3-flash-preview")}
-                                            className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedModel === "models/gemini-3-flash-preview"
+                                            onClick={() => {
+                                                setUserRegion("global");
+                                                setSelectedModel("models/gemini-3-flash-preview");
+                                            }}
+                                            className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${userRegion === "global"
                                                 ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
                                                 : "border-border hover:border-primary/50"
                                                 }`}
                                         >
-                                            <div className={`p-2 rounded-lg ${selectedModel === "models/gemini-3-flash-preview" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                                                <Zap size={18} />
+                                            <div className={`p-1.5 rounded-lg ${userRegion === "global" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                                🌍
                                             </div>
                                             <div className="text-left">
-                                                <div className="text-sm font-bold flex items-center gap-1.5">
-                                                    Gemini 3.0 Flash
-                                                    {selectedModel === "models/gemini-3-flash-preview" && <Star size={12} className="fill-current text-yellow-500" />}
-                                                </div>
-                                                <div className="text-[11px] text-muted-foreground leading-tight">{t("onboarding.model.recommendFlash")}</div>
+                                                <div className="text-xs font-bold">{t("onboarding.model.globalUser")}</div>
+                                                <div className="text-[10px] text-muted-foreground">Google AI Studio</div>
                                             </div>
                                         </button>
-
                                         <button
-                                            onClick={() => setSelectedModel("models/gemini-3-pro-preview")}
-                                            className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedModel === "models/gemini-3-pro-preview"
+                                            onClick={() => {
+                                                setUserRegion("china");
+                                                setChinaProvider("302ai");
+                                                setSelectedModel("gemini-3-flash-preview");
+                                            }}
+                                            className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${userRegion === "china"
                                                 ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
                                                 : "border-border hover:border-primary/50"
                                                 }`}
                                         >
-                                            <div className={`p-2 rounded-lg ${selectedModel === "models/gemini-3-pro-preview" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                                                <Cpu size={18} />
+                                            <div className={`p-1.5 rounded-lg ${userRegion === "china" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                                🇨🇳
                                             </div>
                                             <div className="text-left">
-                                                <div className="text-sm font-bold">Gemini 3.0 Pro</div>
-                                                <div className="text-[11px] text-muted-foreground leading-tight">{t("onboarding.model.recommendPro")}</div>
+                                                <div className="text-xs font-bold">{t("onboarding.model.chinaUser")}</div>
+                                                <div className="text-[10px] text-muted-foreground">302.AI / Kimi</div>
                                             </div>
                                         </button>
                                     </div>
                                 </div>
 
+                                {/* 全球用户 - Google AI Studio 模型选择 */}
+                                {userRegion === "global" && (
+                                    <div className="space-y-3">
+                                        <label className="text-xs font-semibold uppercase text-muted-foreground">{t("onboarding.model.recommendTitle")}</label>
+                                        <div className="space-y-2">
+                                            <button
+                                                onClick={() => setSelectedModel("models/gemini-3-flash-preview")}
+                                                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedModel === "models/gemini-3-flash-preview"
+                                                    ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
+                                                    : "border-border hover:border-primary/50"
+                                                    }`}
+                                            >
+                                                <div className={`p-2 rounded-lg ${selectedModel === "models/gemini-3-flash-preview" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                                    <Zap size={18} />
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="text-sm font-bold flex items-center gap-1.5">
+                                                        Gemini 3.0 Flash
+                                                        {selectedModel === "models/gemini-3-flash-preview" && <Star size={12} className="fill-current text-yellow-500" />}
+                                                    </div>
+                                                    <div className="text-[11px] text-muted-foreground leading-tight">{t("onboarding.model.recommendFlash")}</div>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                onClick={() => setSelectedModel("models/gemini-3-pro-preview")}
+                                                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedModel === "models/gemini-3-pro-preview"
+                                                    ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
+                                                    : "border-border hover:border-primary/50"
+                                                    }`}
+                                            >
+                                                <div className={`p-2 rounded-lg ${selectedModel === "models/gemini-3-pro-preview" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                                    <Cpu size={18} />
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="text-sm font-bold">Gemini 3.0 Pro</div>
+                                                    <div className="text-[11px] text-muted-foreground leading-tight">{t("onboarding.model.recommendPro")}</div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 中国用户 - 服务商选择 */}
+                                {userRegion === "china" && (
+                                    <div className="space-y-3">
+                                        <label className="text-xs font-semibold uppercase text-muted-foreground">{t("onboarding.model.chinaProviderTitle")}</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setChinaProvider("302ai");
+                                                    setSelectedModel("gemini-3-flash-preview");
+                                                }}
+                                                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${chinaProvider === "302ai"
+                                                    ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
+                                                    : "border-border hover:border-primary/50"
+                                                    }`}
+                                            >
+                                                <div className={`p-1.5 rounded-lg ${chinaProvider === "302ai" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                                    <Zap size={16} />
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="text-xs font-bold">302.AI</div>
+                                                    <div className="text-[10px] text-muted-foreground">{t("onboarding.model.302aiDesc")}</div>
+                                                </div>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setChinaProvider("moonshot");
+                                                    setSelectedModel("kimi-k2.5");
+                                                }}
+                                                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${chinaProvider === "moonshot"
+                                                    ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
+                                                    : "border-border hover:border-primary/50"
+                                                    }`}
+                                            >
+                                                <div className={`p-1.5 rounded-lg ${chinaProvider === "moonshot" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                                    <Sparkles size={16} />
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="text-xs font-bold">Kimi</div>
+                                                    <div className="text-[10px] text-muted-foreground">{t("onboarding.model.kimiDesc")}</div>
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        {/* 302.AI 模型选择 */}
+                                        {chinaProvider === "302ai" && (
+                                            <div className="space-y-2">
+                                                <button
+                                                    onClick={() => setSelectedModel("gemini-3-flash-preview")}
+                                                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedModel === "gemini-3-flash-preview"
+                                                        ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
+                                                        : "border-border hover:border-primary/50"
+                                                        }`}
+                                                >
+                                                    <div className={`p-2 rounded-lg ${selectedModel === "gemini-3-flash-preview" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                                        <Zap size={18} />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="text-sm font-bold flex items-center gap-1.5">
+                                                            Gemini 3.0 Flash
+                                                            {selectedModel === "gemini-3-flash-preview" && <Star size={12} className="fill-current text-yellow-500" />}
+                                                        </div>
+                                                        <div className="text-[11px] text-muted-foreground leading-tight">{t("onboarding.model.302ai.flash")}</div>
+                                                    </div>
+                                                </button>
+                                                <button
+                                                    onClick={() => setSelectedModel("gemini-3-pro-preview")}
+                                                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedModel === "gemini-3-pro-preview"
+                                                        ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
+                                                        : "border-border hover:border-primary/50"
+                                                        }`}
+                                                >
+                                                    <div className={`p-2 rounded-lg ${selectedModel === "gemini-3-pro-preview" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                                        <Cpu size={18} />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="text-sm font-bold">Gemini 3.0 Pro</div>
+                                                        <div className="text-[11px] text-muted-foreground leading-tight">{t("onboarding.model.302ai.pro")}</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* Kimi 模型选择 */}
+                                        {chinaProvider === "moonshot" && (
+                                            <div className="space-y-2">
+                                                <button
+                                                    onClick={() => setSelectedModel("kimi-k2.5")}
+                                                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedModel === "kimi-k2.5"
+                                                        ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
+                                                        : "border-border hover:border-primary/50"
+                                                        }`}
+                                                >
+                                                    <div className={`p-2 rounded-lg ${selectedModel === "kimi-k2.5" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                                        <Sparkles size={18} />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="text-sm font-bold flex items-center gap-1.5">
+                                                            Kimi K2.5
+                                                            {selectedModel === "kimi-k2.5" && <Star size={12} className="fill-current text-yellow-500" />}
+                                                        </div>
+                                                        <div className="text-[11px] text-muted-foreground leading-tight">{t("onboarding.model.kimi.k25")}</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* API Key 输入 */}
                                 <div className="space-y-2">
-                                    <label className="text-xs font-semibold uppercase text-muted-foreground">{t("onboarding.model.apiKeyLabel")} (Google AI Studio)</label>
+                                    <label className="text-xs font-semibold uppercase text-muted-foreground">
+                                        {t("onboarding.model.apiKeyLabel")} ({userRegion === "global" ? "Google AI Studio" : chinaProvider === "302ai" ? "302.AI" : "Kimi"})
+                                    </label>
                                     <Input
                                         type="password"
                                         value={apiKey}

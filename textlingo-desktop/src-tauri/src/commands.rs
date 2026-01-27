@@ -1133,13 +1133,14 @@ pub async fn extract_subtitles_cmd(
     let provider = &active_config.api_provider;
     let api_key = &active_config.api_key;
     
-    // 允许的 Gemini 模型前缀
-    let is_gemini = model.contains("gemini") || 
+    // 允许的 Gemini 或 Kimi 模型
+    let is_supported = model.contains("gemini") || 
                     model.starts_with("google/gemini") ||
-                    provider == "google" || provider == "google-ai-studio";
+                    provider == "google" || provider == "google-ai-studio" ||
+                    provider == "moonshot" || model.contains("kimi");
     
-    if !is_gemini {
-        return Err("字幕提取需要使用 Gemini 模型。请在设置中配置 Gemini API (gemini-2.0-flash 或更新版本)".to_string());
+    if !is_supported {
+        return Err("字幕提取需要使用 Gemini 或 Kimi K2.5 模型。请在设置中配置相关 API".to_string());
     }
     
     // 4. 调用字幕提取模块 (使用 article_id 作为 event_id)

@@ -7,7 +7,8 @@
 // 3. 发送至 Gemini API 进行转录
 // 4. 解析转录结果为 ArticleSegment
 
-use crate::types::{ArticleSegment, TranscriptionResult, TranscriptionSegment};
+use crate::types::{ArticleSegment, TranscriptionResult, TranscriptionSegment, ChatRequest, ChatMessage, ChatContent, ContentPart, VideoUrl};
+use crate::ai_service::AIService;
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use chrono::Utc;
 use reqwest::Client;
@@ -59,6 +60,22 @@ pub async fn extract_subtitles(
     // 分片提取阈值：5分钟 (对应约5MB音频文件，适合 Flash 模型)
     const CHUNK_THRESHOLD_SECONDS: f64 = 5.0 * 60.0;
     
+    // Kimi K2.5 视频理解模式
+    if provider == "moonshot" && model.contains("k2.5") {
+        println!("[SubtitleExtraction] 检测到 Kimi K2.5 模型，启用视频理解模式");
+        let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
+            serde_json::json!({ "phase": "processing", "message": "正在使用 Kimi 视频理解模式..." }));
+            
+        return extract_subtitles_with_kimi(
+            app,
+            video_path,
+            video_id,
+            api_key,
+            model,
+            event_id,
+        ).await;
+    }
+
     if duration > CHUNK_THRESHOLD_SECONDS {
         println!("[SubtitleExtraction] 视频超过5分钟，启用分片提取模式");
         let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
@@ -658,6 +675,163 @@ async fn extract_audio_from_video(app: &AppHandle, video_path: &Path) -> Result<
     }
     
     Ok(audio_path)
+}
+
+
+
+/// 使用 Kimi K2.5 模型提取字幕 (视频理解 - 使用 Base64 内嵌视频)
+async fn extract_subtitles_with_kimi(
+    app: AppHandle,
+    video_path: &Path,
+    video_id: &str,
+    api_key: &str,
+    model: &str,
+    event_id: &str,
+) -> Result<Vec<ArticleSegment>, String> {
+    // 1. 压缩视频 (至 480p, CRF 28 以减小体积，便于 Base64 编码)
+    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
+        serde_json::json!({ "phase": "compress", "message": "正在优化视频体积..." }));
+        
+    let compressed_path = compress_video_for_upload(&app, video_path).await?;
+    println!("[SubtitleExtraction] 视频压缩完成: {:?}", compressed_path);
+    
+    // 2. 读取压缩后的视频并 Base64 编码
+    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
+        serde_json::json!({ "phase": "encode", "message": "正在编码视频数据..." }));
+        
+    let video_bytes = fs::read(&compressed_path)
+        .map_err(|e| format!("读取压缩视频失败: {}", e))?;
+    
+    let video_size_mb = video_bytes.len() as f64 / 1024.0 / 1024.0;
+    println!("[SubtitleExtraction] 压缩后视频大小: {:.2} MB", video_size_mb);
+    
+    // 获取视频扩展名用于 MIME 类型
+    let ext = compressed_path.extension()
+        .and_then(|s| s.to_str())
+        .unwrap_or("mp4")
+        .to_lowercase();
+    
+    // 构建 data URL: data:video/{ext};base64,{base64_data}
+    let video_base64 = BASE64.encode(&video_bytes);
+    let video_data_url = format!("data:video/{};base64,{}", ext, video_base64);
+    
+    // 清理本地压缩文件
+    if let Err(e) = fs::remove_file(&compressed_path) {
+         println!("[SubtitleExtraction] 警告: 清理临时视频文件失败: {}", e);
+    }
+    
+    // 3. 发送转录请求
+    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
+        serde_json::json!({ "phase": "analyze", "message": "Kimi 正在分析视频生成字幕..." }));
+        
+    let prompt = r#"请分析视频中的语音内容，并生成带时间轴的字幕。
+严格按照以下 JSON 格式返回结果：
+{
+  "segments": [
+    {
+      "start": "MM:SS",
+      "end": "MM:SS",
+      "content": "字幕内容"
+    }
+  ],
+  "full_text": "全文内容"
+}
+要求：
+1. 精确对应语音时间。
+2. 按句子或短语断句。
+3. 保持原语言，不要翻译。
+4. 忽略背景音和无意义语气词。
+"#;
+
+    let ai_service = AIService::new(api_key.to_string(), "moonshot".to_string(), model.to_string());
+
+    let chat_request = ChatRequest {
+        model: model.to_string(),
+        messages: vec![
+            ChatMessage {
+                role: "user".to_string(),
+                content: ChatContent::Parts(vec![
+                    ContentPart {
+                        part_type: "video_url".to_string(),
+                        text: None,
+                        image_url: None,
+                        file_data: None,
+                        video_url: Some(VideoUrl {
+                            url: video_data_url, // 使用 Base64 data URL
+                        }),
+                    },
+                    ContentPart {
+                        part_type: "text".to_string(),
+                        text: Some(prompt.to_string()),
+                        image_url: None,
+                        file_data: None,
+                        video_url: None,
+                    }
+                ]),
+            }
+        ],
+        temperature: Some(1.0), // Kimi 要求 temperature=1
+    };
+    
+    let response = match ai_service.chat(chat_request).await {
+        Ok(res) => res,
+        Err(e) => return Err(format!("Kimi 分析失败: {}", e)),
+    };
+    
+    // 4. 解析结果
+    let transcription = parse_transcription_response(&response.content)?;
+    
+    // 5. 转换为 ArticleSegment
+    let segments = transcription_to_segments(&transcription, video_id);
+    
+    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
+        serde_json::json!({ "phase": "done", "message": "字幕提取完成！", "count": segments.len() }));
+        
+    Ok(segments)
+}
+
+/// 压缩视频以便上传
+/// 目标: 480p, CRF 28, Preset veryfast
+async fn compress_video_for_upload(app: &AppHandle, video_path: &Path) -> Result<PathBuf, String> {
+    let video_dir = video_path.parent().ok_or("无效的视频目录")?;
+    let video_stem = video_path.file_stem().and_then(|s| s.to_str()).ok_or("无效的文件名")?;
+    let output_path = video_dir.join(format!("{}_compressed.mp4", video_stem));
+    
+    if output_path.exists() {
+        let _ = fs::remove_file(&output_path);
+    }
+    
+    let shell = app.shell();
+    
+    let output = shell
+        .sidecar("ffmpeg")
+        .map_err(|e| format!("无法创建 FFmpeg sidecar: {}", e))?
+        .args([
+            "-i", video_path.to_str().unwrap(),
+            "-vf", "scale=-2:480", // Scale to 480p height, width auto
+            "-c:v", "libx264",
+            "-crf", "28",          // Lower quality for smaller size
+            "-preset", "veryfast",
+            "-c:a", "aac",
+            "-b:a", "128k",
+            "-ac", "1",            // Mono audio
+            "-y",
+            output_path.to_str().unwrap()
+        ])
+        .output()
+        .await
+        .map_err(|e| format!("FFmpeg 压缩失败: {}", e))?;
+        
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("FFmpeg 压缩错误: {}", stderr));
+    }
+    
+    if !output_path.exists() {
+        return Err("压缩后的视频文件未生成".to_string());
+    }
+    
+    Ok(output_path)
 }
 
 /// 使用 Gemini API 转录音频

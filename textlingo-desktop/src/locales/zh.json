@@ -187,7 +187,8 @@
       "google-ai-studio": "Google AI Studio (免费)",
       "openai-compatible": "OpenAI 兼容",
       "ollama": "Ollama (本地)",
-      "lmstudio": "LM Studio (本地)"
+      "lmstudio": "LM Studio (本地)",
+      "moonshot": "月之暗面 (Kimi)"
     },
     "baseUrl": "服务地址",
     "baseUrlPlaceholder": "https://your-api-endpoint.com/v1",
@@ -240,6 +241,12 @@
         "gemini-3-pro-preview": "Gemini 3.0 Pro Preview",
         "gemini-1.5-pro": "Gemini 1.5 Pro",
         "gemini-1.5-flash": "Gemini 1.5 Flash"
+      },
+      "moonshot": {
+        "kimi-k2.5": "Kimi k2.5 (搜索/视频理解)",
+        "moonshot-v1-128k": "Moonshot v1 128k",
+        "moonshot-v1-32k": "Moonshot v1 32k",
+        "moonshot-v1-8k": "Moonshot v1 8k"
       }
     },
     "languages": {
@@ -439,9 +446,22 @@
     "model": {
       "title": "配置 AI 模型",
       "desc": "连接 AI 服务以开启翻译和分析功能。您可以现在配置，或稍后在设置中完成。",
+      "regionTitle": "选择您的区域",
+      "globalUser": "全球用户",
+      "chinaUser": "中国用户",
+      "chinaProviderTitle": "选择服务商",
+      "302aiDesc": "多模型聚合",
+      "kimiDesc": "搜索/视频理解",
       "recommendTitle": "推荐模型 (Google AI Studio)",
       "recommendFlash": "Gemini 3.0 Flash Preview (强烈推荐：均衡且快速)",
       "recommendPro": "Gemini 3.0 Pro Preview (强大：适合复杂任务)",
+      "302ai": {
+        "flash": "推荐：快速且智能",
+        "pro": "强大：适合复杂任务"
+      },
+      "kimi": {
+        "k25": "推荐：支持搜索和视频理解"
+      },
       "apiKeyLabel": "API Key",
       "apiKeyPlaceholder": "在此粘贴您的 API Key",
       "skipButton": "暂不配置",

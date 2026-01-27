@@ -187,7 +187,8 @@
       "google-ai-studio": "Google AI Studio (Free)",
       "openai-compatible": "OpenAI Compatible",
       "ollama": "Ollama (Local)",
-      "lmstudio": "LM Studio (Local)"
+      "lmstudio": "LM Studio (Local)",
+      "moonshot": "Moonshot AI"
     },
     "baseUrl": "Base URL",
     "baseUrlPlaceholder": "https://your-api-endpoint.com/v1",
@@ -240,6 +241,12 @@
         "gemini-3-pro-preview": "Gemini 3.0 Pro Preview",
         "gemini-1.5-pro": "Gemini 1.5 Pro",
         "gemini-1.5-flash": "Gemini 1.5 Flash"
+      },
+      "moonshot": {
+        "kimi-k2.5": "Kimi k2.5",
+        "moonshot-v1-128k": "Moonshot v1 128k",
+        "moonshot-v1-32k": "Moonshot v1 32k",
+        "moonshot-v1-8k": "Moonshot v1 8k"
       }
     },
     "languages": {
@@ -439,9 +446,22 @@
     "model": {
       "title": "Configure AI Model",
       "desc": "Connect an AI service to enable translation and analysis. You can do this now or later in Settings.",
+      "regionTitle": "Select Your Region",
+      "globalUser": "Global User",
+      "chinaUser": "China User",
+      "chinaProviderTitle": "Select Provider",
+      "302aiDesc": "Multi-model aggregation",
+      "kimiDesc": "Search/video understanding",
       "recommendTitle": "Recommended Models (Google AI Studio)",
       "recommendFlash": "Gemini 3.0 Flash Preview (Most Recommended: Balanced and Fast)",
       "recommendPro": "Gemini 3.0 Pro Preview (Powerful: Better for complex tasks)",
+      "302ai": {
+        "flash": "Recommended: Fast and smart",
+        "pro": "Powerful: Great for complex tasks"
+      },
+      "kimi": {
+        "k25": "Recommended: Supports search and video understanding"
+      },
       "apiKeyLabel": "API Key",
       "apiKeyPlaceholder": "Paste your API key here",
       "skipButton": "Skip for Now",
