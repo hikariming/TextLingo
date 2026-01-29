@@ -291,3 +291,29 @@ pub struct TranscriptionResult {
     pub full_text: String,
 }
 
+/// 书签 - 用于标记书籍阅读位置
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bookmark {
+    pub id: String,
+    /// 书籍文件路径
+    pub book_path: String,
+    /// 书籍类型: "txt" | "pdf" | "epub"
+    pub book_type: String,
+    /// 书签标题
+    pub title: String,
+    /// 可选笔记
+    #[serde(default)]
+    pub note: Option<String>,
+    /// PDF/TXT 页码（从1开始）
+    #[serde(default)]
+    pub page_number: Option<i32>,
+    /// EPUB CFI 位置字符串
+    #[serde(default)]
+    pub epub_cfi: Option<String>,
+    /// 创建时间
+    pub created_at: String,
+    /// 书签颜色标签（可选）
+    #[serde(default)]
+    pub color: Option<String>,
+}
+

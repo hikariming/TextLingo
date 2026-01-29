@@ -8,6 +8,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { ReactReader } from "react-reader";
 import type { Contents, Rendition, NavItem } from "epubjs";
 import { useTranslation } from "react-i18next";
+import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../ui/Button";
 import {
     ChevronLeft,
@@ -16,7 +17,21 @@ import {
     Minus,
     Plus,
     X,
+    Bookmark as BookmarkIcon,
+    BookmarkPlus,
 } from "lucide-react";
+import { BookmarkSidebar } from "./BookmarkSidebar";
+import { Bookmark } from "../../types";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
 
 interface EpubReaderProps {
     /** EPUB 文件的 URL 或本地路径 */
@@ -64,6 +79,12 @@ export function EpubReader({
     const isSeeking = useRef(false);
     // 是否已准备好位置信息
     const [locationsReady, setLocationsReady] = useState(false);
+
+    // 书签相关状态
+    const [isBookmarkSidebarOpen, setIsBookmarkSidebarOpen] = useState(false);
+    const [isAddBookmarkDialogOpen, setIsAddBookmarkDialogOpen] = useState(false);
+    const [bookmarkTitle, setBookmarkTitle] = useState("");
+    const [bookmarkNote, setBookmarkNote] = useState("");
 
     // 处理位置变化
     const handleLocationChange = useCallback((epubcifi: string) => {
@@ -204,6 +225,44 @@ export function EpubReader({
         setFontSize((prev) => Math.max(prev - 10, 50));
     };
 
+    // 打开添加书签对话框
+    const handleOpenAddBookmark = () => {
+        setBookmarkTitle(`书签 ${progress}%`);
+        setBookmarkNote("");
+        setIsAddBookmarkDialogOpen(true);
+    };
+
+    // 添加书签
+    const handleAddBookmark = async () => {
+        if (typeof location !== 'string') {
+            console.error("Invalid location for bookmark");
+            return;
+        }
+
+        try {
+            await invoke("add_bookmark_cmd", {
+                bookPath,
+                bookType: "epub",
+                title: bookmarkTitle,
+                note: bookmarkNote || null,
+                pageNumber: null,
+                epubCfi: location, // 使用 CFI 位置
+                color: null,
+            });
+            setIsAddBookmarkDialogOpen(false);
+        } catch (error) {
+            console.error("Failed to add bookmark:", error);
+        }
+    };
+
+    // 跳转到书签位置
+    const handleJumpToBookmark = (bookmark: Bookmark) => {
+        if (bookmark.epub_cfi && renditionRef.current) {
+            renditionRef.current.display(bookmark.epub_cfi);
+        }
+        setIsBookmarkSidebarOpen(false);
+    };
+
     return (
         <div className="h-full flex flex-col bg-background">
             {/* 工具栏 */}
@@ -241,6 +300,30 @@ export function EpubReader({
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
+                    {/* 书签按钮 */}
+                    {bookPath && (
+                        <div className="flex items-center gap-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleOpenAddBookmark}
+                                className="h-8 px-2"
+                                title="添加书签"
+                            >
+                                <BookmarkPlus size={16} />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setIsBookmarkSidebarOpen(true)}
+                                className="h-8 px-2"
+                                title="书签列表"
+                            >
+                                <BookmarkIcon size={16} />
+                            </Button>
+                        </div>
+                    )}
+
                     {/* 字体大小控制 */}
                     <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-border">
                         <Button
@@ -347,7 +430,55 @@ export function EpubReader({
                 )}
             </div>
 
-            {/* 选中文本提示 - 已移除 */}
+            {/* 书签侧边栏 */}
+            {bookPath && (
+                <BookmarkSidebar
+                    bookPath={bookPath}
+                    bookType="epub"
+                    onJumpToBookmark={handleJumpToBookmark}
+                    isOpen={isBookmarkSidebarOpen}
+                    onClose={() => setIsBookmarkSidebarOpen(false)}
+                />
+            )}
+
+            {/* 添加书签对话框 */}
+            <Dialog open={isAddBookmarkDialogOpen} onOpenChange={setIsAddBookmarkDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>添加书签</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="bookmark-title">标题</Label>
+                            <Input
+                                id="bookmark-title"
+                                value={bookmarkTitle}
+                                onChange={(e) => setBookmarkTitle(e.target.value)}
+                                placeholder="书签标题"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="bookmark-note">笔记（可选）</Label>
+                            <Textarea
+                                id="bookmark-note"
+                                value={bookmarkNote}
+                                onChange={(e) => setBookmarkNote(e.target.value)}
+                                placeholder="添加笔记..."
+                                rows={3}
+                            />
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                            将在当前位置（{progress}%）添加书签
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddBookmarkDialogOpen(false)}>
+                            取消
+                        </Button>
+                        <Button onClick={handleAddBookmark}>添加</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

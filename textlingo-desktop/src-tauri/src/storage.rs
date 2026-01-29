@@ -264,3 +264,101 @@ pub fn delete_favorite_grammar(app_handle: &AppHandle, id: &str) -> Result<(), S
     Ok(())
 }
 
+// ============================================================================
+// Bookmarks Storage - 书签存储
+// ============================================================================
+
+const BOOKMARKS_DIR: &str = "bookmarks";
+
+/// 确保书签目录存在
+pub fn ensure_bookmarks_dir(app_handle: &AppHandle) -> Result<(), String> {
+    let data_dir = get_app_data_dir(app_handle)?;
+    let bookmarks_dir = data_dir.join(BOOKMARKS_DIR);
+
+    fs::create_dir_all(&bookmarks_dir)
+        .map_err(|e| format!("Failed to create bookmarks directory: {}", e))?;
+
+    Ok(())
+}
+
+/// 保存书签
+pub fn save_bookmark(
+    app_handle: &AppHandle,
+    id: &str,
+    content: &str,
+) -> Result<(), String> {
+    ensure_bookmarks_dir(app_handle)?;
+    let data_dir = get_app_data_dir(app_handle)?;
+    let path = data_dir.join(BOOKMARKS_DIR).join(id);
+
+    fs::write(path, content)
+        .map_err(|e| format!("Failed to save bookmark: {}", e))?;
+
+    Ok(())
+}
+
+/// 加载书签
+pub fn load_bookmark(app_handle: &AppHandle, id: &str) -> Result<String, String> {
+    let data_dir = get_app_data_dir(app_handle)?;
+    let path = data_dir.join(BOOKMARKS_DIR).join(id);
+
+    if !path.exists() {
+        return Err("Bookmark not found".to_string());
+    }
+
+    fs::read_to_string(path)
+        .map_err(|e| format!("Failed to read bookmark: {}", e))
+}
+
+/// 列出所有书签ID
+pub fn list_bookmarks(app_handle: &AppHandle) -> Result<Vec<String>, String> {
+    let data_dir = get_app_data_dir(app_handle)?;
+    let dir = data_dir.join(BOOKMARKS_DIR);
+
+    if !dir.exists() {
+        return Ok(Vec::new());
+    }
+
+    let entries = fs::read_dir(dir)
+        .map_err(|e| format!("Failed to read bookmarks directory: {}", e))?;
+
+    let ids: Vec<String> = entries
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.path().is_file())
+        .filter_map(|entry| entry.file_name().into_string().ok())
+        .collect();
+
+    Ok(ids)
+}
+
+/// 删除书签
+pub fn delete_bookmark(app_handle: &AppHandle, id: &str) -> Result<(), String> {
+    let data_dir = get_app_data_dir(app_handle)?;
+    let path = data_dir.join(BOOKMARKS_DIR).join(id);
+
+    if path.exists() {
+        fs::remove_file(path)
+            .map_err(|e| format!("Failed to delete bookmark: {}", e))?;
+    }
+
+    Ok(())
+}
+
+/// 列出指定书籍的所有书签
+pub fn list_bookmarks_for_book(app_handle: &AppHandle, book_path: &str) -> Result<Vec<String>, String> {
+    let all_ids = list_bookmarks(app_handle)?;
+    let mut matching_ids = Vec::new();
+
+    for id in all_ids {
+        if let Ok(json) = load_bookmark(app_handle, &id) {
+            // 简单检查 JSON 中是否包含 book_path
+            // 更准确的方法是反序列化，但这里为了性能使用字符串匹配
+            if json.contains(book_path) {
+                matching_ids.push(id);
+            }
+        }
+    }
+
+    Ok(matching_ids)
+}
+

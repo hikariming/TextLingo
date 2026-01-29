@@ -76,3 +76,24 @@ export interface FavoriteGrammar {
     source_article_title?: string;
     created_at: string;
 }
+
+// 书签
+export interface Bookmark {
+    id: string;
+    /** 书籍文件路径 */
+    book_path: string;
+    /** 书籍类型: "txt" | "pdf" | "epub" */
+    book_type: "txt" | "pdf" | "epub";
+    /** 书签标题 */
+    title: string;
+    /** 可选笔记 */
+    note?: string;
+    /** PDF/TXT 页码（从1开始） */
+    page_number?: number;
+    /** EPUB CFI 位置字符串 */
+    epub_cfi?: string;
+    /** 创建时间 */
+    created_at: string;
+    /** 书签颜色标签（可选） */
+    color?: string;
+}

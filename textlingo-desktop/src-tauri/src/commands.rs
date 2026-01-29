@@ -5,11 +5,13 @@ use crate::storage::{
     // 收藏夹存储函数
     save_favorite_vocabulary, load_favorite_vocabulary, list_favorite_vocabularies, delete_favorite_vocabulary,
     save_favorite_grammar, load_favorite_grammar, list_favorite_grammars, delete_favorite_grammar,
+    // 书签存储函数
+    save_bookmark, load_bookmark, list_bookmarks, delete_bookmark, list_bookmarks_for_book,
 };
 use crate::types::{
     AnalysisRequest, AnalysisResponse, AnalysisType, Article, ChatRequest, ChatResponse,
     TranslationRequest, TranslationResponse, ModelConfig, ArticleSegment,
-    FavoriteVocabulary, FavoriteGrammar,
+    FavoriteVocabulary, FavoriteGrammar, Bookmark,
 };
 use tauri::{AppHandle, State, Manager, Emitter};
 use uuid::Uuid;
@@ -1476,5 +1478,120 @@ pub async fn check_pdf_translation_files(pdf_path: String) -> Result<Translation
 pub async fn export_file_cmd(src_path: String, dest_path: String) -> Result<(), String> {
     std::fs::copy(&src_path, &dest_path)
         .map_err(|e| format!("Failed to export file: {}", e))?;
+    Ok(())
+}
+
+// ============================================================================
+// Bookmarks Commands - 书签命令
+// ============================================================================
+
+/// 添加书签
+#[tauri::command]
+pub async fn add_bookmark_cmd(
+    app_handle: AppHandle,
+    book_path: String,
+    book_type: String,
+    title: String,
+    note: Option<String>,
+    page_number: Option<i32>,
+    epub_cfi: Option<String>,
+    color: Option<String>,
+) -> Result<Bookmark, String> {
+    let bookmark = Bookmark {
+        id: Uuid::new_v4().to_string(),
+        book_path,
+        book_type,
+        title,
+        note,
+        page_number,
+        epub_cfi,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        color,
+    };
+
+    let json = serde_json::to_string(&bookmark)
+        .map_err(|e| format!("Failed to serialize bookmark: {}", e))?;
+    save_bookmark(&app_handle, &bookmark.id, &json)?;
+
+    Ok(bookmark)
+}
+
+/// 列出所有书签
+#[tauri::command]
+pub async fn list_bookmarks_cmd(app_handle: AppHandle) -> Result<Vec<Bookmark>, String> {
+    let ids = list_bookmarks(&app_handle)?;
+    let mut bookmarks = Vec::new();
+
+    for id in ids {
+        if let Ok(json) = load_bookmark(&app_handle, &id) {
+            if let Ok(bookmark) = serde_json::from_str::<Bookmark>(&json) {
+                bookmarks.push(bookmark);
+            }
+        }
+    }
+
+    // 按创建时间降序排列
+    bookmarks.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+
+    Ok(bookmarks)
+}
+
+/// 列出指定书籍的书签
+#[tauri::command]
+pub async fn list_bookmarks_for_book_cmd(
+    app_handle: AppHandle,
+    book_path: String,
+) -> Result<Vec<Bookmark>, String> {
+    let ids = list_bookmarks_for_book(&app_handle, &book_path)?;
+    let mut bookmarks = Vec::new();
+
+    for id in ids {
+        if let Ok(json) = load_bookmark(&app_handle, &id) {
+            if let Ok(bookmark) = serde_json::from_str::<Bookmark>(&json) {
+                bookmarks.push(bookmark);
+            }
+        }
+    }
+
+    // 按创建时间降序排列
+    bookmarks.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+
+    Ok(bookmarks)
+}
+
+/// 更新书签
+#[tauri::command]
+pub async fn update_bookmark_cmd(
+    app_handle: AppHandle,
+    id: String,
+    title: Option<String>,
+    note: Option<String>,
+    color: Option<String>,
+) -> Result<Bookmark, String> {
+    let json = load_bookmark(&app_handle, &id)?;
+    let mut bookmark: Bookmark = serde_json::from_str(&json)
+        .map_err(|e| format!("Failed to parse bookmark: {}", e))?;
+
+    if let Some(t) = title {
+        bookmark.title = t;
+    }
+    if let Some(n) = note {
+        bookmark.note = Some(n);
+    }
+    if let Some(c) = color {
+        bookmark.color = Some(c);
+    }
+
+    let updated_json = serde_json::to_string(&bookmark)
+        .map_err(|e| format!("Failed to serialize bookmark: {}", e))?;
+    save_bookmark(&app_handle, &id, &updated_json)?;
+
+    Ok(bookmark)
+}
+
+/// 删除书签
+#[tauri::command]
+pub async fn delete_bookmark_cmd(app_handle: AppHandle, id: String) -> Result<(), String> {
+    delete_bookmark(&app_handle, &id)?;
     Ok(())
 }

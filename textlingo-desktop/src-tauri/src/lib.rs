@@ -79,6 +79,12 @@ pub fn run() {
             plugin_manager::check_plugin_installed_cmd,
             plugin_manager::get_plugin_release_info_cmd,
             plugin_manager::install_plugin_cmd,
+            // 书签管理
+            commands::add_bookmark_cmd,
+            commands::list_bookmarks_cmd,
+            commands::list_bookmarks_for_book_cmd,
+            commands::update_bookmark_cmd,
+            commands::delete_bookmark_cmd,
         ])
         .setup(|app| {
             // Initialize app on startup

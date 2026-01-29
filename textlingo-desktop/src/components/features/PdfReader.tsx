@@ -11,6 +11,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 // 使用统一的 PDF.js worker 配置
 import "../../lib/pdfConfig";
 import { useTranslation } from "react-i18next";
+import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../ui/Button";
 import {
     ChevronLeft,
@@ -22,7 +23,21 @@ import {
     RotateCcw,
     Minus,
     Plus,
+    Bookmark as BookmarkIcon,
+    BookmarkPlus,
 } from "lucide-react";
+import { BookmarkSidebar } from "./BookmarkSidebar";
+import { Bookmark } from "../../types";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
 
 
 
@@ -59,6 +74,12 @@ export function PdfReader({
     const [isFullscreen, setIsFullscreen] = useState(false);
     // 缩放比例 (百分比)
     const [scale, setScale] = useState(100);
+
+    // 书签相关状态
+    const [isBookmarkSidebarOpen, setIsBookmarkSidebarOpen] = useState(false);
+    const [isAddBookmarkDialogOpen, setIsAddBookmarkDialogOpen] = useState(false);
+    const [bookmarkTitle, setBookmarkTitle] = useState("");
+    const [bookmarkNote, setBookmarkNote] = useState("");
 
     // PDF 加载成功回调
     const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
@@ -189,6 +210,39 @@ export function PdfReader({
         return 600 * (scale / 100);
     }, [scale]);
 
+    // 打开添加书签对话框
+    const handleOpenAddBookmark = () => {
+        setBookmarkTitle(`第 ${pageNumber} 页`);
+        setBookmarkNote("");
+        setIsAddBookmarkDialogOpen(true);
+    };
+
+    // 添加书签
+    const handleAddBookmark = async () => {
+        try {
+            await invoke("add_bookmark_cmd", {
+                bookPath,
+                bookType: "pdf",
+                title: bookmarkTitle,
+                note: bookmarkNote || null,
+                pageNumber: pageNumber, // PDF页码从1开始
+                epubCfi: null,
+                color: null,
+            });
+            setIsAddBookmarkDialogOpen(false);
+        } catch (error) {
+            console.error("Failed to add bookmark:", error);
+        }
+    };
+
+    // 跳转到书签位置
+    const handleJumpToBookmark = (bookmark: Bookmark) => {
+        if (bookmark.page_number) {
+            setPageNumber(bookmark.page_number);
+        }
+        setIsBookmarkSidebarOpen(false);
+    };
+
     return (
         <div
             ref={containerRef}
@@ -230,6 +284,30 @@ export function PdfReader({
                 )}
 
                 <div className="flex items-center gap-2 shrink-0">
+                    {/* 书签按钮 */}
+                    {bookPath && (
+                        <div className="flex items-center gap-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleOpenAddBookmark}
+                                className="h-8 px-2"
+                                title="添加书签"
+                            >
+                                <BookmarkPlus size={16} />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setIsBookmarkSidebarOpen(true)}
+                                className="h-8 px-2"
+                                title="书签列表"
+                            >
+                                <BookmarkIcon size={16} />
+                            </Button>
+                        </div>
+                    )}
+
                     {/* 缩放控制 */}
                     <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-border">
                         <Button
@@ -351,6 +429,56 @@ export function PdfReader({
                     <ChevronRight size={20} />
                 </button>
             </div>
+
+            {/* 书签侧边栏 */}
+            {bookPath && (
+                <BookmarkSidebar
+                    bookPath={bookPath}
+                    bookType="pdf"
+                    onJumpToBookmark={handleJumpToBookmark}
+                    isOpen={isBookmarkSidebarOpen}
+                    onClose={() => setIsBookmarkSidebarOpen(false)}
+                />
+            )}
+
+            {/* 添加书签对话框 */}
+            <Dialog open={isAddBookmarkDialogOpen} onOpenChange={setIsAddBookmarkDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>添加书签</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="bookmark-title">标题</Label>
+                            <Input
+                                id="bookmark-title"
+                                value={bookmarkTitle}
+                                onChange={(e) => setBookmarkTitle(e.target.value)}
+                                placeholder="书签标题"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="bookmark-note">笔记（可选）</Label>
+                            <Textarea
+                                id="bookmark-note"
+                                value={bookmarkNote}
+                                onChange={(e) => setBookmarkNote(e.target.value)}
+                                placeholder="添加笔记..."
+                                rows={3}
+                            />
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                            将在第 {pageNumber} 页添加书签
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddBookmarkDialogOpen(false)}>
+                            取消
+                        </Button>
+                        <Button onClick={handleAddBookmark}>添加</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

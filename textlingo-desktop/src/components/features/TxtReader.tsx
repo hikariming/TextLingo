@@ -5,19 +5,36 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../ui/Button";
 import {
     ChevronLeft,
     ChevronRight,
     Minus,
     Plus,
+    Bookmark as BookmarkIcon,
+    BookmarkPlus,
 } from "lucide-react";
+import { BookmarkSidebar } from "./BookmarkSidebar";
+import { Bookmark } from "../../types";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
 
 interface TxtReaderProps {
     /** TXT 文件内容 */
     content: string;
     /** 书籍标题 */
     title?: string;
+    /** 书籍文件路径 */
+    bookPath?: string;
     /** 选中文本时的回调 */
     onTextSelect?: (text: string) => void;
     /** 初始字体大小 */
@@ -32,6 +49,7 @@ const CHARS_PER_PAGE = 2000;
 export function TxtReader({
     content,
     title,
+    bookPath,
     onTextSelect,
     fontSize: initialFontSize = 18,
     onBack,
@@ -46,6 +64,12 @@ export function TxtReader({
 
     // 选中的文本
     const [_selectedText, setSelectedText] = useState("");
+
+    // 书签相关状态
+    const [isBookmarkSidebarOpen, setIsBookmarkSidebarOpen] = useState(false);
+    const [isAddBookmarkDialogOpen, setIsAddBookmarkDialogOpen] = useState(false);
+    const [bookmarkTitle, setBookmarkTitle] = useState("");
+    const [bookmarkNote, setBookmarkNote] = useState("");
 
     // 将内容分页
     const pages = useMemo(() => {
@@ -122,6 +146,44 @@ export function TxtReader({
         setFontSize((prev) => Math.max(prev - 2, 12));
     };
 
+    // 打开添加书签对话框
+    const handleOpenAddBookmark = () => {
+        setBookmarkTitle(`第 ${currentPage + 1} 页`);
+        setBookmarkNote("");
+        setIsAddBookmarkDialogOpen(true);
+    };
+
+    // 添加书签
+    const handleAddBookmark = async () => {
+        if (!bookPath) {
+            console.error("No book path provided");
+            return;
+        }
+
+        try {
+            await invoke("add_bookmark_cmd", {
+                bookPath,
+                bookType: "txt",
+                title: bookmarkTitle,
+                note: bookmarkNote || null,
+                pageNumber: currentPage + 1, // 页码从1开始
+                epubCfi: null,
+                color: null,
+            });
+            setIsAddBookmarkDialogOpen(false);
+        } catch (error) {
+            console.error("Failed to add bookmark:", error);
+        }
+    };
+
+    // 跳转到书签位置
+    const handleJumpToBookmark = (bookmark: Bookmark) => {
+        if (bookmark.page_number) {
+            setCurrentPage(bookmark.page_number - 1); // 页码从1开始，需要转换为0-indexed
+        }
+        setIsBookmarkSidebarOpen(false);
+    };
+
     return (
         <div className="h-full flex flex-col bg-background">
             {/* 工具栏 */}
@@ -158,6 +220,30 @@ export function TxtReader({
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
+                    {/* 书签按钮 */}
+                    {bookPath && (
+                        <div className="flex items-center gap-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleOpenAddBookmark}
+                                className="h-8 px-2"
+                                title="添加书签"
+                            >
+                                <BookmarkPlus size={16} />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setIsBookmarkSidebarOpen(true)}
+                                className="h-8 px-2"
+                                title="书签列表"
+                            >
+                                <BookmarkIcon size={16} />
+                            </Button>
+                        </div>
+                    )}
+
                     {/* 字体大小控制 */}
                     <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-border">
                         <Button
@@ -236,6 +322,56 @@ export function TxtReader({
                     style={{ width: `${((currentPage + 1) / totalPages) * 100}%` }}
                 />
             </div>
+
+            {/* 书签侧边栏 */}
+            {bookPath && (
+                <BookmarkSidebar
+                    bookPath={bookPath}
+                    bookType="txt"
+                    onJumpToBookmark={handleJumpToBookmark}
+                    isOpen={isBookmarkSidebarOpen}
+                    onClose={() => setIsBookmarkSidebarOpen(false)}
+                />
+            )}
+
+            {/* 添加书签对话框 */}
+            <Dialog open={isAddBookmarkDialogOpen} onOpenChange={setIsAddBookmarkDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>添加书签</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="bookmark-title">标题</Label>
+                            <Input
+                                id="bookmark-title"
+                                value={bookmarkTitle}
+                                onChange={(e) => setBookmarkTitle(e.target.value)}
+                                placeholder="书签标题"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="bookmark-note">笔记（可选）</Label>
+                            <Textarea
+                                id="bookmark-note"
+                                value={bookmarkNote}
+                                onChange={(e) => setBookmarkNote(e.target.value)}
+                                placeholder="添加笔记..."
+                                rows={3}
+                            />
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                            将在第 {currentPage + 1} 页添加书签
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddBookmarkDialogOpen(false)}>
+                            取消
+                        </Button>
+                        <Button onClick={handleAddBookmark}>添加</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
