@@ -22,6 +22,14 @@ pub struct AIService {
     base_url: Option<String>,
 }
 
+pub struct FileUploadResponse {
+    pub id: String,
+    pub bytes: u64,
+    pub created_at: i64,
+    pub filename: String,
+    pub purpose: String,
+}
+
 // Default base URLs for local providers
 const OLLAMA_DEFAULT_URL: &str = "http://localhost:11434/v1/chat/completions";
 const LMSTUDIO_DEFAULT_URL: &str = "http://localhost:1234/v1/chat/completions";
@@ -63,6 +71,7 @@ impl AIService {
                 "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent",
                 self.model.strip_prefix("models/").unwrap_or(&self.model)
             ),
+            "moonshot" => "https://api.moonshot.cn/v1/chat/completions".to_string(),
             "ollama" => OLLAMA_DEFAULT_URL.to_string(),
             "lmstudio" => LMSTUDIO_DEFAULT_URL.to_string(),
             "openai-compatible" => {
@@ -82,12 +91,27 @@ impl AIService {
         &self,
         messages: Vec<Value>,
         temperature: Option<f32>,
+        enable_thinking: bool,
     ) -> Result<String, String> {
-        let request_body = json!({
+        // Moonshot specific fix: "only 1 is allowed for this model"
+        let temp = if self.provider == "moonshot" {
+            1.0
+        } else {
+            temperature.unwrap_or(0.7)
+        };
+
+        let mut request_body = json!({
             "model": self.model,
             "messages": messages,
-            "temperature": temperature.unwrap_or(0.7)
+            "temperature": temp
         });
+        
+        // Moonshot specific fix: Enable thinking if requested and model supports it (like k2.5)
+        if enable_thinking && self.provider == "moonshot" && self.model.contains("k2.5") {
+            if let Some(obj) = request_body.as_object_mut() {
+                obj.insert("thinking".to_string(), json!({"type": "enabled"}));
+            }
+        }
 
         let mut request = self
             .client
@@ -187,7 +211,7 @@ impl AIService {
                 json!({"role": "system", "content": system_prompt}),
                 json!({"role": "user", "content": request.text.clone()}),
             ];
-            self.make_request(messages, Some(0.3)).await?
+            self.make_request(messages, Some(0.3), false).await?
         };
 
         Ok(TranslationResponse {
@@ -233,7 +257,7 @@ impl AIService {
                 json!({"role": "system", "content": "你是专业翻译助手，将文本翻译并返回JSON格式结果。"}),
                 json!({"role": "user", "content": prompt}),
             ];
-            self.make_request(messages, Some(0.3)).await?
+            self.make_request(messages, Some(0.3), false).await?
         };
 
         // 解析返回的 JSON 数组
@@ -342,7 +366,7 @@ impl AIService {
                 json!({"role": "system", "content": system_prompt}),
                 json!({"role": "user", "content": request.text}),
             ];
-            self.make_request(messages, Some(0.5)).await?
+            self.make_request(messages, Some(0.5), false).await?
         };
 
         Ok(AnalysisResponse {
@@ -356,6 +380,15 @@ impl AIService {
         if self.provider == "google" || self.provider == "google-ai-studio" {
             return self.chat_google(request).await;
         }
+        if self.provider == "moonshot" {
+             // Moonshot requires specific message formatting for multimedia
+             let messages = self.format_messages_for_provider(&request.messages);
+             return Ok(ChatResponse {
+                 content: self.make_request(messages, request.temperature, true).await?,
+                 model: self.model.clone(),
+                 tokens_used: None,
+             });
+        }
 
         let messages: Vec<Value> = request
             .messages
@@ -368,7 +401,7 @@ impl AIService {
             })
             .collect();
 
-        let content = self.make_request(messages, request.temperature).await?;
+        let content = self.make_request(messages, request.temperature, true).await?;
 
         Ok(ChatResponse {
             content,
@@ -408,12 +441,26 @@ impl AIService {
             })
             .collect();
 
-        let request_body = json!({
+        // Moonshot specific fix
+        let temp = if self.provider == "moonshot" {
+            1.0
+        } else {
+            request.temperature.unwrap_or(0.7)
+        };
+
+        let mut request_body = json!({
             "model": self.model,
             "messages": messages,
-            "temperature": request.temperature.unwrap_or(0.7),
+            "temperature": temp,
             "stream": true
         });
+        
+        // Moonshot specific fix: Enable thinking if likely a chat (stream is usually chat)
+        if self.provider == "moonshot" && self.model.contains("k2.5") {
+             if let Some(obj) = request_body.as_object_mut() {
+                obj.insert("thinking".to_string(), json!({"type": "enabled"}));
+            }
+        }
 
         let mut request_builder = self
             .client
@@ -511,6 +558,41 @@ impl AIService {
         })
     }
 
+    // Helper to format messages for different providers
+    fn format_messages_for_provider(&self, messages: &[crate::types::ChatMessage]) -> Vec<Value> {
+         messages.iter().map(|msg| {
+            let content_value = match &msg.content {
+                crate::types::ChatContent::Text(text) => json!(text),
+                crate::types::ChatContent::Parts(parts) => {
+                    let json_parts: Vec<Value> = parts.iter().map(|part| {
+                         if let Some(text) = &part.text {
+                             json!({ "type": "text", "text": text })
+                         } else if let Some(video) = &part.video_url {
+                             // Kimi format: { "type": "video_url", "video_url": { "url": ... } }
+                             json!({ 
+                                 "type": "video_url", 
+                                 "video_url": { "url": video.url } 
+                             })
+                         } else if let Some(image) = &part.image_url {
+                             json!({
+                                 "type": "image_url",
+                                 "image_url": { "url": image.url }
+                             })
+                         } else {
+                             json!({ "type": "text", "text": "" })
+                         }
+                    }).collect();
+                    json!(json_parts)
+                }
+            };
+            
+            json!({
+                "role": msg.role,
+                "content": content_value
+            })
+        }).collect()
+    }
+
     pub async fn segment_translate_explain(
         &self,
         text: String,
@@ -580,7 +662,7 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
             ];
             self.make_google_request(contents, Some(0.3)).await?
         } else {
-            self.make_request(messages, Some(0.3)).await?
+            self.make_request(messages, Some(0.3), false).await?
         };
         println!("Received response from AI provider. Content length: {}", content.len());
 
@@ -610,6 +692,70 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
                 }
             }
         }
+    }
+
+    /// Upload a file to the API provider (currently supports Moonshot)
+    pub async fn upload_file(&self, file_path: &std::path::Path) -> Result<FileUploadResponse, String> {
+        if self.provider != "moonshot" {
+             return Err("File upload currently only supported for Moonshot provider".to_string());
+        }
+
+        let file_name = file_path
+            .file_name()
+            .ok_or("Invalid file name")?
+            .to_string_lossy()
+            .to_string();
+
+        let file_content = std::fs::read(file_path)
+            .map_err(|e| format!("Failed to read file: {}", e))?;
+
+        let mime_type = match std::path::Path::new(&file_name).extension().and_then(|s| s.to_str()).map(|s| s.to_lowercase()) {
+            Some(ext) if ext == "mp4" => "video/mp4",
+            Some(ext) if ext == "mp3" => "audio/mpeg",
+            Some(ext) if ext == "wav" => "audio/wav",
+            Some(ext) if ext == "m4a" => "audio/mp4",
+            Some(ext) if ext == "aac" => "audio/aac",
+            Some(ext) if ext == "flac" => "audio/flac",
+            Some(ext) if ext == "pdf" => "application/pdf",
+            Some(ext) if ext == "doc" || ext == "docx" => "application/msword",
+            Some(ext) if ext == "txt" => "text/plain",
+            _ => "application/octet-stream",
+        };
+
+        let part = reqwest::multipart::Part::bytes(file_content)
+            .file_name(file_name.clone())
+            .mime_str(mime_type)
+            .map_err(|e| format!("Invalid MIME type: {}", e))?;
+
+        let form = reqwest::multipart::Form::new()
+            .part("file", part)
+            .text("purpose", "file-extract"); // Moonshot requires 'file-extract' for Kimi
+
+        let url = "https://api.moonshot.cn/v1/files";
+        
+        let response = self.client
+            .post(url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .multipart(form)
+            .send()
+            .await
+            .map_err(|e| format!("Failed to upload file: {}", e))?;
+
+        if !response.status().is_success() {
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(format!("Upload failed: {}", error_text));
+        }
+
+        let json: Value = response.json().await
+            .map_err(|e| format!("Failed to parse upload response: {}", e))?;
+            
+        Ok(FileUploadResponse {
+            id: json["id"].as_str().unwrap_or("").to_string(),
+            bytes: json["bytes"].as_u64().unwrap_or(0),
+            created_at: json["created_at"].as_i64().unwrap_or(0),
+            filename: json["filename"].as_str().unwrap_or("").to_string(),
+            purpose: json["purpose"].as_str().unwrap_or("").to_string(),
+        })
     }
 
     /// Extracts the likely JSON part from a string.
