@@ -601,9 +601,15 @@ impl AIService {
         println!("Starting segment_translate_explain for text: '{}'...", text.chars().take(50).collect::<String>());
         let native_language_name = match target_language.as_str() {
             "zh" | "zh-CN" => "中文",
+            "zh-TW" => "繁體中文",
             "en" => "English",
             "ja" => "Japanese",
             "ko" => "Korean",
+            "es" => "Español",
+            "fr" => "Français",
+            "de" => "Deutsch",
+            "ru" => "Русский",
+            "ar" => "العربية",
             _ => "中文",
         };
 
