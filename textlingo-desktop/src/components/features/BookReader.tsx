@@ -22,6 +22,7 @@ import { TxtReader } from "./TxtReader";
 import { PdfReader } from "./PdfReader";
 import { ArticleChatAssistant } from "./ArticleChatAssistant";
 import { PluginInstallDialog } from "./PluginInstallDialog";
+import { useConfig } from "../../lib/hooks";
 
 interface BookReaderProps {
     article: Article;
@@ -40,6 +41,10 @@ export function BookReader({ article, onBack }: BookReaderProps) {
 
     // 当前活动的助手标签
     const [activeTab, setActiveTab] = useState<"chat">("chat");
+
+    // Config hook
+    const { config } = useConfig();
+    const targetLanguage = config?.target_language || "zh-CN";
 
     // PDF版本控制
     const [pdfVersion, setPdfVersion] = useState<"original" | "mono" | "dual" | "split">("original");
@@ -457,7 +462,7 @@ export function BookReader({ article, onBack }: BookReaderProps) {
                             <ArticleChatAssistant
                                 articleId={article.id}
                                 articleTitle={article.title}
-                                targetLanguage="zh-CN"
+                                targetLanguage={targetLanguage}
                                 selectedText={selectedText}
                             />
                         </TabsContent>

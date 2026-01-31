@@ -34,6 +34,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "../ui/DropdownMenu";
+import { useConfig } from "../../lib/hooks";
 
 interface ArticleReaderProps {
   article: Article;
@@ -88,6 +89,10 @@ export function ArticleReader({
 
   // Translation Progress State
   const [translationProgress, setTranslationProgress] = useState<{ current: number; total: number } | null>(null);
+
+  // Config hook
+  const { config } = useConfig();
+  const targetLanguage = config?.target_language || "zh-CN";
 
   // 刷新文章数据 - 仅更新本地状态，不触发父组件更新
   const refreshArticle = async () => {
@@ -204,7 +209,7 @@ export function ArticleReader({
   }, [selectedSegmentId, article.media_path]);
 
 
-
+  
   const handleSaveContent = async () => {
     try {
       await invoke("update_article", {
@@ -225,7 +230,7 @@ export function ArticleReader({
     try {
       const result = await invoke<Article>("translate_article", {
         articleId: article.id,
-        targetLanguage: "zh-CN", // Default, could be from settings
+        targetLanguage: targetLanguage,
       });
       console.log("[ArticleReader] Translation completed, result segments:", result.segments?.length);
 
@@ -1053,7 +1058,7 @@ export function ArticleReader({
                 <ArticleChatAssistant
                   articleId={article.id}
                   articleTitle={article.title} // Use correct prop name
-                  targetLanguage="zh-CN" // Use required prop
+                  targetLanguage={targetLanguage}
                   selectedText={selectedText || (selectedSegment ? selectedSegment.text : "")}
                 />
               </TabsContent>
