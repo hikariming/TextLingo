@@ -142,12 +142,14 @@ async fn serve_file(
         "application/octet-stream"
     };
     
-    // 处理 Range 请求
-    if let Some(range) = range_header {
+    // 解析 Range 请求，确定读取范围
+    // 即使没有 Range 头，也以 Range 方式响应（206），
+    // 这样 WebKit 引擎会认为服务器支持随机访问（seek）
+    let (start, end) = if let Some(range) = range_header {
         // 解析 Range: bytes=start-end
         let range = range.trim_start_matches("bytes=");
         let parts: Vec<&str> = range.split('-').collect();
-        
+
         let start: u64 = parts[0].parse().unwrap_or(0);
         let end: u64 = if parts.len() > 1 && !parts[1].is_empty() {
             parts[1].parse().unwrap_or(file_size - 1)
@@ -155,62 +157,48 @@ async fn serve_file(
             // 如果没有指定 end，返回一个合理的块大小（10MB，EPUB可能需要较大块）
             std::cmp::min(start + 10 * 1024 * 1024, file_size - 1)
         };
-        
-        let end = std::cmp::min(end, file_size - 1);
-        
-        if start > end || start >= file_size {
-            return Ok(Response::builder()
-                .status(StatusCode::RANGE_NOT_SATISFIABLE)
-                .header("Content-Range", format!("bytes */{}", file_size))
-                .body(Body::empty())
-                .unwrap());
-        }
-        
-        let chunk_size = end - start + 1;
-        
-        // Seek 到起始位置
-        if let Err(_) = file.seek(SeekFrom::Start(start)).await {
-            return Ok(Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(Body::empty())
-                .unwrap());
-        }
-        
-        // 读取指定范围的数据
-        let mut buffer = vec![0u8; chunk_size as usize];
-        if let Err(_) = file.read_exact(&mut buffer).await {
-            return Ok(Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(Body::empty())
-                .unwrap());
-        }
-        
-        Ok(Response::builder()
-            .status(StatusCode::PARTIAL_CONTENT)
-            .header("Content-Type", content_type)
-            .header("Content-Length", chunk_size.to_string())
-            .header("Content-Range", format!("bytes {}-{}/{}", start, end, file_size))
-            .header("Accept-Ranges", "bytes")
-            .header("Access-Control-Allow-Origin", "*")
-            .body(Body::from(buffer))
-            .unwrap())
+
+        (start, std::cmp::min(end, file_size - 1))
     } else {
-        // 没有 Range 请求，返回整个文件
-        let mut buffer = Vec::new();
-        if let Err(_) = file.read_to_end(&mut buffer).await {
-            return Ok(Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(Body::empty())
-                .unwrap());
-        }
-        
-        Ok(Response::builder()
-            .status(StatusCode::OK)
-            .header("Content-Type", content_type)
-            .header("Content-Length", file_size.to_string())
-            .header("Accept-Ranges", "bytes")
-            .header("Access-Control-Allow-Origin", "*")
-            .body(Body::from(buffer))
-            .unwrap())
+        // 没有 Range 头时，也以 Range 方式返回整个文件
+        // 这对于 WebKit 中的音频/视频 seek 支持至关重要
+        (0, file_size - 1)
+    };
+
+    if start > end || start >= file_size {
+        return Ok(Response::builder()
+            .status(StatusCode::RANGE_NOT_SATISFIABLE)
+            .header("Content-Range", format!("bytes */{}", file_size))
+            .body(Body::empty())
+            .unwrap());
     }
+
+    let chunk_size = end - start + 1;
+
+    // Seek 到起始位置
+    if let Err(_) = file.seek(SeekFrom::Start(start)).await {
+        return Ok(Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(Body::empty())
+            .unwrap());
+    }
+
+    // 读取指定范围的数据
+    let mut buffer = vec![0u8; chunk_size as usize];
+    if let Err(_) = file.read_exact(&mut buffer).await {
+        return Ok(Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(Body::empty())
+            .unwrap());
+    }
+
+    Ok(Response::builder()
+        .status(StatusCode::PARTIAL_CONTENT)
+        .header("Content-Type", content_type)
+        .header("Content-Length", chunk_size.to_string())
+        .header("Content-Range", format!("bytes {}-{}/{}", start, end, file_size))
+        .header("Accept-Ranges", "bytes")
+        .header("Access-Control-Allow-Origin", "*")
+        .body(Body::from(buffer))
+        .unwrap())
 }

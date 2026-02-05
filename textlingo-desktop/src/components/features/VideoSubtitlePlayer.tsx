@@ -391,6 +391,7 @@ export function VideoSubtitlePlayer({
                             <audio
                                 ref={videoRef}
                                 controls
+                                preload="auto"
                                 className="w-full"
                                 src={videoUrl}
                                 onTimeUpdate={handleTimeUpdate}
@@ -406,6 +407,7 @@ export function VideoSubtitlePlayer({
                             ref={videoRef}
                             controls
                             playsInline
+                            preload="auto"
                             className="w-full aspect-video bg-black"
                             src={videoUrl}
                             onTimeUpdate={handleTimeUpdate}
@@ -467,6 +469,7 @@ export function VideoSubtitlePlayer({
                             ref={videoRef}
                             controls
                             playsInline
+                            preload="auto"
                             className="w-full aspect-video bg-black"
                             src={videoUrl}
                             onTimeUpdate={handleTimeUpdate}
@@ -516,6 +519,7 @@ export function VideoSubtitlePlayer({
                                 <audio
                                     ref={videoRef}
                                     controls
+                                    preload="auto"
                                     className="w-full"
                                     src={videoUrl}
                                     onTimeUpdate={handleTimeUpdate}
@@ -532,6 +536,7 @@ export function VideoSubtitlePlayer({
                                     ref={videoRef}
                                     controls
                                     playsInline
+                                    preload="auto"
                                     className="w-full aspect-video bg-black"
                                     src={videoUrl}
                                     onTimeUpdate={handleTimeUpdate}
