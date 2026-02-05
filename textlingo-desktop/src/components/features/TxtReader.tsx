@@ -63,13 +63,14 @@ export function TxtReader({
     const [fontSize, setFontSize] = useState(initialFontSize);
 
     // 选中的文本
-    const [_selectedText, setSelectedText] = useState("");
+    const [selectedText, setSelectedText] = useState("");
 
     // 书签相关状态
     const [isBookmarkSidebarOpen, setIsBookmarkSidebarOpen] = useState(false);
     const [isAddBookmarkDialogOpen, setIsAddBookmarkDialogOpen] = useState(false);
     const [bookmarkTitle, setBookmarkTitle] = useState("");
     const [bookmarkNote, setBookmarkNote] = useState("");
+    const [bookmarkSelectedText, setBookmarkSelectedText] = useState("");
 
     // 将内容分页
     const pages = useMemo(() => {
@@ -148,8 +149,13 @@ export function TxtReader({
 
     // 打开添加书签对话框
     const handleOpenAddBookmark = () => {
-        setBookmarkTitle(`第 ${currentPage + 1} 页`);
+        // 获取当前选中的文本
+        const selection = window.getSelection();
+        const currentSelected = selection ? selection.toString().trim() : "";
+
+        setBookmarkTitle(currentSelected || `第 ${currentPage + 1} 页`);
         setBookmarkNote("");
+        setBookmarkSelectedText(currentSelected);
         setIsAddBookmarkDialogOpen(true);
     };
 
@@ -166,11 +172,13 @@ export function TxtReader({
                 bookType: "txt",
                 title: bookmarkTitle,
                 note: bookmarkNote || null,
+                selectedText: bookmarkSelectedText || null,
                 pageNumber: currentPage + 1, // 页码从1开始
                 epubCfi: null,
                 color: null,
             });
             setIsAddBookmarkDialogOpen(false);
+            setBookmarkSelectedText("");
         } catch (error) {
             console.error("Failed to add bookmark:", error);
         }
@@ -341,6 +349,14 @@ export function TxtReader({
                         <DialogTitle>添加书签</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
+                        {bookmarkSelectedText && (
+                            <div className="space-y-2">
+                                <Label>选中的文字</Label>
+                                <div className="p-3 bg-muted/50 rounded-lg text-sm max-h-24 overflow-y-auto border border-border">
+                                    "{bookmarkSelectedText}"
+                                </div>
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="bookmark-title">标题</Label>
                             <Input

@@ -85,7 +85,7 @@ export function EpubReader({
     const [isAddBookmarkDialogOpen, setIsAddBookmarkDialogOpen] = useState(false);
     const [bookmarkTitle, setBookmarkTitle] = useState("");
     const [bookmarkNote, setBookmarkNote] = useState("");
-
+    const [bookmarkSelectedText, setBookmarkSelectedText] = useState("");
     // 处理位置变化
     const handleLocationChange = useCallback((epubcifi: string) => {
         setLocation(epubcifi);
@@ -227,8 +227,13 @@ export function EpubReader({
 
     // 打开添加书签对话框
     const handleOpenAddBookmark = () => {
-        setBookmarkTitle(`书签 ${progress}%`);
+        // 获取当前选中的文本
+        const selection = window.getSelection();
+        const currentSelected = selection ? selection.toString().trim() : "";
+
+        setBookmarkTitle(currentSelected || `书签 ${progress}%`);
         setBookmarkNote("");
+        setBookmarkSelectedText(currentSelected);
         setIsAddBookmarkDialogOpen(true);
     };
 
@@ -245,11 +250,13 @@ export function EpubReader({
                 bookType: "epub",
                 title: bookmarkTitle,
                 note: bookmarkNote || null,
+                selectedText: bookmarkSelectedText || null,
                 pageNumber: null,
                 epubCfi: location, // 使用 CFI 位置
                 color: null,
             });
             setIsAddBookmarkDialogOpen(false);
+            setBookmarkSelectedText("");
         } catch (error) {
             console.error("Failed to add bookmark:", error);
         }
@@ -448,6 +455,14 @@ export function EpubReader({
                         <DialogTitle>添加书签</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
+                        {bookmarkSelectedText && (
+                            <div className="space-y-2">
+                                <Label>选中的文字</Label>
+                                <div className="p-3 bg-muted/50 rounded-lg text-sm max-h-24 overflow-y-auto border border-border">
+                                    "{bookmarkSelectedText}"
+                                </div>
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="bookmark-title">标题</Label>
                             <Input

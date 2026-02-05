@@ -1,9 +1,15 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { cn } from "../../lib/utils";
 
 interface DialogProps {
-  isOpen: boolean;
-  onClose: () => void;
+  /** @deprecated 使用 open 代替 */
+  isOpen?: boolean;
+  /** @deprecated 使用 onOpenChange 代替 */
+  onClose?: () => void;
+  /** 控制对话框是否打开 */
+  open?: boolean;
+  /** 对话框打开状态变化时的回调 */
+  onOpenChange?: (open: boolean) => void;
   title?: string;
   children: React.ReactNode;
   className?: string;
@@ -11,26 +17,43 @@ interface DialogProps {
 
 import { createPortal } from "react-dom";
 
-export function Dialog({ isOpen, onClose, title, children, className }: DialogProps) {
+export function Dialog({
+  isOpen,
+  onClose,
+  open,
+  onOpenChange,
+  title,
+  children,
+  className
+}: DialogProps) {
+  // 支持两种 API：旧的 isOpen/onClose 和新的 open/onOpenChange
+  const isDialogOpen = open !== undefined ? open : isOpen;
+  const handleClose = useCallback(() => {
+    if (onOpenChange) {
+      onOpenChange(false);
+    } else if (onClose) {
+      onClose();
+    }
+  }, [onOpenChange, onClose]);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
     };
 
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
+    if (isDialogOpen) {
+      document.addEventListener("keydown", handleEscapeKey);
       document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("keydown", handleEscapeKey);
       document.body.style.overflow = "unset";
     };
-  }, [isOpen, onClose]);
+  }, [isDialogOpen, handleClose]);
 
-  if (!isOpen) return null;
+  if (!isDialogOpen) return null;
 
   return createPortal(
     // 外层容器：使用 fixed 定位覆盖整个视口，flex 实现垂直和水平居中
@@ -38,7 +61,7 @@ export function Dialog({ isOpen, onClose, title, children, className }: DialogPr
       {/* Backdrop - 遮罩层，使用主题兼容的半透明背景 */}
       <div
         className="fixed inset-0 bg-background/80 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Dialog - 弹窗主体，使用主题变量替代硬编码颜色 */}
@@ -62,7 +85,7 @@ export function Dialog({ isOpen, onClose, title, children, className }: DialogPr
 
         {/* Close button - 关闭按钮使用主题兼容的颜色 */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 text-muted-foreground hover:text-popover-foreground transition-colors"
           aria-label="Close"
         >
@@ -119,5 +142,23 @@ export function DialogFooter({ children, className }: DialogFooterProps) {
     <div className={cn("flex justify-end gap-3 mt-6", className)}>
       {children}
     </div>
+  );
+}
+
+// DialogTitle 组件属性
+interface DialogTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+/**
+ * DialogTitle 组件
+ * 用于设置对话框标题
+ */
+export function DialogTitle({ children, className }: DialogTitleProps) {
+  return (
+    <h2 className={cn("text-lg font-semibold text-popover-foreground", className)}>
+      {children}
+    </h2>
   );
 }

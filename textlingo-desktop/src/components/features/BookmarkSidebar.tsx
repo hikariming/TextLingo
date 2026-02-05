@@ -180,6 +180,11 @@ export function BookmarkSidebar({
 
                   <div className="text-xs text-muted-foreground space-y-1">
                     <div>{formatLocation(bookmark)}</div>
+                    {bookmark.selected_text && (
+                      <div className="mt-2 p-2 bg-primary/10 rounded border-l-2 border-primary">
+                        <span className="text-xs italic">"{bookmark.selected_text}"</span>
+                      </div>
+                    )}
                     {bookmark.note && (
                       <div className="flex items-start gap-1 mt-2 p-2 bg-muted/50 rounded">
                         <StickyNote className="h-3 w-3 mt-0.5 flex-shrink-0" />

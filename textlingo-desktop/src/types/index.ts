@@ -88,6 +88,8 @@ export interface Bookmark {
     title: string;
     /** 可选笔记 */
     note?: string;
+    /** 用户选中的文字摘录 */
+    selected_text?: string;
     /** PDF/TXT 页码（从1开始） */
     page_number?: number;
     /** EPUB CFI 位置字符串 */

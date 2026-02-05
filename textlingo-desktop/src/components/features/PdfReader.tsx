@@ -80,6 +80,7 @@ export function PdfReader({
     const [isAddBookmarkDialogOpen, setIsAddBookmarkDialogOpen] = useState(false);
     const [bookmarkTitle, setBookmarkTitle] = useState("");
     const [bookmarkNote, setBookmarkNote] = useState("");
+    const [bookmarkSelectedText, setBookmarkSelectedText] = useState("");
 
     // PDF 加载成功回调
     const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
@@ -212,8 +213,13 @@ export function PdfReader({
 
     // 打开添加书签对话框
     const handleOpenAddBookmark = () => {
-        setBookmarkTitle(`第 ${pageNumber} 页`);
+        // 获取当前选中的文本
+        const selection = window.getSelection();
+        const currentSelected = selection ? selection.toString().trim() : "";
+
+        setBookmarkTitle(currentSelected || `第 ${pageNumber} 页`);
         setBookmarkNote("");
+        setBookmarkSelectedText(currentSelected);
         setIsAddBookmarkDialogOpen(true);
     };
 
@@ -225,11 +231,13 @@ export function PdfReader({
                 bookType: "pdf",
                 title: bookmarkTitle,
                 note: bookmarkNote || null,
+                selectedText: bookmarkSelectedText || null,
                 pageNumber: pageNumber, // PDF页码从1开始
                 epubCfi: null,
                 color: null,
             });
             setIsAddBookmarkDialogOpen(false);
+            setBookmarkSelectedText("");
         } catch (error) {
             console.error("Failed to add bookmark:", error);
         }
@@ -448,6 +456,14 @@ export function PdfReader({
                         <DialogTitle>添加书签</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
+                        {bookmarkSelectedText && (
+                            <div className="space-y-2">
+                                <Label>选中的文字</Label>
+                                <div className="p-3 bg-muted/50 rounded-lg text-sm max-h-24 overflow-y-auto border border-border">
+                                    "{bookmarkSelectedText}"
+                                </div>
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="bookmark-title">标题</Label>
                             <Input

@@ -311,6 +311,9 @@ pub struct Bookmark {
     /// 可选笔记
     #[serde(default)]
     pub note: Option<String>,
+    /// 用户选中的文字摘录
+    #[serde(default)]
+    pub selected_text: Option<String>,
     /// PDF/TXT 页码（从1开始）
     #[serde(default)]
     pub page_number: Option<i32>,
