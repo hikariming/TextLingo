@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Loader2, Download } from "lucide-react";
 import { Article } from "../../types";
 

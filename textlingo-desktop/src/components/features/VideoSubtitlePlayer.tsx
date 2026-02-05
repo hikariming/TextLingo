@@ -10,7 +10,7 @@
  */
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import { ChevronDown, ChevronUp, Loader2, FileText, Minimize2, Download, X, FileJson, FileType, Music } from "lucide-react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
@@ -19,7 +19,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
-} from "../ui/DropdownMenu";
+} from "../ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
 import { ArticleSegment } from "../../types";
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import {
     Send, Bot, User, Sparkles, Languages, X,
     Loader2, Copy, Paperclip, File as FileIcon,

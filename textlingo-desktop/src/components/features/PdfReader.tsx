@@ -12,7 +12,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "../../lib/pdfConfig";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import {
     ChevronLeft,
     ChevronRight,

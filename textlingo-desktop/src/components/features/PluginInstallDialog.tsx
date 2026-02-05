@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogFooter } from '../ui/Dialog';
-import { Button } from '../ui/Button';
+import { Dialog, DialogFooter } from '../ui/dialog';
+import { Button } from '../ui/button';
 import { Download, CheckCircle, AlertCircle, Loader2, FileText } from 'lucide-react';
 
 interface PluginReleaseInfo {

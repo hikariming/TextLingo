@@ -10,7 +10,7 @@ import { FavoritesPage } from "./components/features/FavoritesPage";
 import { SettingsButton } from "./components/features/SettingsDialog";
 import { ApiQuickSwitcher } from "./components/features/ApiQuickSwitcher";
 import { OnboardingDialog } from "./components/features/OnboardingDialog";
-import { Button } from "./components/ui/Button";
+import { Button } from "./components/ui/button";
 import { UpdateChecker } from "./components/features/UpdateChecker";
 import type { Article, AppConfig } from "./lib/tauri";
 import { getApiClient } from "./lib/api";

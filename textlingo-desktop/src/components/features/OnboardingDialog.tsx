@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dialog, DialogContent } from "../ui/Dialog";
-import { Button } from "../ui/Button";
-import { Select } from "../ui/Select";
-import { Input } from "../ui/Input";
+import { Dialog, DialogContent } from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Select } from "../ui/select";
+import { Input } from "../ui/input";
 import { useTheme } from "../theme-provider";
 import { AppConfig, ModelConfig } from "../../lib/tauri";
 import { invoke } from "@tauri-apps/api/core";

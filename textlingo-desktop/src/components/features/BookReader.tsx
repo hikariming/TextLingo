@@ -7,15 +7,15 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
-import { Button } from "../ui/Button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { Button } from "../ui/button";
 import { ChevronLeft, BookOpen, PanelRightClose, PanelRightOpen, Languages, Loader2, Download, FileText, Split, File, Columns } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "../ui/DropdownMenu";
+} from "../ui/dropdown-menu";
 import { Article } from "../../types";
 import { EpubReader } from "./EpubReader";
 import { TxtReader } from "./TxtReader";

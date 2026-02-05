@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/Button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
+import { Button } from "../ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger
-} from "../ui/DropdownMenu";
+} from "../ui/dropdown-menu";
 import {
     BookOpen,
     SpellCheck,

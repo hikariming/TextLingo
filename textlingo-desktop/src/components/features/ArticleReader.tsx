@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
-import { Button } from "../ui/Button";
-import { Textarea } from "../ui/Textarea";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import {
   BookOpen,
   Languages,
@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "../ui/DropdownMenu";
+} from "../ui/dropdown-menu";
 import { useConfig } from "../../lib/hooks";
 
 interface ArticleReaderProps {

@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import {
     ChevronLeft,
     ChevronRight,

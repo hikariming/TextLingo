@@ -7,7 +7,7 @@ import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import { Loader2, BookOpen, FileText, FileType, Info } from "lucide-react";
 import { Article } from "../../types";
 

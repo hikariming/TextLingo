@@ -20,9 +20,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../ui/DropdownMenu";
+} from "../ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import { formatDate, truncateText } from "../../lib/utils";
 import { Article } from "../../types";
 import { Document, Page } from "react-pdf";

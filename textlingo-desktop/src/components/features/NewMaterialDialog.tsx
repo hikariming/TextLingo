@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dialog } from "../ui/Dialog";
-import { Button } from "../ui/Button";
+import { Dialog } from "../ui/dialog";
+import { Button } from "../ui/button";
 import { Plus, FileText, Youtube, FolderOpen, BookOpen, Music } from "lucide-react";
 import { Article } from "../../types";
 import { NewArticleForm } from "./NewArticleForm";

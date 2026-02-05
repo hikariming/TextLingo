@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import { ArticleSegment, SegmentExplanation, VocabularyItem, GrammarPoint } from "../../types";
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import { RefreshCw, BookOpen, MessageCircle, Languages, SpellCheck, Star, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 

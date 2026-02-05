@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
-import { Textarea } from "../ui/Textarea";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 import { FileText, Loader2, Link, Clipboard, Cloud, Info } from "lucide-react";
 import { getApiClient } from "../../lib/api";
 import { Article } from "../../types";
