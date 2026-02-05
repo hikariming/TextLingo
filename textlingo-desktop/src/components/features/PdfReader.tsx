@@ -442,7 +442,6 @@ export function PdfReader({
             {bookPath && (
                 <BookmarkSidebar
                     bookPath={bookPath}
-                    bookType="pdf"
                     onJumpToBookmark={handleJumpToBookmark}
                     isOpen={isBookmarkSidebarOpen}
                     onClose={() => setIsBookmarkSidebarOpen(false)}

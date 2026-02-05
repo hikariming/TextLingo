@@ -8,7 +8,7 @@ import { useTheme } from "../theme-provider";
 import { AppConfig, ModelConfig } from "../../lib/tauri";
 import { invoke } from "@tauri-apps/api/core";
 import { Palette, Sparkles, CheckCircle2, Cpu, Zap, Star, HelpCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/Tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface OnboardingDialogProps {
     isOpen: boolean;

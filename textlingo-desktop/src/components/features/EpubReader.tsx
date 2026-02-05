@@ -441,7 +441,6 @@ export function EpubReader({
             {bookPath && (
                 <BookmarkSidebar
                     bookPath={bookPath}
-                    bookType="epub"
                     onJumpToBookmark={handleJumpToBookmark}
                     isOpen={isBookmarkSidebarOpen}
                     onClose={() => setIsBookmarkSidebarOpen(false)}

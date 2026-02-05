@@ -23,7 +23,6 @@ import { Label } from "../ui/label";
 
 interface BookmarkSidebarProps {
   bookPath: string;
-  bookType: "txt" | "pdf" | "epub";
   onJumpToBookmark: (bookmark: Bookmark) => void;
   isOpen: boolean;
   onClose: () => void;
@@ -31,7 +30,6 @@ interface BookmarkSidebarProps {
 
 export function BookmarkSidebar({
   bookPath,
-  bookType,
   onJumpToBookmark,
   isOpen,
   onClose,

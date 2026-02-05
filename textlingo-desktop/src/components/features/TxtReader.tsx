@@ -62,9 +62,6 @@ export function TxtReader({
     // 字体大小
     const [fontSize, setFontSize] = useState(initialFontSize);
 
-    // 选中的文本
-    const [selectedText, setSelectedText] = useState("");
-
     // 书签相关状态
     const [isBookmarkSidebarOpen, setIsBookmarkSidebarOpen] = useState(false);
     const [isAddBookmarkDialogOpen, setIsAddBookmarkDialogOpen] = useState(false);
@@ -132,7 +129,6 @@ export function TxtReader({
         if (selection) {
             const text = selection.toString().trim();
             if (text.length > 0) {
-                setSelectedText(text);
                 onTextSelect?.(text);
             }
         }
@@ -335,7 +331,6 @@ export function TxtReader({
             {bookPath && (
                 <BookmarkSidebar
                     bookPath={bookPath}
-                    bookType="txt"
                     onJumpToBookmark={handleJumpToBookmark}
                     isOpen={isBookmarkSidebarOpen}
                     onClose={() => setIsBookmarkSidebarOpen(false)}
