@@ -319,6 +319,17 @@
       "fileRequired": "ファイルを選択してください"
     }
   },
+  "audioImport": {
+    "title": "ローカル音声",
+    "fileLabel": "音声ファイル",
+    "filePlaceholder": "音声ファイルを選択...",
+    "description": "コンピュータから音声ファイルをインポートします。MP3, WAV, M4A, AAC, FLAC, OGGに対応しています。",
+    "import": "インポート",
+    "importing": "インポート中...",
+    "errors": {
+      "fileRequired": "ファイルを選択してください"
+    }
+  },
   "youtubeImport": {
     "title": "YouTube動画をインポート",
     "urlLabel": "ビデオURL",

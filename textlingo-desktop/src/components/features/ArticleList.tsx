@@ -11,7 +11,8 @@ import {
   Pencil,
   Eye,
   Plus,
-  MoreVertical
+  MoreVertical,
+  Music
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -149,11 +150,17 @@ export function ArticleList({
     }
   };
 
+  const AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'wma'];
+
   const getArticleType = (article: Article) => {
     if (article.book_path) {
       return article.book_type?.toUpperCase() || "BOOK";
     }
     if (article.media_path) {
+      const ext = article.media_path.split('.').pop()?.toLowerCase() || '';
+      if (AUDIO_EXTENSIONS.includes(ext)) {
+        return "AUDIO";
+      }
       return "VIDEO";
     }
     return "ARTICLE";
@@ -170,6 +177,8 @@ export function ArticleList({
         return <FileText className="text-primary" size={size} />;
       case "VIDEO":
         return <Video className="text-primary" size={size} />;
+      case "AUDIO":
+        return <Music className="text-primary" size={size} />;
       default:
         return <FileText className="text-primary" size={size} />;
     }
@@ -200,6 +209,7 @@ export function ArticleList({
   const getCoverStyle = (type: string) => {
     switch (type) {
       case 'VIDEO': return 'bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20';
+      case 'AUDIO': return 'bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20';
       case 'PDF': return 'bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/20';
       case 'EPUB':
       case 'BOOK': return 'bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20';
@@ -346,8 +356,19 @@ export function ArticleList({
                     className={getCoverStyle(type)}
                     typeIcon={getTypeIcon(type, 28)}
                   />
+                ) : type === 'AUDIO' && article.media_path ? (
+                  // Audio Cover
+                  <div className="flex flex-col items-center justify-center w-full h-full relative">
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-green-500 to-transparent" />
+                    <div className="relative z-10 flex flex-col items-center">
+                      <div className="p-4 bg-green-500/20 backdrop-blur-md rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform duration-300">
+                        <Music size={32} className="text-green-500" />
+                      </div>
+                      <span className="text-xs font-medium text-foreground/60 tracking-wider font-mono">AUDIO</span>
+                    </div>
+                  </div>
                 ) : (
-                  // 3. Default / EPUB / TXT Styled Cover
+                  // Default / TXT Styled Cover
                   <div className="flex flex-col items-center justify-center w-full h-full relative">
                     {/* 装饰性背景 */}
                     <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-black to-transparent dark:from-white" />
@@ -415,8 +436,8 @@ export function ArticleList({
                     <Pencil size={14} />
                   </Button>
 
-                  {/* More Menu (Only for VIDEO) */}
-                  {type === 'VIDEO' && (
+                  {/* More Menu (for VIDEO and AUDIO) */}
+                  {(type === 'VIDEO' || type === 'AUDIO') && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -570,8 +591,8 @@ export function ArticleList({
                     <Pencil size={14} />
                   </Button>
 
-                  {/* More Menu (Only for VIDEO) */}
-                  {type === 'VIDEO' && (
+                  {/* More Menu (for VIDEO and AUDIO) */}
+                  {(type === 'VIDEO' || type === 'AUDIO') && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button

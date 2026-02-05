@@ -11,7 +11,7 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/Button";
-import { ChevronDown, ChevronUp, Loader2, FileText, Minimize2, Download, X, FileJson, FileType } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, FileText, Minimize2, Download, X, FileJson, FileType, Music } from "lucide-react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import {
@@ -29,7 +29,7 @@ const PLAYBACK_POSITION_KEY_PREFIX = "textlingo_video_position_";
 export type ViewMode = 'original' | 'bilingual' | 'translation';
 
 interface VideoSubtitlePlayerProps {
-    /** 视频URL */
+    /** 媒体URL（视频或音频） */
     videoUrl: string;
     /** 字幕段落数组 */
     segments: ArticleSegment[];
@@ -37,7 +37,7 @@ interface VideoSubtitlePlayerProps {
     selectedSegmentId: string | null;
     /** 点击段落的回调 */
     onSegmentClick: (id: string) => void;
-    /** 视频时间更新回调 (可选) */
+    /** 时间更新回调 (可选) */
     onTimeUpdate?: (time: number) => void;
     /** 字体大小 */
     fontSize: number;
@@ -52,15 +52,15 @@ interface VideoSubtitlePlayerProps {
     /** 文章ID（用于记忆播放位置） */
     articleId?: string;
     /** 提取进度消息 */
-
     extractionProgress?: string | null;
     /** 是否正在翻译 */
     isTranslating?: boolean;
     /** 快速翻译回调 */
-    /** 快速翻译回调 */
     onQuickTranslate?: () => void;
     /** 翻译进度 */
     translationProgress?: { current: number; total: number } | null;
+    /** 是否为音频模式 */
+    isAudio?: boolean;
 }
 
 export function VideoSubtitlePlayer({
@@ -79,9 +79,10 @@ export function VideoSubtitlePlayer({
     isTranslating = false,
     onQuickTranslate,
     translationProgress,
+    isAudio = false,
 }: VideoSubtitlePlayerProps) {
     const { t } = useTranslation();
-    const videoRef = useRef<HTMLVideoElement>(null);
+    const videoRef = useRef<HTMLVideoElement & HTMLAudioElement>(null);
     const videoContainerRef = useRef<HTMLDivElement>(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [showFullSubtitles, setShowFullSubtitles] = useState(false);
@@ -165,15 +166,15 @@ export function VideoSubtitlePlayer({
         };
     }, [savePlaybackPosition]);
 
-    // 处理视频时间更新
-    const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    // 处理媒体时间更新
+    const handleTimeUpdate = (e: React.SyntheticEvent<HTMLMediaElement>) => {
         const time = e.currentTarget.currentTime;
         setCurrentTime(time);
         onTimeUpdate?.(time);
     };
 
-    // 视频暂停时保存播放位置
-    const handlePause = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    // 媒体暂停时保存播放位置
+    const handlePause = (e: React.SyntheticEvent<HTMLMediaElement>) => {
         savePlaybackPosition(e.currentTarget.currentTime);
     };
 
@@ -377,24 +378,44 @@ export function VideoSubtitlePlayer({
     if (segments.length === 0) {
         return (
             <div className="max-w-3xl mx-auto">
-                {/* 视频播放器 */}
+                {/* 媒体播放器 */}
                 <div
                     ref={videoContainerRef}
                     className="rounded-lg overflow-hidden bg-black/5 border border-border shadow-lg mb-4"
                 >
-                    <video
-                        ref={videoRef}
-                        controls
-                        playsInline
-                        className="w-full aspect-video bg-black"
-                        src={videoUrl}
-                        onTimeUpdate={handleTimeUpdate}
-                        onSeeked={handleTimeUpdate}
-                        onPause={handlePause}
-                        onError={(e) => {
-                            console.error("Video playback error:", e);
-                        }}
-                    />
+                    {isAudio ? (
+                        <div className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/5 flex flex-col items-center gap-4">
+                            <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center">
+                                <Music size={36} className="text-green-500" />
+                            </div>
+                            <audio
+                                ref={videoRef}
+                                controls
+                                className="w-full"
+                                src={videoUrl}
+                                onTimeUpdate={handleTimeUpdate}
+                                onSeeked={handleTimeUpdate}
+                                onPause={handlePause}
+                                onError={(e) => {
+                                    console.error("Audio playback error:", e);
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <video
+                            ref={videoRef}
+                            controls
+                            playsInline
+                            className="w-full aspect-video bg-black"
+                            src={videoUrl}
+                            onTimeUpdate={handleTimeUpdate}
+                            onSeeked={handleTimeUpdate}
+                            onPause={handlePause}
+                            onError={(e) => {
+                                console.error("Video playback error:", e);
+                            }}
+                        />
+                    )}
                 </div>
 
                 {/* 字幕提取提示 */}
@@ -437,8 +458,8 @@ export function VideoSubtitlePlayer({
 
     return (
         <div className="max-w-3xl mx-auto">
-            {/* 迷你播放器浮层（不替换主内容，只是额外的浮层） */}
-            {isMiniMode && (
+            {/* 迷你播放器浮层（仅视频模式） */}
+            {!isAudio && isMiniMode && (
                 <div className="fixed bottom-4 right-4 z-50 w-80 bg-background rounded-xl border border-border shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
                     {/* 迷你视频 */}
                     <div className="relative">
@@ -480,36 +501,58 @@ export function VideoSubtitlePlayer({
                 </div>
             )}
 
-            {/* 正常视频区域（迷你模式时隐藏） */}
-            {!isMiniMode && (
+            {/* 正常媒体播放区域 */}
+            {!(isMiniMode && !isAudio) && (
                 <div className="sticky top-0 z-20 bg-background pb-2">
                     <div
                         ref={videoContainerRef}
                         className="rounded-lg overflow-hidden bg-black/5 border border-border shadow-lg relative"
                     >
-                        <video
-                            ref={videoRef}
-                            controls
-                            playsInline
-                            className="w-full aspect-video bg-black"
-                            src={videoUrl}
-                            onTimeUpdate={handleTimeUpdate}
-                            onSeeked={handleTimeUpdate}
-                            onPause={handlePause}
-                            onError={(e) => {
-                                console.error("Video playback error:", e);
-                            }}
-                        />
-                        {/* 迷你模式按钮 */}
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => setIsMiniMode(true)}
-                            className="absolute top-2 right-2 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 border-0"
-                            title={t("videoPlayer.miniMode")}
-                        >
-                            <Minimize2 size={16} className="text-white" />
-                        </Button>
+                        {isAudio ? (
+                            <div className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/5 flex flex-col items-center gap-4">
+                                <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
+                                    <Music size={28} className="text-green-500" />
+                                </div>
+                                <audio
+                                    ref={videoRef}
+                                    controls
+                                    className="w-full"
+                                    src={videoUrl}
+                                    onTimeUpdate={handleTimeUpdate}
+                                    onSeeked={handleTimeUpdate}
+                                    onPause={handlePause}
+                                    onError={(e) => {
+                                        console.error("Audio playback error:", e);
+                                    }}
+                                />
+                            </div>
+                        ) : (
+                            <>
+                                <video
+                                    ref={videoRef}
+                                    controls
+                                    playsInline
+                                    className="w-full aspect-video bg-black"
+                                    src={videoUrl}
+                                    onTimeUpdate={handleTimeUpdate}
+                                    onSeeked={handleTimeUpdate}
+                                    onPause={handlePause}
+                                    onError={(e) => {
+                                        console.error("Video playback error:", e);
+                                    }}
+                                />
+                                {/* 迷你模式按钮（仅视频） */}
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => setIsMiniMode(true)}
+                                    className="absolute top-2 right-2 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 border-0"
+                                    title={t("videoPlayer.miniMode")}
+                                >
+                                    <Minimize2 size={16} className="text-white" />
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

@@ -330,6 +330,17 @@
       "fileRequired": "Please select a file"
     }
   },
+  "audioImport": {
+    "title": "Local Audio",
+    "fileLabel": "Audio File",
+    "filePlaceholder": "Select an audio file...",
+    "description": "Import an audio file from your computer. Supports MP3, WAV, M4A, AAC, FLAC, OGG.",
+    "import": "Import",
+    "importing": "Importing...",
+    "errors": {
+      "fileRequired": "Please select a file"
+    }
+  },
   "youtubeImport": {
     "title": "Import YouTube Video",
     "urlLabel": "Video URL",

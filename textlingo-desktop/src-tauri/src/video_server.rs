@@ -118,6 +118,20 @@ async fn serve_file(
         "video/webm"
     } else if decoded_filename.ends_with(".mkv") {
         "video/x-matroska"
+    } else if decoded_filename.ends_with(".mp3") {
+        "audio/mpeg"
+    } else if decoded_filename.ends_with(".wav") {
+        "audio/wav"
+    } else if decoded_filename.ends_with(".m4a") {
+        "audio/mp4"
+    } else if decoded_filename.ends_with(".aac") {
+        "audio/aac"
+    } else if decoded_filename.ends_with(".flac") {
+        "audio/flac"
+    } else if decoded_filename.ends_with(".ogg") {
+        "audio/ogg"
+    } else if decoded_filename.ends_with(".wma") {
+        "audio/x-ms-wma"
     } else if decoded_filename.ends_with(".epub") {
         "application/epub+zip"
     } else if decoded_filename.ends_with(".txt") {

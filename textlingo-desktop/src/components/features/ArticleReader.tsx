@@ -830,13 +830,16 @@ export function ArticleReader({
                 </div>
               ) : (
                 <div className="h-full overflow-y-auto px-4 py-6 md:px-8 lg:px-12 scroll-smooth">
-                  {/* 视频模式：使用 VideoSubtitlePlayer 组件 */}
+                  {/* 视频/音频模式：使用 VideoSubtitlePlayer 组件 */}
                   {article.media_path && (() => {
                     const filename = article.media_path.split('/').pop() || article.media_path.split('\\').pop() || '';
-                    const videoUrl = `http://127.0.0.1:19420/video/${encodeURIComponent(filename)}`;
+                    const mediaUrl = `http://127.0.0.1:19420/video/${encodeURIComponent(filename)}`;
+                    const audioExtensions = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'wma'];
+                    const ext = filename.split('.').pop()?.toLowerCase() || '';
+                    const isAudioFile = audioExtensions.includes(ext);
                     return (
                       <VideoSubtitlePlayer
-                        videoUrl={videoUrl}
+                        videoUrl={mediaUrl}
                         segments={localSegments}
                         selectedSegmentId={selectedSegmentId}
                         onSegmentClick={handleSegmentClick}
@@ -846,11 +849,11 @@ export function ArticleReader({
                         onExtractSubtitles={handleExtractSubtitles}
                         articleTitle={article.title}
                         articleId={article.id}
-
                         extractionProgress={extractionProgress}
                         isTranslating={isTranslating}
                         onQuickTranslate={handleTranslate}
                         translationProgress={translationProgress}
+                        isAudio={isAudioFile}
                       />
                     );
                   })()}

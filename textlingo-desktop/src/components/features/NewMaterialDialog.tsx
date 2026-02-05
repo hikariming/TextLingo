@@ -2,15 +2,23 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "../ui/Dialog";
 import { Button } from "../ui/Button";
-import { Plus, FileText, Youtube, FolderOpen, BookOpen } from "lucide-react";
+import { Plus, FileText, Youtube, FolderOpen, BookOpen, Music } from "lucide-react";
 import { Article } from "../../types";
 import { NewArticleForm } from "./NewArticleForm";
 import { YouTubeImportForm } from "./YouTubeImportForm";
 import { LocalVideoImportForm } from "./LocalVideoImportForm";
 import { BookImportForm } from "./BookImportForm";
+import { LocalAudioImportForm } from "./LocalAudioImportForm";
 import { cn } from "../../lib/utils";
 
-type MaterialType = "article" | "youtube" | "local" | "book";
+const AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'wma'];
+
+function isAudioFile(path: string): boolean {
+    const ext = path.split('.').pop()?.toLowerCase() || '';
+    return AUDIO_EXTENSIONS.includes(ext);
+}
+
+type MaterialType = "article" | "youtube" | "local" | "book" | "audio";
 
 interface NewMaterialDialogProps {
     isOpen: boolean;
@@ -28,6 +36,7 @@ export function NewMaterialDialog({ isOpen, onClose, onSave, editingArticle }: N
         if (editingArticle) {
             if (editingArticle.book_path) setActiveTab("book");
             else if (editingArticle.media_path?.includes("http")) setActiveTab("youtube"); // Simple heuristic
+            else if (editingArticle.media_path && isAudioFile(editingArticle.media_path)) setActiveTab("audio");
             else if (editingArticle.media_path) setActiveTab("local");
             else setActiveTab("article");
         } else {
@@ -119,6 +128,21 @@ export function NewMaterialDialog({ isOpen, onClose, onSave, editingArticle }: N
                         <FolderOpen size={18} />
                         {t("localImport.title")}
                     </button>
+
+                    <button
+                        className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
+                            activeTab === "audio"
+                                ? "bg-green-500/10 text-green-500"
+                                : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                            isEditing && activeTab !== "audio" && "opacity-50 cursor-not-allowed"
+                        )}
+                        onClick={() => !isEditing && setActiveTab("audio")}
+                        disabled={isEditing}
+                    >
+                        <Music size={18} />
+                        {t("audioImport.title", "本地音频")}
+                    </button>
                 </div>
 
                 {/* Right Content */}
@@ -144,6 +168,7 @@ export function NewMaterialDialog({ isOpen, onClose, onSave, editingArticle }: N
                                 {activeTab === "book" && <BookImportForm onSave={handleSave} onCancel={handleClose} />}
                                 {activeTab === "youtube" && <YouTubeImportForm onSave={handleSave} onCancel={handleClose} />}
                                 {activeTab === "local" && <LocalVideoImportForm onSave={handleSave} onCancel={handleClose} />}
+                                {activeTab === "audio" && <LocalAudioImportForm onSave={handleSave} onCancel={handleClose} />}
                             </>
                         )}
                     </div>
