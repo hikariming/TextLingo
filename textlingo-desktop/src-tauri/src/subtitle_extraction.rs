@@ -57,8 +57,8 @@ pub async fn extract_subtitles(
     let duration = get_video_duration(&app, video_path).await?;
     println!("[SubtitleExtraction] 视频时长: {:.1} 秒 ({:.1} 分钟)", duration, duration / 60.0);
     
-    // 分片提取阈值：5分钟 (对应约5MB音频文件，适合 Flash 模型)
-    const CHUNK_THRESHOLD_SECONDS: f64 = 5.0 * 60.0;
+    // 分片提取阈值：10分钟
+    const CHUNK_THRESHOLD_SECONDS: f64 = 10.0 * 60.0;
     
     // Kimi K2.5 视频理解模式
     if provider == "moonshot" && model.contains("k2.5") {
@@ -237,6 +237,8 @@ async fn extract_audio_segment(
     // FFmpeg 参数说明:
     // -ss: 起始时间（放在 -i 前面可以快速定位）
     // -t: 提取时长
+    // -ar 44100: 保持44.1kHz采样率以保留语音细节
+    // -ab 192k: 192kbps比特率兼顾质量和API文件大小限制
     let output = shell
         .sidecar("ffmpeg")
         .map_err(|e| format!("无法创建 FFmpeg sidecar: {}。请确保 sidecar 配置正确。", e))?
@@ -246,8 +248,8 @@ async fn extract_audio_segment(
             "-t", &format!("{:.2}", duration),
             "-vn",
             "-acodec", "libmp3lame",
-            "-ab", "128k",
-            "-ar", "16000",
+            "-ab", "192k",
+            "-ar", "44100",
             "-ac", "1",
             "-y",
             audio_path_str,
@@ -324,13 +326,12 @@ async fn extract_and_transcribe_segment(
     })
 }
 
-/// 分片提取长视频字幕（双向并发收敛策略）
-/// 
+/// 分片提取长视频字幕（顺序线性分片策略）
+///
 /// # 算法说明
-/// 1. 并发提取首10分钟和末10分钟
-/// 2. 根据边界字幕时间，计算中间缺口
-/// 3. 双向并发填充中间缺口，直到完全覆盖
-/// 4. 合并、排序、去重所有字幕
+/// 1. 将音频按固定步长（10分钟）顺序切片，相邻片段有30秒重叠
+/// 2. 每两个相邻片段并发提取，逐步向前推进
+/// 3. 合并所有片段后，通过模糊匹配去重消除overlap区域的重复字幕
 async fn extract_subtitles_chunked(
     app: AppHandle,
     video_path: &Path,
@@ -341,273 +342,223 @@ async fn extract_subtitles_chunked(
     total_duration: f64,
     event_id: &str,
 ) -> Result<Vec<ArticleSegment>, String> {
-    const CHUNK_DURATION: f64 = 5.0 * 60.0; // 每片5分钟 (适合 Flash 模型)
-    const OVERLAP_BUFFER: f64 = 5.0; // 5秒安全边距
-    
-    // 计算总片段数（用于进度显示）
-    let total_chunks = ((total_duration / CHUNK_DURATION).ceil() as i32).max(2);
-    let mut completed_chunks = 0;
-    
-    let mut all_segments: Vec<TranscriptionSegment> = Vec::new();
-    
-    // === 阶段1：并发提取首末5分钟 ===
-    println!("[SubtitleExtraction] === 阶段1: 并发提取首末片段 ===");
-    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
-        serde_json::json!({ 
-            "phase": "chunk", 
-            "message": "提取首末片段...", 
-            "current": 0, 
-            "total": total_chunks 
-        }));
-    
-    let video_path_clone1 = video_path.to_path_buf();
-    let video_path_clone2 = video_path.to_path_buf();
-    let app_clone1 = app.clone();
-    let app_clone2 = app.clone();
-    let provider1 = provider.to_string();
-    let provider2 = provider.to_string();
-    let api_key1 = api_key.to_string();
-    let api_key2 = api_key.to_string();
-    let model1 = model.to_string();
-    let model2 = model.to_string();
-    
-    // 计算末段起始时间
-    let tail_start = (total_duration - CHUNK_DURATION).max(CHUNK_DURATION);
-    
-    // 并发提取
-    let (head_result, tail_result) = tokio::join!(
-        extract_and_transcribe_segment(
-            app_clone1,
-            video_path_clone1,
-            0.0,
-            CHUNK_DURATION,
-            "head".to_string(),
-            provider1,
-            api_key1,
-            model1,
-        ),
-        extract_and_transcribe_segment(
-            app_clone2,
-            video_path_clone2,
-            tail_start,
-            CHUNK_DURATION,
-            "tail".to_string(),
-            provider2,
-            api_key2,
-            model2,
-        )
-    );
-    
-    let head_result = head_result?;
-    let tail_result = tail_result?;
-    completed_chunks += 2;
-    
-    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
-        serde_json::json!({ 
-            "phase": "chunk", 
-            "message": format!("已完成 {}/{} 片段", completed_chunks, total_chunks), 
-            "current": completed_chunks, 
-            "total": total_chunks 
-        }));
-    
-    // 处理首段：保留所有字幕
-    all_segments.extend(head_result.segments);
-    let mut gap_start = head_result.last_segment_end.unwrap_or(CHUNK_DURATION);
-    
-    // 处理末段：丢弃第一个字幕（可能不完整），从第二个开始
-    let tail_segments: Vec<TranscriptionSegment> = tail_result.segments.into_iter().skip(1).collect();
-    let mut gap_end = if tail_segments.is_empty() {
-        tail_start
-    } else {
-        tail_segments.first().and_then(|s| s.start_time).unwrap_or(tail_start) - OVERLAP_BUFFER
-    };
-    
-    // 暂存末段字幕，最后再添加
-    let mut tail_segments_final = tail_segments;
-    
-    println!("[SubtitleExtraction] 首段结束: {:.1}s, 末段开始: {:.1}s, 缺口: {:.1}s", 
-             gap_start, gap_end, gap_end - gap_start);
-    
-    // === 阶段2：迭代填充中间缺口 ===
-    let mut iteration = 0;
-    const MAX_ITERATIONS: i32 = 20; // 增加迭代次数以适应更多片段
-    
-    while gap_start + OVERLAP_BUFFER < gap_end && iteration < MAX_ITERATIONS {
-        iteration += 1;
-        println!("[SubtitleExtraction] === 阶段2 迭代 {}: 缺口 {:.1}s - {:.1}s ===", 
-                 iteration, gap_start, gap_end);
-        
-        let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
-            serde_json::json!({ 
-                "phase": "chunk", 
-                "message": format!("填充中间片段 (迭代 {})...", iteration), 
-                "current": completed_chunks, 
-                "total": total_chunks 
-            }));
-        
-        let gap_remaining = gap_end - gap_start;
-        
-        // 如果剩余缺口小于一个片段长度，只需一次提取
-        if gap_remaining <= CHUNK_DURATION + OVERLAP_BUFFER {
-            // 单次提取即可覆盖
-            let video_path_clone = video_path.to_path_buf();
-            let app_clone = app.clone();
-            
-            let mid_result = extract_and_transcribe_segment(
-                app_clone,
-                video_path_clone,
-                gap_start - OVERLAP_BUFFER, // 稍微提前开始，确保重叠
-                gap_remaining + OVERLAP_BUFFER * 2.0,
-                format!("mid_{}", iteration),
-                provider.to_string(),
-                api_key.to_string(),
-                model.to_string(),
-            ).await?;
-            
+    const CHUNK_DURATION: f64 = 10.0 * 60.0; // 每片10分钟
+    const OVERLAP: f64 = 30.0; // 30秒重叠
+    let step = CHUNK_DURATION - OVERLAP; // 实际步进 = 9分30秒
 
-            
-            // 跳过第一个字幕（与前一片段重叠）
-            let mid_segments: Vec<TranscriptionSegment> = mid_result.segments.into_iter().skip(1).collect();
-            all_segments.extend(mid_segments);
-            break;
-        }
-        
-        // 双向并发提取
-        let video_path_clone1 = video_path.to_path_buf();
-        let video_path_clone2 = video_path.to_path_buf();
-        let app_clone1 = app.clone();
-        let app_clone2 = app.clone();
-        
-        let forward_start = gap_start - OVERLAP_BUFFER;
-        let backward_start = (gap_end - CHUNK_DURATION).max(gap_start);
-        
-        let (forward_result, backward_result) = tokio::join!(
-            extract_and_transcribe_segment(
-                app_clone1,
-                video_path_clone1,
-                forward_start,
-                CHUNK_DURATION,
-                format!("fwd_{}", iteration),
-                provider.to_string(),
-                api_key.to_string(),
-                model.to_string(),
-            ),
-            extract_and_transcribe_segment(
-                app_clone2,
-                video_path_clone2,
-                backward_start,
-                CHUNK_DURATION,
-                format!("bwd_{}", iteration),
-                provider.to_string(),
-                api_key.to_string(),
-                model.to_string(),
-            )
-        );
-        
-        let forward_result = forward_result?;
-        let backward_result = backward_result?;
-        completed_chunks += 2;
-        
-        let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
-            serde_json::json!({ 
-                "phase": "chunk", 
-                "message": format!("已完成 {}/{} 片段", completed_chunks.min(total_chunks), total_chunks), 
-                "current": completed_chunks.min(total_chunks), 
-                "total": total_chunks 
-            }));
-        
-        // 处理前向片段：跳过第一个（与已有重叠）
-        let forward_segments: Vec<TranscriptionSegment> = forward_result.segments.into_iter().skip(1).collect();
-        gap_start = forward_segments.last().and_then(|s| s.end_time).unwrap_or(gap_start + CHUNK_DURATION);
-        all_segments.extend(forward_segments);
-        
-        // 处理后向片段：跳过第一个，更新gap_end
-        let backward_segments: Vec<TranscriptionSegment> = backward_result.segments.into_iter().skip(1).collect();
-        gap_end = if backward_segments.is_empty() {
-            backward_start
-        } else {
-            backward_segments.first().and_then(|s| s.start_time).unwrap_or(backward_start) - OVERLAP_BUFFER
-        };
-        
-        // 暂存后向片段，最后统一添加
-        tail_segments_final = backward_segments.into_iter().chain(tail_segments_final).collect();
+    // 计算所有片段的起始时间
+    let mut chunk_starts: Vec<f64> = Vec::new();
+    let mut pos = 0.0;
+    while pos < total_duration {
+        chunk_starts.push(pos);
+        pos += step;
     }
-    
-    // 添加末段字幕
-    all_segments.extend(tail_segments_final);
-    
-    // === 阶段3：合并、排序、去重 ===
-    println!("[SubtitleExtraction] === 阶段3: 合并排序去重 ===");
-    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
-        serde_json::json!({ 
-            "phase": "merge", 
-            "message": "合并排序去重中..." 
+    let total_chunks = chunk_starts.len() as i32;
+    let mut completed_chunks = 0;
+
+    println!("[SubtitleExtraction] 顺序分片: 共 {} 个片段, 每片 {:.0}s, 重叠 {:.0}s, 步进 {:.0}s",
+             total_chunks, CHUNK_DURATION, OVERLAP, step);
+
+    let mut all_segments: Vec<TranscriptionSegment> = Vec::new();
+
+    // 两两并发提取
+    let mut i = 0;
+    while i < chunk_starts.len() {
+        // 计算本轮要提取的片段（最多2个并发）
+        let start1 = chunk_starts[i];
+        let dur1 = (total_duration - start1).min(CHUNK_DURATION);
+
+        if i + 1 < chunk_starts.len() {
+            // 并发提取两个片段
+            let start2 = chunk_starts[i + 1];
+            let dur2 = (total_duration - start2).min(CHUNK_DURATION);
+
+            let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id),
+                serde_json::json!({
+                    "phase": "chunk",
+                    "message": format!("提取片段 {}-{}/{}", i+1, i+2, total_chunks),
+                    "current": completed_chunks,
+                    "total": total_chunks
+                }));
+
+            let (r1, r2) = tokio::join!(
+                extract_and_transcribe_segment(
+                    app.clone(), video_path.to_path_buf(),
+                    start1, dur1, format!("chunk_{}", i),
+                    provider.to_string(), api_key.to_string(), model.to_string(),
+                ),
+                extract_and_transcribe_segment(
+                    app.clone(), video_path.to_path_buf(),
+                    start2, dur2, format!("chunk_{}", i + 1),
+                    provider.to_string(), api_key.to_string(), model.to_string(),
+                )
+            );
+
+            all_segments.extend(r1?.segments);
+            all_segments.extend(r2?.segments);
+            completed_chunks += 2;
+            i += 2;
+        } else {
+            // 奇数片段，单独提取
+            let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id),
+                serde_json::json!({
+                    "phase": "chunk",
+                    "message": format!("提取片段 {}/{}", i+1, total_chunks),
+                    "current": completed_chunks,
+                    "total": total_chunks
+                }));
+
+            let r = extract_and_transcribe_segment(
+                app.clone(), video_path.to_path_buf(),
+                start1, dur1, format!("chunk_{}", i),
+                provider.to_string(), api_key.to_string(), model.to_string(),
+            ).await?;
+
+            all_segments.extend(r.segments);
+            completed_chunks += 1;
+            i += 1;
+        }
+
+        let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id),
+            serde_json::json!({
+                "phase": "chunk",
+                "message": format!("已完成 {}/{} 片段", completed_chunks.min(total_chunks), total_chunks),
+                "current": completed_chunks.min(total_chunks),
+                "total": total_chunks
+            }));
+    }
+
+    // === 合并、排序、去重 ===
+    println!("[SubtitleExtraction] === 合并排序去重: {} 个原始字幕 ===", all_segments.len());
+    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id),
+        serde_json::json!({
+            "phase": "merge",
+            "message": "合并排序去重中..."
         }));
-    
+
+    // 过滤掉没有时间戳的字幕
+    all_segments.retain(|s| s.start_time.is_some() && s.end_time.is_some());
+
     // 按时间排序
     all_segments.sort_by(|a, b| {
         let a_time = a.start_time.unwrap_or(0.0);
         let b_time = b.start_time.unwrap_or(0.0);
         a_time.partial_cmp(&b_time).unwrap_or(std::cmp::Ordering::Equal)
     });
-    
-    // 去重：移除时间重叠且内容相同的字幕
+
+    // 去重：移除时间重叠且内容相似的字幕
     let deduped_segments = deduplicate_segments(all_segments);
-    
+
     println!("[SubtitleExtraction] 分片提取完成，共 {} 个字幕片段", deduped_segments.len());
-    
-    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id), 
-        serde_json::json!({ 
-            "phase": "done", 
-            "message": "字幕提取完成！", 
-            "count": deduped_segments.len() 
+
+    let _ = app.emit(&format!("subtitle-extraction-progress://{}", event_id),
+        serde_json::json!({
+            "phase": "done",
+            "message": "字幕提取完成！",
+            "count": deduped_segments.len()
         }));
-    
+
     // 转换为 ArticleSegment
     let result = TranscriptionResult {
         segments: deduped_segments,
         full_text: String::new(),
     };
-    
+
     Ok(transcription_to_segments(&result, video_id))
 }
 
+/// 计算两个字符串的相似度 (基于最长公共子序列, 0.0-1.0)
+fn text_similarity(a: &str, b: &str) -> f64 {
+    let a = a.trim();
+    let b = b.trim();
+    if a.is_empty() && b.is_empty() { return 1.0; }
+    if a.is_empty() || b.is_empty() { return 0.0; }
+    if a == b { return 1.0; }
+
+    let a_chars: Vec<char> = a.chars().collect();
+    let b_chars: Vec<char> = b.chars().collect();
+    let m = a_chars.len();
+    let n = b_chars.len();
+
+    // LCS 用两行滚动数组节省内存
+    let mut prev = vec![0u32; n + 1];
+    let mut curr = vec![0u32; n + 1];
+
+    for i in 1..=m {
+        for j in 1..=n {
+            if a_chars[i - 1] == b_chars[j - 1] {
+                curr[j] = prev[j - 1] + 1;
+            } else {
+                curr[j] = prev[j].max(curr[j - 1]);
+            }
+        }
+        std::mem::swap(&mut prev, &mut curr);
+        curr.iter_mut().for_each(|x| *x = 0);
+    }
+
+    let lcs_len = prev[n] as f64;
+    let max_len = m.max(n) as f64;
+    lcs_len / max_len
+}
+
 /// 去除重复的字幕片段
-/// 
-/// 判断标准：
-/// 1. 时间重叠超过50%
-/// 2. 内容相同或高度相似
+///
+/// 判断标准（针对分片overlap区域优化）：
+/// 1. 时间接近（起始时间差 < 15秒）
+/// 2. 内容相似度 > 60%（基于 LCS）
+///
+/// 当检测到重复时，保留已有的（更早进入结果集的）版本
 fn deduplicate_segments(segments: Vec<TranscriptionSegment>) -> Vec<TranscriptionSegment> {
     if segments.is_empty() {
         return segments;
     }
-    
+
     let mut result: Vec<TranscriptionSegment> = Vec::new();
-    
+
     for seg in segments {
+        let seg_start = seg.start_time.unwrap_or(0.0);
+
         let is_duplicate = result.iter().any(|existing| {
-            // 检查时间重叠
-            let seg_start = seg.start_time.unwrap_or(0.0);
-            let seg_end = seg.end_time.unwrap_or(seg_start);
             let ex_start = existing.start_time.unwrap_or(0.0);
+
+            // 快速排除：起始时间差超过15秒不可能是同一句
+            if (seg_start - ex_start).abs() > 15.0 {
+                return false;
+            }
+
+            // 计算时间重叠
+            let seg_end = seg.end_time.unwrap_or(seg_start);
             let ex_end = existing.end_time.unwrap_or(ex_start);
-            
-            // 计算重叠比例
             let overlap_start = seg_start.max(ex_start);
             let overlap_end = seg_end.min(ex_end);
             let overlap_duration = (overlap_end - overlap_start).max(0.0);
             let seg_duration = (seg_end - seg_start).max(0.1);
             let overlap_ratio = overlap_duration / seg_duration;
-            
-            // 时间重叠超过50% 且内容相同
-            overlap_ratio > 0.5 && seg.content.trim() == existing.content.trim()
+
+            // 条件1: 时间重叠 > 30% 且内容相似度 > 60%
+            if overlap_ratio > 0.3 {
+                let sim = text_similarity(&seg.content, &existing.content);
+                if sim > 0.6 {
+                    return true;
+                }
+            }
+
+            // 条件2: 起始时间非常接近（< 5秒）且内容高度相似
+            if (seg_start - ex_start).abs() < 5.0 {
+                let sim = text_similarity(&seg.content, &existing.content);
+                if sim > 0.5 {
+                    return true;
+                }
+            }
+
+            false
         });
-        
+
         if !is_duplicate {
             result.push(seg);
         }
     }
-    
+
     result
 }
 
@@ -641,12 +592,12 @@ async fn extract_audio_from_video(app: &AppHandle, video_path: &Path) -> Result<
     // -i: 输入文件
     // -vn: 不处理视频流
     // -acodec libmp3lame: 使用 MP3 编码器
-    // -ab 128k: 比特率 128kbps (足够语音识别)
-    // -ar 16000: 采样率 16kHz (Gemini 推荐)
-    // -ac 1: 单声道 (语音识别足够)
+    // -ab 192k: 192kbps 保留语音细节
+    // -ar 44100: 44.1kHz 采样率保留完整频率信息
+    // -ac 1: 单声道
     // -y: 覆盖已存在的文件
     let shell = app.shell();
-    
+
     let output = shell
         .sidecar("ffmpeg")
         .map_err(|e| format!("无法创建 FFmpeg sidecar: {}。请确保 sidecar 配置正确。", e))?
@@ -654,8 +605,8 @@ async fn extract_audio_from_video(app: &AppHandle, video_path: &Path) -> Result<
             "-i", video_path_str,
             "-vn",
             "-acodec", "libmp3lame",
-            "-ab", "128k",
-            "-ar", "16000",
+            "-ab", "192k",
+            "-ar", "44100",
             "-ac", "1",
             "-y",
             audio_path_str,
@@ -861,37 +812,38 @@ async fn transcribe_audio_with_gemini(
     // 注意：20MB 限制现在由分片提取算法处理，此处不再需要检查
     
 
-    // 转录提示词 - 强调按句子断句
-    let transcription_prompt = r#"请将这段音频转录为文字，并严格按照以下 JSON 格式返回。
+    // 转录提示词 - 强调时间戳精度和按句子断句
+    let transcription_prompt = r#"Transcribe this audio into text with precise timestamps. Return strictly in the following JSON format.
 
-要求：
-1. **按句子断句**：每个 segment 只包含一个完整的句子，不要将多个句子合并成一段。
-2. 句子的划分依据：遇到句号、问号、感叹号等句末标点，或自然的语音停顿时，应断开为新的 segment。
-3. 每个句子的长度通常在 5-30 个字左右，不要超过 50 个字。
-4. 每个 segment 必须包含 start (开始时间) 和 end (结束时间) 字段，格式为 MM:SS。
-5. start 和 end 字段是必须的，不能缺失。
-6. 内容保持原文语言，不要翻译。
+Requirements:
+1. **Sentence-level segmentation**: Each segment contains exactly ONE complete sentence. Do NOT merge multiple sentences.
+2. Split at sentence-ending punctuation (periods, question marks, exclamation marks) or natural speech pauses.
+3. Each sentence should be roughly 5-30 characters/words. Never exceed 50.
+4. **Timestamp accuracy is critical**: start and end times MUST precisely match when the speech actually begins and ends in the audio. Listen carefully to the exact timing.
+5. Format: MM:SS (e.g., "01:23" for 1 minute 23 seconds). Both start and end are required.
+6. Keep the original language. Do NOT translate.
+7. Timestamps must be monotonically increasing — each segment's start must be >= the previous segment's end.
 
-返回格式示例：
+Return format:
 {
   "segments": [
     {
       "start": "00:00",
       "end": "00:03",
-      "content": "大家好，欢迎收看今天的节目。",
+      "content": "First sentence of the audio.",
       "speaker": null
     },
     {
       "start": "00:03",
       "end": "00:06",
-      "content": "今天我们来讨论一个重要的话题。",
+      "content": "Second sentence of the audio.",
       "speaker": null
     }
   ],
-  "full_text": "完整的转录文本..."
+  "full_text": "Full transcription text..."
 }
 
-注意：每个 segment 只包含一句话，不要合并多个句子！
+IMPORTANT: Each segment = one sentence. Timestamps must be precise to the second.
 "#;
 
     let client = Client::new();
