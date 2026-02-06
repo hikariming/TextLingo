@@ -291,6 +291,7 @@
       "notInstalled": "未安装",
       "notInstalledDesc": "未检测到插件。您可以下载打包版本，或配置开发环境。",
       "download": "下载插件",
+      "install": "一键安装",
       "refresh": "刷新列表",
       "activeMode": "运行模式"
     }
@@ -502,6 +503,8 @@
     "success": "PDF翻译完成！\n\n纯译文: {{mono}}\n双语对照: {{dual}}",
     "error": "翻译失败: {{error}}",
     "noActiveModel": "请先在设置中配置并激活一个AI模型",
+    "pluginMissing": "PDF翻译插件未安装，请先安装插件后重试。",
+    "successSwitch": "翻译完成！是否切换到双语对照模式？",
     "viewDual": "查看双语对照",
     "viewMono": "查看纯译文",
     "dual": "双语",

@@ -280,6 +280,7 @@
       "notInstalled": "未インストール",
       "notInstalledDesc": "プラグインが見つかりません。パッケージ版をダウンロードするか、開発環境を設定してください。",
       "download": "ダウンロード",
+      "install": "ワンクリックインストール",
       "refresh": "再読み込み",
       "activeMode": "実行モード"
     }
@@ -490,6 +491,8 @@
     "success": "PDF翻訳完了！\n\n翻訳版: {{mono}}\nバイリンガル版: {{dual}}",
     "error": "翻訳失敗: {{error}}",
     "noActiveModel": "設定でAIモデルを設定して有効化してください",
+    "pluginMissing": "PDF翻訳プラグインがインストールされていません。先にインストールしてください。",
+    "successSwitch": "翻訳完了！バイリンガルモードに切り替えますか？",
     "viewDual": "バイリンガル版を見る",
     "viewMono": "翻訳版を見る",
     "dual": "バイリンガル",

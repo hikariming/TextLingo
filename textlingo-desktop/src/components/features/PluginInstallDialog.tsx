@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +38,10 @@ export function PluginInstallDialog({ isOpen, onClose, onInstallComplete }: Plug
     const pluginName = 'openkoto-pdf-translator';
     const releaseRepo = 'hikariming/openkoto';
 
+    // 使用 ref 避免 effect 因 callback 变化而重新注册
+    const onInstallCompleteRef = useRef(onInstallComplete);
+    onInstallCompleteRef.current = onInstallComplete;
+
     // 获取 release 信息
     useEffect(() => {
         if (isOpen && state === 'idle') {
@@ -49,31 +53,37 @@ export function PluginInstallDialog({ isOpen, onClose, onInstallComplete }: Plug
     useEffect(() => {
         if (!isOpen) return;
 
-        const unlisten = listen<InstallProgress>('plugin-install-progress', (event) => {
-            const { stage, progress, message } = event.payload;
-            setProgress(progress);
-            setProgressMessage(message);
+        let unlistenFn: (() => void) | null = null;
 
-            if (stage === 'downloading') {
-                setState('downloading');
-            } else if (stage === 'installing') {
-                setState('installing');
-            } else if (stage === 'completed') {
-                setState('completed');
-                // 延迟关闭并回调
-                setTimeout(() => {
-                    onInstallComplete();
-                }, 1500);
-            } else if (stage === 'failed') {
-                setState('error');
-                setError(message);
-            }
-        });
+        const setup = async () => {
+            unlistenFn = await listen<InstallProgress>('plugin-install-progress', (event) => {
+                const { stage, progress, message } = event.payload;
+                setProgress(progress);
+                setProgressMessage(message);
+
+                if (stage === 'downloading') {
+                    setState('downloading');
+                } else if (stage === 'installing') {
+                    setState('installing');
+                } else if (stage === 'completed') {
+                    setState('completed');
+                    // 延迟关闭并回调
+                    setTimeout(() => {
+                        onInstallCompleteRef.current();
+                    }, 1500);
+                } else if (stage === 'failed') {
+                    setState('error');
+                    setError(message);
+                }
+            });
+        };
+
+        setup();
 
         return () => {
-            unlisten.then(fn => fn());
+            if (unlistenFn) unlistenFn();
         };
-    }, [isOpen, onInstallComplete]);
+    }, [isOpen]);
 
     // 重置状态
     useEffect(() => {

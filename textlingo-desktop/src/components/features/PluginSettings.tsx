@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Download, AlertTriangle, Terminal, Package, RefreshCw, FolderOpen, Cog } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from "../ui/button";
+import { PluginInstallDialog } from './PluginInstallDialog';
 
 interface PluginMetadata {
     name: string;
@@ -26,7 +27,7 @@ const KNOWN_PLUGINS: PluginMetadata[] = [
         display_name: "PDF Translator",
         version: "0.1.0",
         description: "PDF Translation Plugin for OpenKoto",
-        release_repo: "hikariming/TextLingo"
+        release_repo: "hikariming/openkoto"
     }
 ];
 
@@ -37,6 +38,7 @@ export function PluginSettings() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isDevEnv, setIsDevEnv] = useState(false);
+    const [showInstallDialog, setShowInstallDialog] = useState(false);
 
     useEffect(() => {
         setIsDevEnv(import.meta.env.DEV);
@@ -203,40 +205,42 @@ export function PluginSettings() {
                                 )}
                             </div>
 
-                            {/* Always show Mode Switcher */}
-                            <div className="mt-4 pb-4 border-b border-border/50">
-                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-                                            {t('settings.plugins.activeMode')}
-                                        </span>
-                                        <div className="relative inline-flex bg-muted p-1 rounded-lg border border-border/50 shadow-inner">
-                                            <div
-                                                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-background rounded-md shadow-sm transition-all duration-300 ease-spring ${plugin.active_mode === 'Prod' ? 'left-1' : 'left-[calc(50%+0px)]'}`}
-                                            />
-                                            <button
-                                                onClick={() => handleModeToggle(plugin.metadata.name, 'Prod')}
-                                                className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors w-20 ${plugin.active_mode === 'Prod' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                                            >
-                                                <Package size={13} />
-                                                User
-                                            </button>
-                                            <button
-                                                onClick={() => handleModeToggle(plugin.metadata.name, 'Dev')}
-                                                className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors w-20 ${plugin.active_mode === 'Dev' ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'}`}
-                                            >
-                                                <Terminal size={13} />
-                                                Dev
-                                            </button>
+                            {/* Mode Switcher (Dev environments only) */}
+                            {isDevEnv && (
+                                <div className="mt-4 pb-4 border-b border-border/50">
+                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                                                {t('settings.plugins.activeMode')}
+                                            </span>
+                                            <div className="relative inline-flex bg-muted p-1 rounded-lg border border-border/50 shadow-inner">
+                                                <div
+                                                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-background rounded-md shadow-sm transition-all duration-300 ease-spring ${plugin.active_mode === 'Prod' ? 'left-1' : 'left-[calc(50%+0px)]'}`}
+                                                />
+                                                <button
+                                                    onClick={() => handleModeToggle(plugin.metadata.name, 'Prod')}
+                                                    className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors w-20 ${plugin.active_mode === 'Prod' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                                                >
+                                                    <Package size={13} />
+                                                    User
+                                                </button>
+                                                <button
+                                                    onClick={() => handleModeToggle(plugin.metadata.name, 'Dev')}
+                                                    className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors w-20 ${plugin.active_mode === 'Dev' ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'}`}
+                                                >
+                                                    <Terminal size={13} />
+                                                    Dev
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="text-[10px] text-muted-foreground text-right max-w-xs transition-opacity duration-300">
+                                            {plugin.active_mode === 'Dev'
+                                                ? t('settings.plugins.devModeWarning')
+                                                : t('settings.plugins.userModeWarning')}
                                         </div>
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground text-right max-w-xs transition-opacity duration-300">
-                                        {plugin.active_mode === 'Dev'
-                                            ? t('settings.plugins.devModeWarning')
-                                            : t('settings.plugins.userModeWarning')}
-                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {plugin.installed ? (
                                 <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
@@ -261,11 +265,11 @@ export function PluginSettings() {
                                         <Button
                                             size="sm"
                                             variant="default"
-                                            onClick={() => window.open(`https://github.com/${plugin.metadata.release_repo}/releases`, '_blank')}
+                                            onClick={() => setShowInstallDialog(true)}
                                             className="flex-1 sm:flex-none gap-2 bg-primary hover:bg-primary/90"
                                         >
                                             <Download size={14} />
-                                            {t("settings.plugins.download")}
+                                            {t("settings.plugins.install", "一键安装")}
                                         </Button>
                                     </div>
                                 </div>
@@ -274,6 +278,15 @@ export function PluginSettings() {
                     </div>
                 ))}
             </div>
+
+            <PluginInstallDialog
+                isOpen={showInstallDialog}
+                onClose={() => setShowInstallDialog(false)}
+                onInstallComplete={() => {
+                    setShowInstallDialog(false);
+                    fetchPlugins();
+                }}
+            />
         </div>
     );
 }

@@ -254,7 +254,13 @@ export function BookReader({ article, onBack }: BookReaderProps) {
             }
         } catch (error) {
             console.error("[PDF Translate] Error:", error);
-            alert(t("pdfTranslate.error", "翻译失败: {{error}}", { error: String(error) }));
+            const errorStr = String(error);
+            // 插件未找到 / 执行失败 → 引导用户安装
+            if (errorStr.includes("Plugin") || errorStr.includes("not found") || errorStr.includes("Executable")) {
+                setShowPluginInstallDialog(true);
+            } else {
+                alert(t("pdfTranslate.error", "翻译失败: {{error}}", { error: errorStr }));
+            }
         } finally {
             setIsTranslating(false);
         }

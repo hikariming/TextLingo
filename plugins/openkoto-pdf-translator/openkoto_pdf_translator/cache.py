@@ -102,14 +102,30 @@ def init_db(remove_exists=False):
     cache_db_path = os.path.join(cache_folder, "cache.v1.db")
     if remove_exists and os.path.exists(cache_db_path):
         os.remove(cache_db_path)
-    db.init(
-        cache_db_path,
-        pragmas={
-            "journal_mode": "wal",
-            "busy_timeout": 1000,
-        },
-    )
-    db.create_tables([_TranslationCache], safe=True)
+
+    # If existing db is not writable (e.g. owned by root), remove and recreate
+    if os.path.exists(cache_db_path) and not os.access(cache_db_path, os.W_OK):
+        try:
+            os.remove(cache_db_path)
+            # Also remove WAL/SHM files if present
+            for suffix in ["-wal", "-shm"]:
+                p = cache_db_path + suffix
+                if os.path.exists(p):
+                    os.remove(p)
+        except OSError:
+            logger.warning(f"Cannot remove unwritable cache db: {cache_db_path}")
+
+    try:
+        db.init(
+            cache_db_path,
+            pragmas={
+                "journal_mode": "wal",
+                "busy_timeout": 1000,
+            },
+        )
+        db.create_tables([_TranslationCache], safe=True)
+    except Exception as e:
+        logger.warning(f"Failed to initialize cache database: {e}. Cache will be disabled.")
 
 
 def init_test_db():

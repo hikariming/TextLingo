@@ -291,6 +291,7 @@
       "notInstalled": "Not Installed",
       "notInstalledDesc": "Plugin not found. You can download the packaged version or set up the development environment.",
       "download": "Download",
+      "install": "Install Plugin",
       "refresh": "Refresh",
       "activeMode": "Active Mode"
     }
@@ -502,6 +503,8 @@
     "success": "PDF translation complete!\n\nTranslated: {{mono}}\nBilingual: {{dual}}",
     "error": "Translation failed: {{error}}",
     "noActiveModel": "Please configure and activate an AI model in settings first",
+    "pluginMissing": "PDF translation plugin is not installed. Please install it first.",
+    "successSwitch": "Translation complete! Switch to bilingual view?",
     "viewDual": "View bilingual",
     "viewMono": "View translated",
     "dual": "Bilingual",

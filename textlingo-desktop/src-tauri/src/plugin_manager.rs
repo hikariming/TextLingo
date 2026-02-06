@@ -4,7 +4,6 @@ use std::path::PathBuf;
 use std::collections::HashMap;
 use futures_util::StreamExt;
 use reqwest::Client;
-use std::io::Write;
 
 // 插件运行模式
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -70,29 +69,24 @@ fn scan_plugins(app_handle: &AppHandle) -> Vec<PluginInfo> {
         search_paths.push((user_plugins_dir, false));
     }
     
-    // 2. Local/Dev paths
-    if let Ok(cwd) = std::env::current_dir() {
-        println!("[PluginManager] Current working directory: {:?}", cwd);
-        
-        // Try ../plugins (e.g. from textlingo-desktop)
-        let dev_plugins_dir_1 = cwd.join("../plugins");
-        if dev_plugins_dir_1.exists() {
-            println!("[PluginManager] Found ../plugins: {:?}", dev_plugins_dir_1);
-            search_paths.push((dev_plugins_dir_1, true));
-        }
+    // 2. Local/Dev paths (only in debug builds)
+    #[cfg(debug_assertions)]
+    {
+        if let Ok(cwd) = std::env::current_dir() {
+            println!("[PluginManager] Current working directory: {:?}", cwd);
 
-        // Try ../../plugins (e.g. from textlingo-desktop/src-tauri)
-        let dev_plugins_dir_2 = cwd.join("../../plugins");
-        if dev_plugins_dir_2.exists() {
-            println!("[PluginManager] Found ../../plugins: {:?}", dev_plugins_dir_2);
-            search_paths.push((dev_plugins_dir_2, true));
-        }
+            let dev_paths = [
+                cwd.join("../plugins"),
+                cwd.join("../../plugins"),
+                cwd.join("plugins"),
+            ];
 
-        // Try ./plugins
-        let local_plugins_dir = cwd.join("plugins");
-        if local_plugins_dir.exists() {
-            println!("[PluginManager] Found ./plugins: {:?}", local_plugins_dir);
-            search_paths.push((local_plugins_dir, true));
+            for dev_path in &dev_paths {
+                if dev_path.exists() {
+                    println!("[PluginManager] Found dev plugins: {:?}", dev_path);
+                    search_paths.push((dev_path.clone(), true));
+                }
+            }
         }
     }
 
@@ -324,17 +318,6 @@ pub struct InstallProgress {
     pub message: String,
 }
 
-/// 获取当前平台对应的资源名
-fn get_platform_asset_name() -> &'static str {
-    match (std::env::consts::OS, std::env::consts::ARCH) {
-        ("macos", "aarch64") => "openkoto-pdf-translator-macos-arm64",
-        ("macos", _) => "openkoto-pdf-translator-macos-x64",
-        ("windows", _) => "openkoto-pdf-translator-win-x64.exe",
-        ("linux", _) => "openkoto-pdf-translator-linux-x64",
-        _ => "unknown",
-    }
-}
-
 /// 内置的 plugin.json 内容
 fn get_builtin_plugin_json() -> &'static str {
     r#"{
@@ -384,7 +367,20 @@ pub async fn check_plugin_installed_cmd(
     Ok(is_installed)
 }
 
-/// 从 GitHub API 获取最新 release 信息
+/// 获取当前平台对应的插件 zip 名称（优先级列表）
+fn get_platform_zip_names() -> Vec<&'static str> {
+    let platform_specific = match (std::env::consts::OS, std::env::consts::ARCH) {
+        ("macos", "aarch64") => "plugins-macos-arm64.zip",
+        ("macos", _) => "plugins-macos-x64.zip",
+        ("windows", _) => "plugins-win-x64.zip",
+        ("linux", _) => "plugins-linux-x64.zip",
+        _ => "plugins.zip",
+    };
+    // 优先平台特定 zip，其次通用 plugins.zip
+    vec![platform_specific, "plugins.zip"]
+}
+
+/// 从 GitHub API 获取包含插件 zip 的 release 信息
 #[tauri::command]
 pub async fn get_plugin_release_info_cmd(
     release_repo: String,
@@ -394,7 +390,8 @@ pub async fn get_plugin_release_info_cmd(
         .build()
         .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
 
-    let api_url = format!("https://api.github.com/repos/{}/releases/latest", release_repo);
+    // 获取最近的 releases 列表（插件 release 的 tag 是 v*，不是 app-v*）
+    let api_url = format!("https://api.github.com/repos/{}/releases?per_page=10", release_repo);
 
     let response = client.get(&api_url)
         .send()
@@ -405,53 +402,53 @@ pub async fn get_plugin_release_info_cmd(
         return Err(format!("GitHub API 返回错误: {}", response.status()));
     }
 
-    let release: serde_json::Value = response.json()
+    let releases: Vec<serde_json::Value> = response.json()
         .await
         .map_err(|e| format!("解析响应失败: {}", e))?;
 
-    let version = release["tag_name"]
-        .as_str()
-        .unwrap_or("unknown")
-        .to_string();
+    let zip_names = get_platform_zip_names();
 
-    // 找到匹配当前平台的 asset
-    let platform_asset_name = get_platform_asset_name();
+    // 遍历 releases，找到第一个包含插件 zip 的非预发布版本
+    for release in &releases {
+        let is_prerelease = release["prerelease"].as_bool().unwrap_or(false);
+        if is_prerelease { continue; }
 
-    let assets = release["assets"]
-        .as_array()
-        .ok_or("未找到发布资源")?;
+        if let Some(assets) = release["assets"].as_array() {
+            // 按优先级查找：先平台特定 zip，再通用 zip
+            for &target_name in &zip_names {
+                for asset in assets {
+                    let name = asset["name"].as_str().unwrap_or("");
+                    if name == target_name {
+                        let version = release["tag_name"]
+                            .as_str()
+                            .unwrap_or("unknown")
+                            .to_string();
 
-    let asset = assets.iter()
-        .find(|a| {
-            a["name"].as_str()
-                .map(|name| name.contains(platform_asset_name))
-                .unwrap_or(false)
-        })
-        .ok_or(format!("未找到适用于当前系统 ({}) 的插件版本", platform_asset_name))?;
+                        let download_url = asset["browser_download_url"]
+                            .as_str()
+                            .ok_or("未找到下载链接")?
+                            .to_string();
 
-    let download_url = asset["browser_download_url"]
-        .as_str()
-        .ok_or("未找到下载链接")?
-        .to_string();
+                        let file_size = asset["size"].as_u64().unwrap_or(0);
 
-    let file_name = asset["name"]
-        .as_str()
-        .unwrap_or("plugin")
-        .to_string();
+                        println!("[PluginManager] Found plugin zip: {} ({})", name, version);
 
-    let file_size = asset["size"]
-        .as_u64()
-        .unwrap_or(0);
+                        return Ok(PluginReleaseInfo {
+                            version,
+                            download_url,
+                            file_name: name.to_string(),
+                            file_size,
+                        });
+                    }
+                }
+            }
+        }
+    }
 
-    Ok(PluginReleaseInfo {
-        version,
-        download_url,
-        file_name,
-        file_size,
-    })
+    Err("未找到包含插件的发布版本".to_string())
 }
 
-/// 下载并安装插件
+/// 下载并安装插件（从 plugins.zip 解压）
 #[tauri::command]
 pub async fn install_plugin_cmd(
     app_handle: AppHandle,
@@ -460,10 +457,9 @@ pub async fn install_plugin_cmd(
 ) -> Result<(), String> {
     let app_data_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?;
     let plugins_dir = app_data_dir.join("plugins");
-    let plugin_dir = plugins_dir.join(&plugin_name);
 
-    // 创建目录
-    std::fs::create_dir_all(&plugin_dir)
+    // 确保 plugins 目录存在
+    std::fs::create_dir_all(&plugins_dir)
         .map_err(|e| format!("创建插件目录失败: {}", e))?;
 
     // 发送开始下载事件
@@ -473,7 +469,7 @@ pub async fn install_plugin_cmd(
         message: "正在下载插件...".to_string(),
     });
 
-    // 下载文件
+    // 下载 plugins.zip 到内存
     let client = Client::builder()
         .user_agent("OpenKoto-Desktop")
         .build()
@@ -489,27 +485,13 @@ pub async fn install_plugin_cmd(
     }
 
     let total_size = response.content_length().unwrap_or(0);
-
-    // 确定目标文件名
-    let exe_name = if cfg!(target_os = "windows") {
-        "openkoto-pdf-translator.exe"
-    } else {
-        "openkoto-pdf-translator"
-    };
-    let exe_path = plugin_dir.join(exe_name);
-
-    // 流式下载并显示进度
-    let mut file = std::fs::File::create(&exe_path)
-        .map_err(|e| format!("创建文件失败: {}", e))?;
-
+    let mut downloaded_bytes: Vec<u8> = Vec::new();
     let mut downloaded: u64 = 0;
     let mut stream = response.bytes_stream();
 
     while let Some(chunk_result) = stream.next().await {
         let chunk = chunk_result.map_err(|e| format!("下载中断: {}", e))?;
-        file.write_all(&chunk)
-            .map_err(|e| format!("写入文件失败: {}", e))?;
-
+        downloaded_bytes.extend_from_slice(&chunk);
         downloaded += chunk.len() as u64;
 
         let progress = if total_size > 0 {
@@ -525,31 +507,101 @@ pub async fn install_plugin_cmd(
         });
     }
 
-    drop(file);
-
-    // 发送安装中事件
+    // 发送解压事件
     let _ = app_handle.emit("plugin-install-progress", InstallProgress {
         stage: "installing".to_string(),
         progress: 0.9,
-        message: "正在安装...".to_string(),
+        message: "正在解压安装...".to_string(),
     });
 
-    // 设置可执行权限 (macOS/Linux)
+    // 解压 zip 到 plugins 目录
+    let cursor = std::io::Cursor::new(downloaded_bytes);
+    let mut archive = zip::ZipArchive::new(cursor)
+        .map_err(|e| format!("无法打开 zip 文件: {}", e))?;
+
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)
+            .map_err(|e| format!("读取 zip 条目失败: {}", e))?;
+
+        let outpath = match file.enclosed_name() {
+            Some(path) => plugins_dir.join(path),
+            None => continue,
+        };
+
+        if file.is_dir() {
+            std::fs::create_dir_all(&outpath)
+                .map_err(|e| format!("创建目录失败: {}", e))?;
+        } else {
+            if let Some(parent) = outpath.parent() {
+                std::fs::create_dir_all(parent)
+                    .map_err(|e| format!("创建父目录失败: {}", e))?;
+            }
+            let mut outfile = std::fs::File::create(&outpath)
+                .map_err(|e| format!("创建文件失败: {}", e))?;
+            std::io::copy(&mut file, &mut outfile)
+                .map_err(|e| format!("写入文件失败: {}", e))?;
+
+            // 设置可执行权限 (Unix)
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                if let Some(mode) = file.unix_mode() {
+                    std::fs::set_permissions(&outpath, std::fs::Permissions::from_mode(mode)).ok();
+                }
+            }
+        }
+    }
+
+    // 验证插件目录结构
+    let plugin_dir = plugins_dir.join(&plugin_name);
+    let plugin_json_path = plugin_dir.join("plugin.json");
+
+    // 如果 zip 没有包含 plugin.json，写入内置版本
+    if !plugin_json_path.exists() {
+        std::fs::create_dir_all(&plugin_dir)
+            .map_err(|e| format!("创建插件目录失败: {}", e))?;
+        std::fs::write(&plugin_json_path, get_builtin_plugin_json())
+            .map_err(|e| format!("写入 plugin.json 失败: {}", e))?;
+    }
+
+    // 处理平台特定的可执行文件命名
+    // PyInstaller 构建产出带平台后缀（如 openkoto-pdf-translator-macos-arm64），
+    // 但 plugin.json 中 entry_points 期望的是通用名称（openkoto-pdf-translator）。
+    // 这里查找带平台后缀的二进制并重命名为通用名称。
+    let generic_exe_name = if cfg!(target_os = "windows") {
+        "openkoto-pdf-translator.exe"
+    } else {
+        "openkoto-pdf-translator"
+    };
+    let generic_exe_path = plugin_dir.join(generic_exe_name);
+
+    if !generic_exe_path.exists() {
+        // 查找带平台后缀的可执行文件
+        if let Ok(entries) = std::fs::read_dir(&plugin_dir) {
+            for entry in entries.flatten() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if name.starts_with("openkoto-pdf-translator-") && !name.ends_with(".json") {
+                    let src = entry.path();
+                    println!("[PluginManager] Renaming platform binary: {} -> {}", name, generic_exe_name);
+                    std::fs::rename(&src, &generic_exe_path)
+                        .map_err(|e| format!("重命名可执行文件失败: {}", e))?;
+                    break;
+                }
+            }
+        }
+    }
+
+    // 确保可执行文件有执行权限
     #[cfg(unix)]
-    {
+    if generic_exe_path.exists() {
         use std::os::unix::fs::PermissionsExt;
-        let mut perms = std::fs::metadata(&exe_path)
+        let mut perms = std::fs::metadata(&generic_exe_path)
             .map_err(|e| format!("获取文件权限失败: {}", e))?
             .permissions();
         perms.set_mode(0o755);
-        std::fs::set_permissions(&exe_path, perms)
+        std::fs::set_permissions(&generic_exe_path, perms)
             .map_err(|e| format!("设置可执行权限失败: {}", e))?;
     }
-
-    // 写入 plugin.json
-    let plugin_json_path = plugin_dir.join("plugin.json");
-    std::fs::write(&plugin_json_path, get_builtin_plugin_json())
-        .map_err(|e| format!("写入 plugin.json 失败: {}", e))?;
 
     // 发送完成事件
     let _ = app_handle.emit("plugin-install-progress", InstallProgress {

@@ -29,18 +29,31 @@ def build():
     """Build the executable."""
     platform_name = get_platform_name()
     output_name = f"openkoto-pdf-translator-{platform_name}"
-    
+
     # Get the directory of this script
     script_dir = Path(__file__).parent.absolute()
-    main_script = script_dir / "openkoto_pdf_translator" / "pdf2zh.py"
-    
+    # Use wrapper entry point to avoid relative import errors
+    main_script = script_dir / "pyinstaller_entry.py"
+
     # PyInstaller options
     args = [
         str(main_script),
         "--onefile",
         "--name", output_name,
         "--clean",
-        # Hidden imports for dynamic dependencies
+        # Add the plugin root to Python path so absolute imports work
+        "--paths", str(script_dir),
+        # Hidden imports for the package and dynamic dependencies
+        "--hidden-import", "openkoto_pdf_translator",
+        "--hidden-import", "openkoto_pdf_translator.pdf2zh",
+        "--hidden-import", "openkoto_pdf_translator.high_level",
+        "--hidden-import", "openkoto_pdf_translator.translator",
+        "--hidden-import", "openkoto_pdf_translator.converter",
+        "--hidden-import", "openkoto_pdf_translator.doclayout",
+        "--hidden-import", "openkoto_pdf_translator.pdfinterp",
+        "--hidden-import", "openkoto_pdf_translator.cache",
+        "--hidden-import", "openkoto_pdf_translator.config",
+        "--hidden-import", "openkoto_pdf_translator.openkoto_translator",
         "--hidden-import", "openai",
         "--hidden-import", "requests",
         "--hidden-import", "numpy",
@@ -52,10 +65,21 @@ def build():
         "--hidden-import", "fontTools",
         "--hidden-import", "pikepdf",
         "--hidden-import", "pdfminer",
+        "--hidden-import", "pdfminer.pdfparser",
+        "--hidden-import", "pdfminer.pdfdocument",
+        "--hidden-import", "pdfminer.pdfpage",
+        "--hidden-import", "pdfminer.pdfinterp",
         "--hidden-import", "pymupdf",
         "--hidden-import", "rich",
+        "--hidden-import", "rich.logging",
         "--hidden-import", "tenacity",
         "--hidden-import", "huggingface_hub",
+        "--hidden-import", "babeldoc",
+        "--hidden-import", "babeldoc.assets",
+        "--hidden-import", "babeldoc.assets.assets",
+        "--hidden-import", "babeldoc.translation_config",
+        "--hidden-import", "babeldoc.high_level",
+        "--hidden-import", "babeldoc.main",
         # Exclude unnecessary modules to reduce size
         "--exclude-module", "gradio",
         "--exclude-module", "gradio_pdf",
@@ -67,18 +91,18 @@ def build():
         "--workpath", str(script_dir / "build"),
         "--specpath", str(script_dir / "build"),
     ]
-    
+
     # Add icon on Windows/macOS if available
     icon_path = script_dir / "assets" / "icon.ico"
     if icon_path.exists():
         args.extend(["--icon", str(icon_path)])
-    
+
     print(f"Building {output_name}...")
     print(f"Platform: {platform_name}")
     print(f"Main script: {main_script}")
-    
+
     PyInstaller.__main__.run(args)
-    
+
     print(f"\n✅ Build complete! Executable: dist/{output_name}")
     
 
