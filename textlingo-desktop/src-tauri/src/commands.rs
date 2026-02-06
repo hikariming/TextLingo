@@ -1,23 +1,38 @@
 use crate::ai_service::{get_ai_service, get_or_create_ai_service, AIServiceCache};
 use crate::storage::{
-    delete_article, ensure_app_dirs, load_article, load_config, list_articles, save_article,
-    save_config,
-    // 收藏夹存储函数
-    save_favorite_vocabulary, load_favorite_vocabulary, list_favorite_vocabularies, delete_favorite_vocabulary,
-    save_favorite_grammar, load_favorite_grammar, list_favorite_grammars, delete_favorite_grammar,
+    delete_article,
+    delete_bookmark,
+    delete_favorite_grammar,
+    delete_favorite_vocabulary,
+    ensure_app_dirs,
+    list_articles,
+    list_bookmarks,
+    list_bookmarks_for_book,
+    list_favorite_grammars,
+    list_favorite_vocabularies,
+    load_article,
+    load_bookmark,
+    load_config,
+    load_favorite_grammar,
+    load_favorite_vocabulary,
+    save_article,
     // 书签存储函数
-    save_bookmark, load_bookmark, list_bookmarks, delete_bookmark, list_bookmarks_for_book,
+    save_bookmark,
+    save_config,
+    save_favorite_grammar,
+    // 收藏夹存储函数
+    save_favorite_vocabulary,
 };
 use crate::types::{
-    AnalysisRequest, AnalysisResponse, AnalysisType, Article, ChatRequest, ChatResponse,
-    TranslationRequest, TranslationResponse, ModelConfig, ArticleSegment,
-    FavoriteVocabulary, FavoriteGrammar, Bookmark,
+    AnalysisRequest, AnalysisResponse, AnalysisType, Article, ArticleSegment, Bookmark,
+    ChatRequest, ChatResponse, FavoriteGrammar, FavoriteVocabulary, ModelConfig,
+    TranslationRequest, TranslationResponse,
 };
-use tauri::{AppHandle, State, Manager, Emitter};
-use uuid::Uuid;
 use reqwest::Client;
-use std::time::Duration;
 use std::path::PathBuf;
+use std::time::Duration;
+use tauri::{AppHandle, Emitter, Manager, State};
+use uuid::Uuid;
 
 pub type AppState<'a> = State<'a, AIServiceCache>;
 
@@ -26,25 +41,25 @@ pub type AppState<'a> = State<'a, AIServiceCache>;
 fn create_segments_from_content(article_id: &str, content: &str) -> Vec<ArticleSegment> {
     let mut segments = Vec::new();
     let mut order = 0;
-    
+
     // 首先按段落分割（双换行或单换行）
     let paragraphs: Vec<&str> = content
         .split('\n')
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
         .collect();
-    
+
     for paragraph in paragraphs {
         // 将段落按句子分割（使用 . 或 。 作为分隔符）
         // 使用正则表达式保留分隔符
         let sentences = split_into_sentences(paragraph);
-        
+
         for (sentence_index, sentence) in sentences.iter().enumerate() {
             let text = sentence.trim();
             if text.is_empty() {
                 continue;
             }
-            
+
             segments.push(ArticleSegment {
                 id: Uuid::new_v4().to_string(),
                 article_id: article_id.to_string(),
@@ -62,7 +77,7 @@ fn create_segments_from_content(article_id: &str, content: &str) -> Vec<ArticleS
             order += 1;
         }
     }
-    
+
     segments
 }
 
@@ -72,49 +87,58 @@ fn split_into_sentences(text: &str) -> Vec<String> {
     let mut sentences = Vec::new();
     let mut current = String::new();
     let chars: Vec<char> = text.chars().collect();
-    
+
     let mut i = 0;
     while i < chars.len() {
         let c = chars[i];
         current.push(c);
-        
+
         // 检查是否是句子结束符
-        let is_sentence_end = c == '。' || c == '？' || c == '！' ||
-            (c == '.' && !is_abbreviation(&chars, i)) ||
-            c == '?' || c == '!';
-        
+        let is_sentence_end = c == '。'
+            || c == '？'
+            || c == '！'
+            || (c == '.' && !is_abbreviation(&chars, i))
+            || c == '?'
+            || c == '!';
+
         if is_sentence_end {
             // 处理引号闭合情况：如 ... said." 这种情况
             // 向后看，如果下一个字符是引号，把它也加进来
             if i + 1 < chars.len() {
                 let next = chars[i + 1];
-                if next == '"' || next == '"' || next == '\'' || next == '\u{2019}' || next == ')' || next == '）' {
+                if next == '"'
+                    || next == '"'
+                    || next == '\''
+                    || next == '\u{2019}'
+                    || next == ')'
+                    || next == '）'
+                {
                     i += 1;
                     current.push(next);
                 }
             }
-            
+
             let trimmed = current.trim().to_string();
             if !trimmed.is_empty() {
                 sentences.push(trimmed);
             }
             current = String::new();
         }
-        
+
         i += 1;
     }
-    
+
     // 处理剩余内容（没有句号结尾的情况）
     let trimmed = current.trim().to_string();
     if !trimmed.is_empty() {
         sentences.push(trimmed);
     }
-    
+
     // 如果整个段落没有分割成功（没有找到分隔符），返回整段
     if sentences.is_empty() && !text.trim().is_empty() {
         sentences.push(text.trim().to_string());
     }
-    
+
     sentences
 }
 
@@ -125,7 +149,7 @@ fn is_abbreviation(chars: &[char], pos: usize) -> bool {
     if pos + 1 < chars.len() && chars[pos + 1].is_alphabetic() {
         return true;
     }
-    
+
     // 检查句点前是否是常见缩写
     // 向前查找单词
     let mut word = String::new();
@@ -134,19 +158,21 @@ fn is_abbreviation(chars: &[char], pos: usize) -> bool {
         word.insert(0, chars[j as usize]);
         j -= 1;
     }
-    
+
     let word_lower = word.to_lowercase();
-    let abbreviations = ["mr", "mrs", "ms", "dr", "jr", "sr", "vs", "etc", "inc", "ltd", "no", "st", "ave", "rd"];
-    
+    let abbreviations = [
+        "mr", "mrs", "ms", "dr", "jr", "sr", "vs", "etc", "inc", "ltd", "no", "st", "ave", "rd",
+    ];
+
     if abbreviations.contains(&word_lower.as_str()) {
         return true;
     }
-    
+
     // 单字母后跟句点通常是缩写（如 A. B. C.）
     if word.len() == 1 && word.chars().next().unwrap().is_uppercase() {
         return true;
     }
-    
+
     false
 }
 
@@ -205,7 +231,10 @@ pub async fn save_model_config(
     let mut app_config = load_config(&app_handle)?.unwrap_or_default();
 
     // Check if this is an update or new config
-    let existing_index = app_config.model_configs.iter().position(|c| c.id == config.id);
+    let existing_index = app_config
+        .model_configs
+        .iter()
+        .position(|c| c.id == config.id);
 
     if let Some(idx) = existing_index {
         // Update existing config
@@ -236,7 +265,8 @@ pub async fn save_model_config(
             config.api_provider.clone(),
             config.model.clone(),
             config.base_url.clone(),
-        ).await?;
+        )
+        .await?;
     }
 
     Ok(config)
@@ -244,10 +274,7 @@ pub async fn save_model_config(
 
 /// Delete a model configuration
 #[tauri::command]
-pub async fn delete_model_config(
-    app_handle: AppHandle,
-    config_id: String,
-) -> Result<(), String> {
+pub async fn delete_model_config(app_handle: AppHandle, config_id: String) -> Result<(), String> {
     let mut app_config = load_config(&app_handle)?.unwrap_or_default();
 
     // Remove the config
@@ -276,7 +303,8 @@ pub async fn set_active_model_config(
 ) -> Result<ModelConfig, String> {
     let mut app_config = load_config(&app_handle)?.unwrap_or_default();
 
-    let config = app_config.get_config(&config_id)
+    let config = app_config
+        .get_config(&config_id)
         .ok_or("Configuration not found")?
         .clone();
 
@@ -291,7 +319,8 @@ pub async fn set_active_model_config(
         config.api_provider.clone(),
         config.model.clone(),
         config.base_url.clone(),
-    ).await?;
+    )
+    .await?;
 
     Ok(config)
 }
@@ -318,7 +347,9 @@ pub async fn set_api_key(
     let config_name = format!("{} - {}", provider, model);
 
     // Check if a config with same provider/model already exists
-    let existing = app_config.model_configs.iter()
+    let existing = app_config
+        .model_configs
+        .iter()
         .find(|c| c.api_provider == provider && c.model == model);
 
     let config = if let Some(existing) = existing {
@@ -335,7 +366,10 @@ pub async fn set_api_key(
     let config_id = config.id.clone();
 
     // Add or update
-    let existing_index = app_config.model_configs.iter().position(|c| c.id == config.id);
+    let existing_index = app_config
+        .model_configs
+        .iter()
+        .position(|c| c.id == config.id);
     if let Some(idx) = existing_index {
         app_config.model_configs[idx] = config.clone();
     } else {
@@ -348,7 +382,14 @@ pub async fn set_api_key(
     save_config(&app_handle, &app_config)?;
 
     // Update AI service cache
-    get_or_create_ai_service(&state, config.api_key.clone(), config.api_provider.clone(), config.model.clone(), config.base_url.clone()).await?;
+    get_or_create_ai_service(
+        &state,
+        config.api_key.clone(),
+        config.api_provider.clone(),
+        config.model.clone(),
+        config.base_url.clone(),
+    )
+    .await?;
 
     Ok("API key saved successfully".to_string())
 }
@@ -537,16 +578,18 @@ pub async fn stream_chat_completion(
     event_id: String,
 ) -> Result<String, String> {
     let ai_service = get_ai_service(&state).await?;
-    
+
     // Create a callback that emits events to the frontend
     let app_handle_clone = app_handle.clone();
     let event_name = format!("chat-stream://{}", event_id);
-    
-    ai_service.stream_chat(request, move |chunk| {
-        // Emit the chunk to the frontend
-        // We ignore errors here as we can't do much if emission fails
-        let _ = app_handle_clone.emit(&event_name, chunk);
-    }).await
+
+    ai_service
+        .stream_chat(request, move |chunk| {
+            // Emit the chunk to the frontend
+            // We ignore errors here as we can't do much if emission fails
+            let _ = app_handle_clone.emit(&event_name, chunk);
+        })
+        .await
 }
 
 #[tauri::command]
@@ -556,7 +599,9 @@ pub async fn segment_translate_explain_cmd(
     target_language: String,
 ) -> Result<crate::types::SegmentExplanation, String> {
     let ai_service = get_ai_service(&state).await?;
-    ai_service.segment_translate_explain(text, target_language).await
+    ai_service
+        .segment_translate_explain(text, target_language)
+        .await
 }
 
 #[tauri::command]
@@ -574,7 +619,8 @@ pub async fn translate_article(
     }
 
     // 收集需要翻译的段落（没有翻译的）
-    let untranslated: Vec<(String, String)> = article.segments
+    let untranslated: Vec<(String, String)> = article
+        .segments
         .iter()
         .filter(|s| s.translation.is_none())
         .map(|s| (s.id.clone(), s.text.clone()))
@@ -582,20 +628,30 @@ pub async fn translate_article(
 
     if !untranslated.is_empty() {
         let ai_service = get_ai_service(&state).await?;
-        
+
         // 批量翻译（每批最多30条）
         const BATCH_SIZE: usize = 30;
         let total_count = untranslated.len();
         let total_chunks = (total_count + BATCH_SIZE - 1) / BATCH_SIZE;
 
-        println!("[Article] Starting quick translation for article: {}, items: {}", article_id, total_count);
+        println!(
+            "[Article] Starting quick translation for article: {}, items: {}",
+            article_id, total_count
+        );
 
         for (i, chunk) in untranslated.chunks(BATCH_SIZE).enumerate() {
-            println!("[Article] Translating chunk {}/{} ({} items)...", i + 1, total_chunks, chunk.len());
+            println!(
+                "[Article] Translating chunk {}/{} ({} items)...",
+                i + 1,
+                total_chunks,
+                chunk.len()
+            );
             let batch_items: Vec<(String, String)> = chunk.to_vec();
 
-            
-            match ai_service.batch_translate(batch_items, &target_language).await {
+            match ai_service
+                .batch_translate(batch_items, &target_language)
+                .await
+            {
                 Ok(translations) => {
                     // 将翻译结果写回对应的 segment
                     for (id, translation) in translations {
@@ -603,32 +659,48 @@ pub async fn translate_article(
                             seg.translation = Some(translation);
                         }
                     }
-                    println!("[Article] Chunk {}/{} completed successfully", i + 1, total_chunks);
-                    
+                    println!(
+                        "[Article] Chunk {}/{} completed successfully",
+                        i + 1,
+                        total_chunks
+                    );
+
                     // Emit progress event
                     let progress = serde_json::json!({
                         "current": (i + 1) * BATCH_SIZE,
                         "total": total_count,
                         "message": format!("Translating chunk {}/{}", i + 1, total_chunks)
                     });
-                    let _ = app_handle.emit(&format!("translation-progress://{}", article_id), progress);
+                    let _ = app_handle
+                        .emit(&format!("translation-progress://{}", article_id), progress);
                 }
                 Err(e) => {
                     // 批量翻译失败，记录错误但继续
-                    eprintln!("[Article] Batch translation error in chunk {}/{}: {}", i + 1, total_chunks, e);
+                    eprintln!(
+                        "[Article] Batch translation error in chunk {}/{}: {}",
+                        i + 1,
+                        total_chunks,
+                        e
+                    );
                 }
             }
         }
     }
-    
-    // Emit complete event
-    let _ = app_handle.emit(&format!("translation-progress://{}", article_id), serde_json::json!({
-        "current": untranslated.len(),
-        "total": untranslated.len(),
-        "message": "Translation completed"
-    }));
 
-    println!("[Article] Quick translation completed for article: {}", article_id);
+    // Emit complete event
+    let _ = app_handle.emit(
+        &format!("translation-progress://{}", article_id),
+        serde_json::json!({
+            "current": untranslated.len(),
+            "total": untranslated.len(),
+            "message": "Translation completed"
+        }),
+    );
+
+    println!(
+        "[Article] Quick translation completed for article: {}",
+        article_id
+    );
     article.translated = true;
 
     let article_json = serde_json::to_string(&article).unwrap();
@@ -675,8 +747,7 @@ pub struct FetchedContent {
 #[tauri::command]
 pub async fn fetch_url_content(url: String) -> Result<FetchedContent, String> {
     // Validate URL
-    let parsed_url = url::Url::parse(&url)
-        .map_err(|_| "Invalid URL format".to_string())?;
+    let parsed_url = url::Url::parse(&url).map_err(|_| "Invalid URL format".to_string())?;
 
     // Only allow http/https
     if parsed_url.scheme() != "http" && parsed_url.scheme() != "https" {
@@ -718,9 +789,11 @@ pub async fn fetch_url_content(url: String) -> Result<FetchedContent, String> {
     let mut cursor = std::io::Cursor::new(html.as_bytes());
     let mut title = String::new();
     let mut content = String::new();
-    
+
     // Try readability first
-    if let Ok(extracted) = readability::extractor::extract(&mut cursor, &url::Url::parse(&url).unwrap()) {
+    if let Ok(extracted) =
+        readability::extractor::extract(&mut cursor, &url::Url::parse(&url).unwrap())
+    {
         title = extracted.title;
         content = html_to_text_preserving_layout(&extracted.content);
     }
@@ -734,17 +807,17 @@ pub async fn fetch_url_content(url: String) -> Result<FetchedContent, String> {
                 content = html_to_text_preserving_layout(&fallback_content);
                 // If title was missing, try to get it again or keep old one
                 if title.is_empty() {
-                     title = extract_title_from_html(&html, &url);
+                    title = extract_title_from_html(&html, &url);
                 }
             }
         }
     }
-    
+
     // Final check
     if content.trim().len() < 10 {
-         if content.trim().is_empty() {
-             return Err("Could not extract meaningful content. The page might be empty or require JavaScript interaction that is not supported.".to_string());
-         }
+        if content.trim().is_empty() {
+            return Err("Could not extract meaningful content. The page might be empty or require JavaScript interaction that is not supported.".to_string());
+        }
     }
 
     // If title is still empty
@@ -758,9 +831,9 @@ pub async fn fetch_url_content(url: String) -> Result<FetchedContent, String> {
 /// Fallback extraction using CSS selectors for known difficult sites
 fn try_fallback_extraction(html: &str) -> Option<String> {
     use scraper::{Html, Selector};
-    
+
     let document = Html::parse_document(html);
-    
+
     // List of selectors to try, in order of preference
     // #kashi_area: Uta-net
     // .lyrics_box: common lyrics class
@@ -774,7 +847,7 @@ fn try_fallback_extraction(html: &str) -> Option<String> {
         "article",
         "main",
     ];
-    
+
     for selector_str in selectors {
         if let Ok(selector) = Selector::parse(selector_str) {
             if let Some(element) = document.select(&selector).next() {
@@ -786,7 +859,7 @@ fn try_fallback_extraction(html: &str) -> Option<String> {
             }
         }
     }
-    
+
     None
 }
 
@@ -840,7 +913,7 @@ fn html_to_text_preserving_layout(html: &str) -> String {
     }
 
     let result = clean_lines.join("\n");
-    
+
     // Final trim of the whole text
     result.trim().to_string()
 }
@@ -1013,10 +1086,7 @@ pub async fn list_favorite_grammars_cmd(
 
 /// 删除语法收藏
 #[tauri::command]
-pub async fn delete_favorite_grammar_cmd(
-    app_handle: AppHandle,
-    id: String,
-) -> Result<(), String> {
+pub async fn delete_favorite_grammar_cmd(app_handle: AppHandle, id: String) -> Result<(), String> {
     delete_favorite_grammar(&app_handle, &id)?;
     Ok(())
 }
@@ -1028,11 +1098,11 @@ pub async fn import_youtube_video_cmd(
     url: String,
 ) -> Result<Article, String> {
     let article = crate::youtube::import_youtube_video(app_handle.clone(), url).await?;
-    
+
     let article_json = serde_json::to_string(&article)
         .map_err(|e| format!("Failed to serialize article: {}", e))?;
     save_article(&app_handle, &article.id, &article_json)?;
-    
+
     Ok(article)
 }
 
@@ -1045,7 +1115,7 @@ pub async fn import_local_video_cmd(
         .path()
         .app_data_dir()
         .map_err(|e| format!("Failed to get app data dir: {}", e))?;
-    
+
     let videos_dir = app_data_dir.join("videos");
     if !videos_dir.exists() {
         std::fs::create_dir_all(&videos_dir)
@@ -1061,7 +1131,7 @@ pub async fn import_local_video_cmd(
         .file_name()
         .ok_or("Invalid file name")?
         .to_string_lossy();
-        
+
     let ext = src_path
         .extension()
         .map(|e| e.to_string_lossy().to_string())
@@ -1071,11 +1141,10 @@ pub async fn import_local_video_cmd(
     let dest_name = format!("{}.{}", id, ext);
     let dest_path = videos_dir.join(&dest_name);
 
-    std::fs::copy(src_path, &dest_path)
-        .map_err(|e| format!("Failed to copy file: {}", e))?;
+    std::fs::copy(src_path, &dest_path).map_err(|e| format!("Failed to copy file: {}", e))?;
 
     let created_at = chrono::Utc::now().to_rfc3339();
-    
+
     // Initial content placeholder
     let content = format!("[Local Import] {}", file_name);
 
@@ -1108,43 +1177,49 @@ pub async fn extract_subtitles_cmd(
     article_id: String,
 ) -> Result<Article, String> {
     println!("[ExtractSubtitles] 开始提取字幕: {}", article_id);
-    
+
     // 1. 加载文章
     let article_json = load_article(&app_handle, &article_id)?;
     let mut article: Article = serde_json::from_str(&article_json)
         .map_err(|e| format!("Failed to parse article: {}", e))?;
-    
+
     // 2. 验证是视频并获取视频路径
-    let video_path = article.media_path.as_ref()
+    let video_path = article
+        .media_path
+        .as_ref()
         .ok_or("该文章不是视频，无法提取字幕")?;
     let video_path = std::path::Path::new(video_path);
-    
+
     if !video_path.exists() {
         return Err(format!("视频文件不存在: {:?}", video_path));
     }
-    
+
     // 3. 获取 API 配置
-    let config = load_config(&app_handle)?
-        .ok_or("未配置 API，请先在设置中配置 AI 模型")?;
-    
-    let active_config = config.get_active_config()
+    let config = load_config(&app_handle)?.ok_or("未配置 API，请先在设置中配置 AI 模型")?;
+
+    let active_config = config
+        .get_active_config()
         .ok_or("未设置活动模型配置，请先在设置中配置 AI 模型")?;
-    
+
     // 检查是否是 Gemini 模型
     let model = &active_config.model;
     let provider = &active_config.api_provider;
     let api_key = &active_config.api_key;
-    
+
     // 允许的 Gemini 或 Kimi 模型
-    let is_supported = model.contains("gemini") || 
-                    model.starts_with("google/gemini") ||
-                    provider == "google" || provider == "google-ai-studio" ||
-                    provider == "moonshot" || model.contains("kimi");
-    
+    let is_supported = model.contains("gemini")
+        || model.starts_with("google/gemini")
+        || provider == "google"
+        || provider == "google-ai-studio"
+        || provider == "moonshot"
+        || model.contains("kimi");
+
     if !is_supported {
-        return Err("字幕提取需要使用 Gemini 或 Kimi K2.5 模型。请在设置中配置相关 API".to_string());
+        return Err(
+            "字幕提取需要使用 Gemini 或 Kimi K2.5 模型。请在设置中配置相关 API".to_string(),
+        );
     }
-    
+
     // 4. 调用字幕提取模块 (使用 article_id 作为 event_id)
     let segments = crate::subtitle_extraction::extract_subtitles(
         app_handle.clone(),
@@ -1154,29 +1229,31 @@ pub async fn extract_subtitles_cmd(
         api_key,
         model,
         &article_id, // event_id 用于进度事件
-    ).await?;
-    
+    )
+    .await?;
+
     if segments.is_empty() {
         return Err("未能从视频中提取到字幕内容".to_string());
     }
-    
+
     println!("[ExtractSubtitles] 提取到 {} 个字幕片段", segments.len());
-    
+
     // 5. 更新文章内容
     article.segments = segments;
-    article.content = article.segments
+    article.content = article
+        .segments
         .iter()
         .map(|s| s.text.clone())
         .collect::<Vec<_>>()
         .join(" ");
-    
+
     // 6. 保存文章
     let updated_json = serde_json::to_string(&article)
         .map_err(|e| format!("Failed to serialize article: {}", e))?;
     save_article(&app_handle, &article_id, &updated_json)?;
-    
+
     println!("[ExtractSubtitles] 字幕提取完成并保存");
-    
+
     Ok(article)
 }
 
@@ -1192,13 +1269,12 @@ fn ensure_books_dir(app_handle: &AppHandle) -> Result<PathBuf, String> {
         .path()
         .app_data_dir()
         .map_err(|e| format!("获取应用数据目录失败: {}", e))?;
-    
+
     let books_dir = app_data_dir.join(BOOKS_DIR);
     if !books_dir.exists() {
-        std::fs::create_dir_all(&books_dir)
-            .map_err(|e| format!("创建书籍目录失败: {}", e))?;
+        std::fs::create_dir_all(&books_dir).map_err(|e| format!("创建书籍目录失败: {}", e))?;
     }
-    
+
     Ok(books_dir)
 }
 
@@ -1211,50 +1287,49 @@ pub async fn import_book_cmd(
     title: Option<String>,
 ) -> Result<Article, String> {
     use std::path::Path;
-    
+
     let src_path = Path::new(&file_path);
-    
+
     // 验证文件存在
     if !src_path.exists() {
         return Err(format!("文件不存在: {}", file_path));
     }
-    
+
     // 获取文件扩展名并验证格式
     let ext = src_path
         .extension()
         .and_then(|e| e.to_str())
         .map(|e| e.to_lowercase())
         .ok_or("无法识别文件格式")?;
-    
+
     let book_type = match ext.as_str() {
         "epub" => "epub",
         "txt" => "txt",
         "pdf" => "pdf",
         _ => return Err(format!("不支持的文件格式: {}", ext)),
     };
-    
+
     // 获取文件名作为默认标题
     let file_name = src_path
         .file_stem()
         .and_then(|n| n.to_str())
         .unwrap_or("未命名书籍");
-    
+
     let book_title = title.unwrap_or_else(|| file_name.to_string());
-    
+
     // 确保书籍目录存在
     let books_dir = ensure_books_dir(&app_handle)?;
-    
+
     // 生成唯一 ID 和目标路径
     let id = Uuid::new_v4().to_string();
     let dest_name = format!("{}.{}", id, ext);
     let dest_path = books_dir.join(&dest_name);
-    
+
     // 复制文件到应用数据目录
-    std::fs::copy(src_path, &dest_path)
-        .map_err(|e| format!("复制文件失败: {}", e))?;
-    
+    std::fs::copy(src_path, &dest_path).map_err(|e| format!("复制文件失败: {}", e))?;
+
     let created_at = chrono::Utc::now().to_rfc3339();
-    
+
     // 读取 TXT 文件内容作为 content，EPUB/PDF 使用占位符
     let content = match book_type {
         "txt" => {
@@ -1266,7 +1341,7 @@ pub async fn import_book_cmd(
         "pdf" => format!("[PDF 书籍] {}", book_title),
         _ => format!("[书籍已导入] {}", book_title),
     };
-    
+
     // 创建 Article 记录
     let article = Article {
         id: id.clone(),
@@ -1280,17 +1355,19 @@ pub async fn import_book_cmd(
         translated: false,
         segments: Vec::new(), // 书籍不预分段，由阅读器处理
     };
-    
+
     // 保存文章记录
-    let article_json = serde_json::to_string(&article)
-        .map_err(|e| format!("序列化文章失败: {}", e))?;
+    let article_json =
+        serde_json::to_string(&article).map_err(|e| format!("序列化文章失败: {}", e))?;
     save_article(&app_handle, &id, &article_json)?;
-    
-    println!("[ImportBook] 书籍导入成功: {} ({})", article.title, book_type);
-    
+
+    println!(
+        "[ImportBook] 书籍导入成功: {} ({})",
+        article.title, book_type
+    );
+
     Ok(article)
 }
-
 
 // File System Commands
 #[tauri::command]
@@ -1345,29 +1422,34 @@ pub async fn translate_pdf_document(
     model: String,
     base_url: Option<String>,
 ) -> Result<serde_json::Value, String> {
-    use std::process::Command;
     use crate::plugin_manager;
+    use std::process::Command;
 
-    println!("[PDF Translate] Starting translation: {} -> {}", lang_in, lang_out);
+    println!(
+        "[PDF Translate] Starting translation: {} -> {}",
+        lang_in, lang_out
+    );
     println!("[PDF Translate] Provider: {}, Model: {}", provider, model);
-    
+
     // 获取输出目录（与原PDF相同目录）
     let pdf_path_buf = PathBuf::from(&pdf_path);
-    let output_dir = pdf_path_buf.parent()
+    let output_dir = pdf_path_buf
+        .parent()
         .map(|p| p.to_string_lossy().to_string())
         .unwrap_or_else(|| ".".to_string());
-    
-    let filename_stem = pdf_path_buf.file_stem()
+
+    let filename_stem = pdf_path_buf
+        .file_stem()
         .map(|s| s.to_string_lossy().to_string())
         .unwrap_or_else(|| "output".to_string());
-    
+
     // 构建环境变量
     let mut envs: Vec<(&str, String)> = vec![
         ("OPENKOTO_PROVIDER", provider.clone()),
         ("OPENKOTO_API_KEY", api_key.clone()),
         ("OPENKOTO_MODEL", model.clone()),
     ];
-    
+
     if let Some(ref url) = base_url {
         envs.push(("OPENKOTO_BASE_URL", url.clone()));
     }
@@ -1375,17 +1457,18 @@ pub async fn translate_pdf_document(
     // 使用 PluginManager 获取执行命令
     // 假设插件名称为 "openkoto-pdf-translator"
     let plugin_name = "openkoto-pdf-translator";
-    
-    let (cmd, mut args, plugin_dir) = match plugin_manager::get_plugin_execution_command(&app_handle, plugin_name) {
-        Ok(res) => res,
-        Err(e) => return Err(format!("Plugin error: {}", e)),
-    };
+
+    let (cmd, mut args, plugin_dir) =
+        match plugin_manager::get_plugin_execution_command(&app_handle, plugin_name) {
+            Ok(res) => res,
+            Err(e) => return Err(format!("Plugin error: {}", e)),
+        };
 
     // 动态添加参数
     // 我们约定 entry_point.args 包含固定前缀，如 ["-m", "openkoto_pdf_translator.pdf2zh"]
     // 我们需要追加 PDF 相关的参数
     // 原 args: -m openkoto_pdf_translator.pdf2zh [input] -li ...
-    
+
     args.push(pdf_path.clone());
     args.push("-li".to_string());
     args.push(lang_in);
@@ -1398,7 +1481,7 @@ pub async fn translate_pdf_document(
 
     println!("[Plugin] Executing: {} {:?}", cmd, args);
     println!("[Plugin] CWD: {:?}", plugin_dir);
-    
+
     // 在插件目录下执行，以确保 Python 模块导入正确 (如果是 Dev 模式)
     // 或者对于 Prod 模式，通常也不影响
     let result = Command::new(&cmd)
@@ -1411,17 +1494,17 @@ pub async fn translate_pdf_document(
         Ok(output) => {
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
-            
+
             println!("[PDF Translate] stdout: {}", stdout);
             if !stderr.is_empty() {
                 println!("[PDF Translate] stderr: {}", stderr);
             }
-            
+
             if output.status.success() {
                 // 构建输出文件路径
                 let mono_path = format!("{}/{}-mono.pdf", output_dir, filename_stem);
                 let dual_path = format!("{}/{}-dual.pdf", output_dir, filename_stem);
-                
+
                 Ok(serde_json::json!({
                     "success": true,
                     "mono_pdf": mono_path,
@@ -1432,9 +1515,7 @@ pub async fn translate_pdf_document(
                 Err(format!("PDF translation failed: {}", stderr))
             }
         }
-        Err(e) => {
-             Err(format!("Failed to execute plugin command '{}': {}", cmd, e))
-        }
+        Err(e) => Err(format!("Failed to execute plugin command '{}': {}", cmd, e)),
     }
 }
 
@@ -1456,11 +1537,16 @@ pub async fn check_pdf_translation_files(pdf_path: String) -> Result<Translation
     }
 
     let parent = path.parent().unwrap_or(Path::new("."));
-    
+
     // Safety check: ensure file stem exists
     let stem = match path.file_stem() {
         Some(s) => s.to_string_lossy(),
-        None => return Ok(TranslationFiles { mono_path: None, dual_path: None }),
+        None => {
+            return Ok(TranslationFiles {
+                mono_path: None,
+                dual_path: None,
+            })
+        }
     };
 
     let mono_name = format!("{}-mono.pdf", stem);
@@ -1470,15 +1556,22 @@ pub async fn check_pdf_translation_files(pdf_path: String) -> Result<Translation
     let dual_path = parent.join(&dual_name);
 
     Ok(TranslationFiles {
-        mono_path: if mono_path.exists() { Some(mono_path.to_string_lossy().into_owned()) } else { None },
-        dual_path: if dual_path.exists() { Some(dual_path.to_string_lossy().into_owned()) } else { None },
+        mono_path: if mono_path.exists() {
+            Some(mono_path.to_string_lossy().into_owned())
+        } else {
+            None
+        },
+        dual_path: if dual_path.exists() {
+            Some(dual_path.to_string_lossy().into_owned())
+        } else {
+            None
+        },
     })
 }
 
 #[tauri::command]
 pub async fn export_file_cmd(src_path: String, dest_path: String) -> Result<(), String> {
-    std::fs::copy(&src_path, &dest_path)
-        .map_err(|e| format!("Failed to export file: {}", e))?;
+    std::fs::copy(&src_path, &dest_path).map_err(|e| format!("Failed to export file: {}", e))?;
     Ok(())
 }
 
@@ -1572,8 +1665,8 @@ pub async fn update_bookmark_cmd(
     color: Option<String>,
 ) -> Result<Bookmark, String> {
     let json = load_bookmark(&app_handle, &id)?;
-    let mut bookmark: Bookmark = serde_json::from_str(&json)
-        .map_err(|e| format!("Failed to parse bookmark: {}", e))?;
+    let mut bookmark: Bookmark =
+        serde_json::from_str(&json).map_err(|e| format!("Failed to parse bookmark: {}", e))?;
 
     if let Some(t) = title {
         bookmark.title = t;

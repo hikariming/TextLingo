@@ -1,12 +1,12 @@
 // Modules
 mod ai_service;
 mod commands;
+mod plugin_manager;
 mod storage;
+mod subtitle_extraction;
 mod types;
 mod video_server;
 mod youtube;
-mod subtitle_extraction;
-mod plugin_manager;
 
 // Re-exports
 use ai_service::AIServiceCache;
@@ -92,7 +92,7 @@ pub fn run() {
             tauri::async_runtime::spawn(async move {
                 // Ensure app directories exist
                 let _ = commands::init_app(app_handle.clone()).await;
-                
+
                 // 启动资源服务器 (视频 + 书籍)
                 let app_data_dir = app_handle.path().app_data_dir().unwrap();
                 if let Err(e) = video_server::start_resource_server(app_data_dir).await {

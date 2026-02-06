@@ -31,8 +31,7 @@ pub fn save_config(app_handle: &AppHandle, config: &AppConfig) -> Result<(), Str
     let config_json = serde_json::to_string_pretty(config)
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
 
-    fs::write(config_path, config_json)
-        .map_err(|e| format!("Failed to write config: {}", e))?;
+    fs::write(config_path, config_json).map_err(|e| format!("Failed to write config: {}", e))?;
 
     Ok(())
 }
@@ -45,8 +44,8 @@ pub fn load_config(app_handle: &AppHandle) -> Result<Option<AppConfig>, String> 
         return Ok(None);
     }
 
-    let config_content = fs::read_to_string(config_path)
-        .map_err(|e| format!("Failed to read config: {}", e))?;
+    let config_content =
+        fs::read_to_string(config_path).map_err(|e| format!("Failed to read config: {}", e))?;
 
     let mut deserializer = serde_json::Deserializer::from_str(&config_content);
     let config: AppConfig = match serde::Deserialize::deserialize(&mut deserializer) {
@@ -59,16 +58,11 @@ pub fn load_config(app_handle: &AppHandle) -> Result<Option<AppConfig>, String> 
     Ok(Some(config))
 }
 
-pub fn save_article(
-    app_handle: &AppHandle,
-    article_id: &str,
-    content: &str,
-) -> Result<(), String> {
+pub fn save_article(app_handle: &AppHandle, article_id: &str, content: &str) -> Result<(), String> {
     let data_dir = get_app_data_dir(app_handle)?;
     let article_path = data_dir.join(ARTICLES_DIR).join(article_id);
 
-    fs::write(article_path, content)
-        .map_err(|e| format!("Failed to save article: {}", e))?;
+    fs::write(article_path, content).map_err(|e| format!("Failed to save article: {}", e))?;
 
     Ok(())
 }
@@ -81,8 +75,7 @@ pub fn load_article(app_handle: &AppHandle, article_id: &str) -> Result<String, 
         return Err("Article not found".to_string());
     }
 
-    fs::read_to_string(article_path)
-        .map_err(|e| format!("Failed to read article: {}", e))
+    fs::read_to_string(article_path).map_err(|e| format!("Failed to read article: {}", e))
 }
 
 pub fn list_articles(app_handle: &AppHandle) -> Result<Vec<String>, String> {
@@ -110,8 +103,7 @@ pub fn delete_article(app_handle: &AppHandle, article_id: &str) -> Result<(), St
     let article_path = data_dir.join(ARTICLES_DIR).join(article_id);
 
     if article_path.exists() {
-        fs::remove_file(article_path)
-            .map_err(|e| format!("Failed to delete article: {}", e))?;
+        fs::remove_file(article_path).map_err(|e| format!("Failed to delete article: {}", e))?;
     }
 
     Ok(())
@@ -148,8 +140,7 @@ pub fn save_favorite_vocabulary(
     let data_dir = get_app_data_dir(app_handle)?;
     let path = data_dir.join(FAVORITES_VOCAB_DIR).join(id);
 
-    fs::write(path, content)
-        .map_err(|e| format!("Failed to save vocabulary favorite: {}", e))?;
+    fs::write(path, content).map_err(|e| format!("Failed to save vocabulary favorite: {}", e))?;
 
     Ok(())
 }
@@ -163,8 +154,7 @@ pub fn load_favorite_vocabulary(app_handle: &AppHandle, id: &str) -> Result<Stri
         return Err("Vocabulary favorite not found".to_string());
     }
 
-    fs::read_to_string(path)
-        .map_err(|e| format!("Failed to read vocabulary favorite: {}", e))
+    fs::read_to_string(path).map_err(|e| format!("Failed to read vocabulary favorite: {}", e))
 }
 
 /// 列出所有单词收藏ID
@@ -211,8 +201,7 @@ pub fn save_favorite_grammar(
     let data_dir = get_app_data_dir(app_handle)?;
     let path = data_dir.join(FAVORITES_GRAMMAR_DIR).join(id);
 
-    fs::write(path, content)
-        .map_err(|e| format!("Failed to save grammar favorite: {}", e))?;
+    fs::write(path, content).map_err(|e| format!("Failed to save grammar favorite: {}", e))?;
 
     Ok(())
 }
@@ -226,8 +215,7 @@ pub fn load_favorite_grammar(app_handle: &AppHandle, id: &str) -> Result<String,
         return Err("Grammar favorite not found".to_string());
     }
 
-    fs::read_to_string(path)
-        .map_err(|e| format!("Failed to read grammar favorite: {}", e))
+    fs::read_to_string(path).map_err(|e| format!("Failed to read grammar favorite: {}", e))
 }
 
 /// 列出所有语法收藏ID
@@ -257,8 +245,7 @@ pub fn delete_favorite_grammar(app_handle: &AppHandle, id: &str) -> Result<(), S
     let path = data_dir.join(FAVORITES_GRAMMAR_DIR).join(id);
 
     if path.exists() {
-        fs::remove_file(path)
-            .map_err(|e| format!("Failed to delete grammar favorite: {}", e))?;
+        fs::remove_file(path).map_err(|e| format!("Failed to delete grammar favorite: {}", e))?;
     }
 
     Ok(())
@@ -282,17 +269,12 @@ pub fn ensure_bookmarks_dir(app_handle: &AppHandle) -> Result<(), String> {
 }
 
 /// 保存书签
-pub fn save_bookmark(
-    app_handle: &AppHandle,
-    id: &str,
-    content: &str,
-) -> Result<(), String> {
+pub fn save_bookmark(app_handle: &AppHandle, id: &str, content: &str) -> Result<(), String> {
     ensure_bookmarks_dir(app_handle)?;
     let data_dir = get_app_data_dir(app_handle)?;
     let path = data_dir.join(BOOKMARKS_DIR).join(id);
 
-    fs::write(path, content)
-        .map_err(|e| format!("Failed to save bookmark: {}", e))?;
+    fs::write(path, content).map_err(|e| format!("Failed to save bookmark: {}", e))?;
 
     Ok(())
 }
@@ -306,8 +288,7 @@ pub fn load_bookmark(app_handle: &AppHandle, id: &str) -> Result<String, String>
         return Err("Bookmark not found".to_string());
     }
 
-    fs::read_to_string(path)
-        .map_err(|e| format!("Failed to read bookmark: {}", e))
+    fs::read_to_string(path).map_err(|e| format!("Failed to read bookmark: {}", e))
 }
 
 /// 列出所有书签ID
@@ -319,8 +300,8 @@ pub fn list_bookmarks(app_handle: &AppHandle) -> Result<Vec<String>, String> {
         return Ok(Vec::new());
     }
 
-    let entries = fs::read_dir(dir)
-        .map_err(|e| format!("Failed to read bookmarks directory: {}", e))?;
+    let entries =
+        fs::read_dir(dir).map_err(|e| format!("Failed to read bookmarks directory: {}", e))?;
 
     let ids: Vec<String> = entries
         .filter_map(|entry| entry.ok())
@@ -337,15 +318,17 @@ pub fn delete_bookmark(app_handle: &AppHandle, id: &str) -> Result<(), String> {
     let path = data_dir.join(BOOKMARKS_DIR).join(id);
 
     if path.exists() {
-        fs::remove_file(path)
-            .map_err(|e| format!("Failed to delete bookmark: {}", e))?;
+        fs::remove_file(path).map_err(|e| format!("Failed to delete bookmark: {}", e))?;
     }
 
     Ok(())
 }
 
 /// 列出指定书籍的所有书签
-pub fn list_bookmarks_for_book(app_handle: &AppHandle, book_path: &str) -> Result<Vec<String>, String> {
+pub fn list_bookmarks_for_book(
+    app_handle: &AppHandle,
+    book_path: &str,
+) -> Result<Vec<String>, String> {
     let all_ids = list_bookmarks(app_handle)?;
     let mut matching_ids = Vec::new();
 
@@ -361,4 +344,3 @@ pub fn list_bookmarks_for_book(app_handle: &AppHandle, book_path: &str) -> Resul
 
     Ok(matching_ids)
 }
-

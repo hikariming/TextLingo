@@ -1,9 +1,9 @@
-use tauri::{AppHandle, Manager, Emitter};
-use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
-use std::collections::HashMap;
 use futures_util::StreamExt;
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::path::PathBuf;
+use tauri::{AppHandle, Emitter, Manager};
 
 // 插件运行模式
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -33,10 +33,10 @@ pub struct PluginMetadata {
 // 插件运行时信息
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PluginInfo {
-    pub metadata: PluginMetadata,  // Nested, NOT flattened for frontend compatibility
-    pub path: String,              // 插件根目录路径
-    pub active_mode: PluginMode,   // 当前激活的模式
-    pub installed: bool,           // 是否已安装 (用于UI显示)
+    pub metadata: PluginMetadata, // Nested, NOT flattened for frontend compatibility
+    pub path: String,             // 插件根目录路径
+    pub active_mode: PluginMode,  // 当前激活的模式
+    pub installed: bool,          // 是否已安装 (用于UI显示)
 }
 
 // 插件配置存储 (存放在 plugins.json 或合并在主配置中)
@@ -50,25 +50,25 @@ pub struct PluginConfig {
 /// 扫描 plugins 目录获取所有插件
 fn scan_plugins(app_handle: &AppHandle) -> Vec<PluginInfo> {
     let mut all_instances = Vec::new();
-    
+
     let app_data_dir = match app_handle.path().app_data_dir() {
         Ok(dir) => dir,
         Err(_) => return Vec::new(),
     };
-    
+
     // Config
     let plugin_config = load_plugin_config(app_handle).unwrap_or_default();
 
     // Define paths and their "types"
     // (Path, is_dev_location)
     let mut search_paths = Vec::new();
-    
+
     // 1. AppData/plugins (Prod location)
     let user_plugins_dir = app_data_dir.join("plugins");
     if user_plugins_dir.exists() {
         search_paths.push((user_plugins_dir, false));
     }
-    
+
     // 2. Local/Dev paths (only in debug builds)
     #[cfg(debug_assertions)]
     {
@@ -101,10 +101,12 @@ fn scan_plugins(app_handle: &AppHandle) -> Vec<PluginInfo> {
                     if json_path.exists() {
                         if let Ok(content) = std::fs::read_to_string(&json_path) {
                             if let Ok(metadata) = serde_json::from_str::<PluginMetadata>(&content) {
-                                let active_mode = plugin_config.modes.get(&metadata.name)
+                                let active_mode = plugin_config
+                                    .modes
+                                    .get(&metadata.name)
                                     .cloned()
                                     .unwrap_or(PluginMode::Prod);
-                                
+
                                 all_instances.push((
                                     PluginInfo {
                                         metadata,
@@ -112,7 +114,7 @@ fn scan_plugins(app_handle: &AppHandle) -> Vec<PluginInfo> {
                                         active_mode,
                                         installed: true,
                                     },
-                                    is_dev_loc
+                                    is_dev_loc,
                                 ));
                             }
                         }
@@ -125,41 +127,53 @@ fn scan_plugins(app_handle: &AppHandle) -> Vec<PluginInfo> {
     // Group by name and select best instance
     let mut final_plugins = Vec::new();
     let mut seen_names = std::collections::HashSet::new();
-    
+
     // Get unique names first
     for (p, _) in &all_instances {
         seen_names.insert(p.metadata.name.clone());
     }
-    
+
     for name in seen_names {
         // Find all instances for this name
-        let instances: Vec<_> = all_instances.iter()
+        let instances: Vec<_> = all_instances
+            .iter()
             .filter(|(p, _)| p.metadata.name == name)
             .collect();
-            
-        if instances.is_empty() { continue; }
-        
+
+        if instances.is_empty() {
+            continue;
+        }
+
         // Get mode from CONFIG, not from instance (instances might have stale mode)
-        let active_mode = plugin_config.modes.get(&name)
+        let active_mode = plugin_config
+            .modes
+            .get(&name)
             .cloned()
             .unwrap_or(PluginMode::Prod);
-        
-        println!("[PluginManager] Plugin '{}' configured mode: {:?}", name, active_mode);
-        
+
+        println!(
+            "[PluginManager] Plugin '{}' configured mode: {:?}",
+            name, active_mode
+        );
+
         // Selection Logic:
         // If Mode == Dev, prefer is_dev_loc == true
         // Else, prefer is_dev_loc == false (or just first one)
-        
+
         let selected = if active_mode == PluginMode::Dev {
             // Try to find a dev instance
-            instances.iter().find(|&&(_, is_dev)| *is_dev)
+            instances
+                .iter()
+                .find(|&&(_, is_dev)| *is_dev)
                 .or_else(|| instances.first()) // Fallback
         } else {
             // Try to find a prod instance (not dev)
-            instances.iter().find(|&&(_, is_dev)| !*is_dev)
+            instances
+                .iter()
+                .find(|&&(_, is_dev)| !*is_dev)
                 .or_else(|| instances.first()) // Fallback
         };
-        
+
         if let Some((info, _)) = selected {
             // Update active_mode to the config value (ensure consistency)
             let mut final_info = info.clone();
@@ -167,20 +181,26 @@ fn scan_plugins(app_handle: &AppHandle) -> Vec<PluginInfo> {
             final_plugins.push(final_info);
         }
     }
-    
+
     // Sort for consistency
     final_plugins.sort_by(|a, b| a.metadata.name.cmp(&b.metadata.name));
-    
-    println!("[PluginManager] Final plugins list: {} (dev/prod resolved)", final_plugins.len());
-    
+
+    println!(
+        "[PluginManager] Final plugins list: {} (dev/prod resolved)",
+        final_plugins.len()
+    );
+
     final_plugins
 }
 
 /// 加载插件配置
 fn load_plugin_config(app_handle: &AppHandle) -> Result<PluginConfig, String> {
-    let app_data_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?;
     let config_path = app_data_dir.join("plugins_config.json");
-    
+
     if config_path.exists() {
         let content = std::fs::read_to_string(config_path).map_err(|e| e.to_string())?;
         serde_json::from_str(&content).map_err(|e| e.to_string())
@@ -191,9 +211,12 @@ fn load_plugin_config(app_handle: &AppHandle) -> Result<PluginConfig, String> {
 
 /// 保存插件配置
 fn save_plugin_config(app_handle: &AppHandle, config: &PluginConfig) -> Result<(), String> {
-    let app_data_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?;
     let config_path = app_data_dir.join("plugins_config.json");
-    
+
     let content = serde_json::to_string_pretty(config).map_err(|e| e.to_string())?;
     std::fs::write(config_path, content).map_err(|e| e.to_string())
 }
@@ -207,14 +230,17 @@ pub async fn list_plugins_cmd(app_handle: AppHandle) -> Result<Vec<PluginInfo>, 
 
 #[tauri::command]
 pub async fn open_plugins_directory(app_handle: AppHandle) -> Result<(), String> {
-    let app_data_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?;
     let plugins_dir = app_data_dir.join("plugins");
-    
+
     // Ensure it exists
     if !plugins_dir.exists() {
         std::fs::create_dir_all(&plugins_dir).map_err(|e| e.to_string())?;
     }
-    
+
     #[cfg(target_os = "macos")]
     std::process::Command::new("open")
         .arg(&plugins_dir)
@@ -226,7 +252,7 @@ pub async fn open_plugins_directory(app_handle: AppHandle) -> Result<(), String>
         .arg(&plugins_dir)
         .spawn()
         .map_err(|e| e.to_string())?;
-        
+
     Ok(())
 }
 
@@ -237,21 +263,23 @@ pub async fn set_plugin_mode_cmd(
     mode: String,
 ) -> Result<(), String> {
     let mut config = load_plugin_config(&app_handle)?;
-    
+
     let mode_enum = match mode.as_str() {
         "dev" => PluginMode::Dev,
         "prod" => PluginMode::Prod,
         _ => return Err("Invalid mode".to_string()),
     };
-    
+
     config.modes.insert(plugin_name.clone(), mode_enum);
     save_plugin_config(&app_handle, &config)?;
-    
+
     Ok(())
 }
 
 #[tauri::command]
-pub async fn get_plugin_modes_cmd(app_handle: AppHandle) -> Result<HashMap<String, PluginMode>, String> {
+pub async fn get_plugin_modes_cmd(
+    app_handle: AppHandle,
+) -> Result<HashMap<String, PluginMode>, String> {
     let config = load_plugin_config(&app_handle)?;
     Ok(config.modes)
 }
@@ -263,22 +291,27 @@ pub fn get_plugin_execution_command(
     plugin_name: &str,
 ) -> Result<(String, Vec<String>, std::path::PathBuf), String> {
     let plugins = scan_plugins(app_handle);
-    let plugin = plugins.iter()
+    let plugin = plugins
+        .iter()
         .find(|p| p.metadata.name == plugin_name)
         .ok_or(format!("Plugin '{}' not found", plugin_name))?;
 
     let entry_point = match plugin.active_mode {
         PluginMode::Dev => plugin.metadata.entry_points.get("dev"),
         PluginMode::Prod => plugin.metadata.entry_points.get("prod"),
-    }.ok_or(format!("Entry point for mode '{:?}' not found", plugin.active_mode))?;
+    }
+    .ok_or(format!(
+        "Entry point for mode '{:?}' not found",
+        plugin.active_mode
+    ))?;
 
     let plugin_dir = PathBuf::from(&plugin.path);
     let mut command = entry_point.command.clone();
-    
+
     // 如果是 Prod 模式且命令以 ./ 开头，解析为绝对路径
     if plugin.active_mode == PluginMode::Prod && command.starts_with("./") {
         let exe_name = &command[2..]; // remove ./
-        
+
         // 适配不同操作系统
         #[cfg(target_os = "windows")]
         let exe_name = format!("{}.exe", exe_name);
@@ -286,16 +319,16 @@ pub fn get_plugin_execution_command(
 
         let exe_path = plugin_dir.join(exe_name);
         if !exe_path.exists() {
-             // 尝试查找带平台后缀的可执行文件
-             // e.g. openkoto-pdf-translator-macos-arm64
-             // 这里可以加入更复杂的查找逻辑，或者在 plugin.json 中就写死 generic name，靠重命名解决
-             // 目前假设 plugin.json 写的是 "./openkoto-pdf-translator"
-             // 我们可以尝试查找目录下的可执行文件
-             return Err(format!("Executable not found at {:?}", exe_path));
+            // 尝试查找带平台后缀的可执行文件
+            // e.g. openkoto-pdf-translator-macos-arm64
+            // 这里可以加入更复杂的查找逻辑，或者在 plugin.json 中就写死 generic name，靠重命名解决
+            // 目前假设 plugin.json 写的是 "./openkoto-pdf-translator"
+            // 我们可以尝试查找目录下的可执行文件
+            return Err(format!("Executable not found at {:?}", exe_path));
         }
         command = exe_path.to_string_lossy().to_string();
     }
-    
+
     Ok((command, entry_point.args.clone(), plugin_dir))
 }
 
@@ -313,8 +346,8 @@ pub struct PluginReleaseInfo {
 /// 安装进度事件
 #[derive(Debug, Clone, Serialize)]
 pub struct InstallProgress {
-    pub stage: String,      // "downloading" | "installing" | "completed" | "failed"
-    pub progress: f64,      // 0.0 - 1.0
+    pub stage: String, // "downloading" | "installing" | "completed" | "failed"
+    pub progress: f64, // 0.0 - 1.0
     pub message: String,
 }
 
@@ -341,7 +374,10 @@ pub async fn check_plugin_installed_cmd(
     app_handle: AppHandle,
     plugin_name: String,
 ) -> Result<bool, String> {
-    let app_data_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?;
     let plugin_dir = app_data_dir.join("plugins").join(&plugin_name);
 
     // 检查 plugin.json 是否存在
@@ -391,9 +427,13 @@ pub async fn get_plugin_release_info_cmd(
         .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
 
     // 获取最近的 releases 列表（插件 release 的 tag 是 v*，不是 app-v*）
-    let api_url = format!("https://api.github.com/repos/{}/releases?per_page=10", release_repo);
+    let api_url = format!(
+        "https://api.github.com/repos/{}/releases?per_page=10",
+        release_repo
+    );
 
-    let response = client.get(&api_url)
+    let response = client
+        .get(&api_url)
         .send()
         .await
         .map_err(|e| format!("网络请求失败: {}", e))?;
@@ -402,7 +442,8 @@ pub async fn get_plugin_release_info_cmd(
         return Err(format!("GitHub API 返回错误: {}", response.status()));
     }
 
-    let releases: Vec<serde_json::Value> = response.json()
+    let releases: Vec<serde_json::Value> = response
+        .json()
         .await
         .map_err(|e| format!("解析响应失败: {}", e))?;
 
@@ -411,7 +452,9 @@ pub async fn get_plugin_release_info_cmd(
     // 遍历 releases，找到第一个包含插件 zip 的非预发布版本
     for release in &releases {
         let is_prerelease = release["prerelease"].as_bool().unwrap_or(false);
-        if is_prerelease { continue; }
+        if is_prerelease {
+            continue;
+        }
 
         if let Some(assets) = release["assets"].as_array() {
             // 按优先级查找：先平台特定 zip，再通用 zip
@@ -455,19 +498,24 @@ pub async fn install_plugin_cmd(
     download_url: String,
     plugin_name: String,
 ) -> Result<(), String> {
-    let app_data_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?;
     let plugins_dir = app_data_dir.join("plugins");
 
     // 确保 plugins 目录存在
-    std::fs::create_dir_all(&plugins_dir)
-        .map_err(|e| format!("创建插件目录失败: {}", e))?;
+    std::fs::create_dir_all(&plugins_dir).map_err(|e| format!("创建插件目录失败: {}", e))?;
 
     // 发送开始下载事件
-    let _ = app_handle.emit("plugin-install-progress", InstallProgress {
-        stage: "downloading".to_string(),
-        progress: 0.0,
-        message: "正在下载插件...".to_string(),
-    });
+    let _ = app_handle.emit(
+        "plugin-install-progress",
+        InstallProgress {
+            stage: "downloading".to_string(),
+            progress: 0.0,
+            message: "正在下载插件...".to_string(),
+        },
+    );
 
     // 下载 plugins.zip 到内存
     let client = Client::builder()
@@ -475,7 +523,8 @@ pub async fn install_plugin_cmd(
         .build()
         .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
 
-    let response = client.get(&download_url)
+    let response = client
+        .get(&download_url)
         .send()
         .await
         .map_err(|e| format!("下载失败: {}", e))?;
@@ -500,27 +549,34 @@ pub async fn install_plugin_cmd(
             0.5
         };
 
-        let _ = app_handle.emit("plugin-install-progress", InstallProgress {
-            stage: "downloading".to_string(),
-            progress,
-            message: format!("下载中... {:.1}%", progress * 100.0),
-        });
+        let _ = app_handle.emit(
+            "plugin-install-progress",
+            InstallProgress {
+                stage: "downloading".to_string(),
+                progress,
+                message: format!("下载中... {:.1}%", progress * 100.0),
+            },
+        );
     }
 
     // 发送解压事件
-    let _ = app_handle.emit("plugin-install-progress", InstallProgress {
-        stage: "installing".to_string(),
-        progress: 0.9,
-        message: "正在解压安装...".to_string(),
-    });
+    let _ = app_handle.emit(
+        "plugin-install-progress",
+        InstallProgress {
+            stage: "installing".to_string(),
+            progress: 0.9,
+            message: "正在解压安装...".to_string(),
+        },
+    );
 
     // 解压 zip 到 plugins 目录
     let cursor = std::io::Cursor::new(downloaded_bytes);
-    let mut archive = zip::ZipArchive::new(cursor)
-        .map_err(|e| format!("无法打开 zip 文件: {}", e))?;
+    let mut archive =
+        zip::ZipArchive::new(cursor).map_err(|e| format!("无法打开 zip 文件: {}", e))?;
 
     for i in 0..archive.len() {
-        let mut file = archive.by_index(i)
+        let mut file = archive
+            .by_index(i)
             .map_err(|e| format!("读取 zip 条目失败: {}", e))?;
 
         let outpath = match file.enclosed_name() {
@@ -529,17 +585,14 @@ pub async fn install_plugin_cmd(
         };
 
         if file.is_dir() {
-            std::fs::create_dir_all(&outpath)
-                .map_err(|e| format!("创建目录失败: {}", e))?;
+            std::fs::create_dir_all(&outpath).map_err(|e| format!("创建目录失败: {}", e))?;
         } else {
             if let Some(parent) = outpath.parent() {
-                std::fs::create_dir_all(parent)
-                    .map_err(|e| format!("创建父目录失败: {}", e))?;
+                std::fs::create_dir_all(parent).map_err(|e| format!("创建父目录失败: {}", e))?;
             }
-            let mut outfile = std::fs::File::create(&outpath)
-                .map_err(|e| format!("创建文件失败: {}", e))?;
-            std::io::copy(&mut file, &mut outfile)
-                .map_err(|e| format!("写入文件失败: {}", e))?;
+            let mut outfile =
+                std::fs::File::create(&outpath).map_err(|e| format!("创建文件失败: {}", e))?;
+            std::io::copy(&mut file, &mut outfile).map_err(|e| format!("写入文件失败: {}", e))?;
 
             // 设置可执行权限 (Unix)
             #[cfg(unix)]
@@ -558,8 +611,7 @@ pub async fn install_plugin_cmd(
 
     // 如果 zip 没有包含 plugin.json，写入内置版本
     if !plugin_json_path.exists() {
-        std::fs::create_dir_all(&plugin_dir)
-            .map_err(|e| format!("创建插件目录失败: {}", e))?;
+        std::fs::create_dir_all(&plugin_dir).map_err(|e| format!("创建插件目录失败: {}", e))?;
         std::fs::write(&plugin_json_path, get_builtin_plugin_json())
             .map_err(|e| format!("写入 plugin.json 失败: {}", e))?;
     }
@@ -582,7 +634,10 @@ pub async fn install_plugin_cmd(
                 let name = entry.file_name().to_string_lossy().to_string();
                 if name.starts_with("openkoto-pdf-translator-") && !name.ends_with(".json") {
                     let src = entry.path();
-                    println!("[PluginManager] Renaming platform binary: {} -> {}", name, generic_exe_name);
+                    println!(
+                        "[PluginManager] Renaming platform binary: {} -> {}",
+                        name, generic_exe_name
+                    );
                     std::fs::rename(&src, &generic_exe_path)
                         .map_err(|e| format!("重命名可执行文件失败: {}", e))?;
                     break;
@@ -604,13 +659,19 @@ pub async fn install_plugin_cmd(
     }
 
     // 发送完成事件
-    let _ = app_handle.emit("plugin-install-progress", InstallProgress {
-        stage: "completed".to_string(),
-        progress: 1.0,
-        message: "安装完成！".to_string(),
-    });
+    let _ = app_handle.emit(
+        "plugin-install-progress",
+        InstallProgress {
+            stage: "completed".to_string(),
+            progress: 1.0,
+            message: "安装完成！".to_string(),
+        },
+    );
 
-    println!("[PluginManager] Plugin '{}' installed successfully at {:?}", plugin_name, plugin_dir);
+    println!(
+        "[PluginManager] Plugin '{}' installed successfully at {:?}",
+        plugin_name, plugin_dir
+    );
 
     Ok(())
 }

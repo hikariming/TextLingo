@@ -326,4 +326,3 @@ pub struct Bookmark {
     #[serde(default)]
     pub color: Option<String>,
 }
-

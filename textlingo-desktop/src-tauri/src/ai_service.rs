@@ -1,9 +1,9 @@
-use regex::Regex;
-use futures::StreamExt;
 use crate::types::{
-    AnalysisRequest, AnalysisResponse, AnalysisType, ChatRequest, ChatResponse,
-    TranslationRequest, TranslationResponse,
+    AnalysisRequest, AnalysisResponse, AnalysisType, ChatRequest, ChatResponse, TranslationRequest,
+    TranslationResponse,
 };
+use futures::StreamExt;
+use regex::Regex;
 use reqwest::Client;
 use serde_json::{json, Value};
 
@@ -40,7 +40,12 @@ impl AIService {
         Self::with_base_url(api_key, provider, model, None)
     }
 
-    pub fn with_base_url(api_key: String, provider: String, model: String, base_url: Option<String>) -> Self {
+    pub fn with_base_url(
+        api_key: String,
+        provider: String,
+        model: String,
+        base_url: Option<String>,
+    ) -> Self {
         Self {
             client: Client::new(),
             api_key,
@@ -60,7 +65,7 @@ impl AIService {
                 return format!("{}/chat/completions", trimmed);
             }
         }
-        
+
         // Default URLs for known providers
         match self.provider.as_str() {
             "openrouter" => OPENROUTER_API_URL.to_string(),
@@ -77,7 +82,7 @@ impl AIService {
             "openai-compatible" => {
                 // Should not reach here if base_url is properly set
                 OPENAI_API_URL.to_string()
-            },
+            }
             _ => OPENAI_API_URL.to_string(),
         }
     }
@@ -105,7 +110,7 @@ impl AIService {
             "messages": messages,
             "temperature": temp
         });
-        
+
         // Moonshot specific fix: Enable thinking if requested and model supports it (like k2.5)
         if enable_thinking && self.provider == "moonshot" && self.model.contains("k2.5") {
             if let Some(obj) = request_body.as_object_mut() {
@@ -117,7 +122,7 @@ impl AIService {
             .client
             .post(self.get_api_url())
             .header("Content-Type", "application/json");
-        
+
         // Only add Authorization header if API key is provided (local services may not need it)
         if !self.api_key.is_empty() {
             request = request.header("Authorization", format!("Bearer {}", self.api_key));
@@ -190,7 +195,10 @@ impl AIService {
             .ok_or_else(|| "No content in response".to_string())
     }
 
-    pub async fn translate(&self, request: TranslationRequest) -> Result<TranslationResponse, String> {
+    pub async fn translate(
+        &self,
+        request: TranslationRequest,
+    ) -> Result<TranslationResponse, String> {
         let system_prompt = format!(
             "You are a professional translator. Translate the following text to {}. \
             Preserve the original meaning and tone. Only return the translated text without any explanations.",
@@ -199,12 +207,10 @@ impl AIService {
 
         let translated_text = if self.is_google_provider() {
             // 使用 Google API 格式
-            let contents = vec![
-                json!({
-                    "role": "user",
-                    "parts": [{"text": format!("{}\n\n{}", system_prompt, request.text)}]
-                })
-            ];
+            let contents = vec![json!({
+                "role": "user",
+                "parts": [{"text": format!("{}\n\n{}", system_prompt, request.text)}]
+            })];
             self.make_google_request(contents, Some(0.3)).await?
         } else {
             let messages = vec![
@@ -225,7 +231,7 @@ impl AIService {
     /// 返回 Vec<(id, translation)>
     pub async fn batch_translate(
         &self,
-        items: Vec<(String, String)>,  // Vec<(id, text)>
+        items: Vec<(String, String)>, // Vec<(id, text)>
         target_language: &str,
     ) -> Result<Vec<(String, String)>, String> {
         if items.is_empty() {
@@ -245,12 +251,10 @@ impl AIService {
         prompt.push_str(r#"[{"id": "xxx", "translation": "翻译结果"}, ...]"#);
 
         let response_text = if self.is_google_provider() {
-            let contents = vec![
-                json!({
-                    "role": "user",
-                    "parts": [{"text": prompt}]
-                })
-            ];
+            let contents = vec![json!({
+                "role": "user",
+                "parts": [{"text": prompt}]
+            })];
             self.make_google_request(contents, Some(0.3)).await?
         } else {
             let messages = vec![
@@ -262,8 +266,12 @@ impl AIService {
 
         // 解析返回的 JSON 数组
         let json_str = Self::extract_json_array(&response_text);
-        let parsed: Vec<Value> = serde_json::from_str(&json_str)
-            .map_err(|e| format!("Failed to parse batch translation response: {} - raw: {}", e, json_str))?;
+        let parsed: Vec<Value> = serde_json::from_str(&json_str).map_err(|e| {
+            format!(
+                "Failed to parse batch translation response: {} - raw: {}",
+                e, json_str
+            )
+        })?;
 
         let mut results = Vec::new();
         for item in parsed {
@@ -284,15 +292,15 @@ impl AIService {
         if let Some(start) = content.find("```json") {
             if let Some(end) = content[start..].rfind("```") {
                 if end > 7 {
-                    return content[start+7..start+end].trim().to_string();
+                    return content[start + 7..start + end].trim().to_string();
                 }
             }
         }
-        
+
         if let Some(start) = content.find("```") {
-            if let Some(end_offset) = content[start+3..].find("```") {
+            if let Some(end_offset) = content[start + 3..].find("```") {
                 let end = start + 3 + end_offset;
-                return content[start+3..end].trim().to_string();
+                return content[start + 3..end].trim().to_string();
             }
         }
 
@@ -301,7 +309,7 @@ impl AIService {
             let mut balance = 0;
             let mut end_idx = start_idx;
             let mut found_end = false;
-            
+
             for (i, c) in content[start_idx..].char_indices() {
                 match c {
                     '[' => balance += 1,
@@ -312,11 +320,11 @@ impl AIService {
                             found_end = true;
                             break;
                         }
-                    },
+                    }
                     _ => {}
                 }
             }
-            
+
             if found_end {
                 return content[start_idx..=end_idx].to_string();
             }
@@ -354,12 +362,10 @@ impl AIService {
 
         let result = if self.is_google_provider() {
             // 使用 Google API 格式
-            let contents = vec![
-                json!({
-                    "role": "user",
-                    "parts": [{"text": format!("{}\n\n{}", system_prompt, request.text)}]
-                })
-            ];
+            let contents = vec![json!({
+                "role": "user",
+                "parts": [{"text": format!("{}\n\n{}", system_prompt, request.text)}]
+            })];
             self.make_google_request(contents, Some(0.5)).await?
         } else {
             let messages = vec![
@@ -381,13 +387,15 @@ impl AIService {
             return self.chat_google(request).await;
         }
         if self.provider == "moonshot" {
-             // Moonshot requires specific message formatting for multimedia
-             let messages = self.format_messages_for_provider(&request.messages);
-             return Ok(ChatResponse {
-                 content: self.make_request(messages, request.temperature, true).await?,
-                 model: self.model.clone(),
-                 tokens_used: None,
-             });
+            // Moonshot requires specific message formatting for multimedia
+            let messages = self.format_messages_for_provider(&request.messages);
+            return Ok(ChatResponse {
+                content: self
+                    .make_request(messages, request.temperature, true)
+                    .await?,
+                model: self.model.clone(),
+                tokens_used: None,
+            });
         }
 
         let messages: Vec<Value> = request
@@ -401,7 +409,9 @@ impl AIService {
             })
             .collect();
 
-        let content = self.make_request(messages, request.temperature, true).await?;
+        let content = self
+            .make_request(messages, request.temperature, true)
+            .await?;
 
         Ok(ChatResponse {
             content,
@@ -410,15 +420,9 @@ impl AIService {
         })
     }
 
+    // ... imports
 
-
-// ... imports
-
-    pub async fn stream_chat<F>(
-        &self,
-        request: ChatRequest,
-        callback: F,
-    ) -> Result<String, String>
+    pub async fn stream_chat<F>(&self, request: ChatRequest, callback: F) -> Result<String, String>
     where
         F: Fn(String) + Send + Sync + 'static,
     {
@@ -454,10 +458,10 @@ impl AIService {
             "temperature": temp,
             "stream": true
         });
-        
+
         // Moonshot specific fix: Enable thinking if likely a chat (stream is usually chat)
         if self.provider == "moonshot" && self.model.contains("k2.5") {
-             if let Some(obj) = request_body.as_object_mut() {
+            if let Some(obj) = request_body.as_object_mut() {
                 obj.insert("thinking".to_string(), json!({"type": "enabled"}));
             }
         }
@@ -466,9 +470,10 @@ impl AIService {
             .client
             .post(self.get_api_url())
             .header("Content-Type", "application/json");
-        
+
         if !self.api_key.is_empty() {
-            request_builder = request_builder.header("Authorization", format!("Bearer {}", self.api_key));
+            request_builder =
+                request_builder.header("Authorization", format!("Bearer {}", self.api_key));
         }
 
         let response = request_builder
@@ -491,7 +496,7 @@ impl AIService {
         while let Some(item) = stream.next().await {
             let chunk = item.map_err(|e| format!("Error reading stream: {}", e))?;
             let chunk_str = String::from_utf8_lossy(&chunk);
-            
+
             for line in chunk_str.lines() {
                 let line = line.trim();
                 if line.is_empty() || !line.starts_with("data: ") {
@@ -522,24 +527,31 @@ impl AIService {
             .messages
             .into_iter()
             .map(|msg| {
-                let role = if msg.role == "assistant" { "model" } else { "user" };
-                
+                let role = if msg.role == "assistant" {
+                    "model"
+                } else {
+                    "user"
+                };
+
                 let parts = match msg.content {
                     crate::types::ChatContent::Text(text) => vec![json!({"text": text})],
-                    crate::types::ChatContent::Parts(parts) => parts.into_iter().map(|part| {
-                        if let Some(text) = part.text {
-                            json!({"text": text})
-                        } else if let Some(file) = part.file_data {
-                            json!({
-                                "inlineData": {
-                                    "mimeType": file.mime_type,
-                                    "data": file.data
-                                }
-                            })
-                        } else {
-                            json!({"text": ""}) // Fallback
-                        }
-                    }).collect()
+                    crate::types::ChatContent::Parts(parts) => parts
+                        .into_iter()
+                        .map(|part| {
+                            if let Some(text) = part.text {
+                                json!({"text": text})
+                            } else if let Some(file) = part.file_data {
+                                json!({
+                                    "inlineData": {
+                                        "mimeType": file.mime_type,
+                                        "data": file.data
+                                    }
+                                })
+                            } else {
+                                json!({"text": ""}) // Fallback
+                            }
+                        })
+                        .collect(),
                 };
 
                 json!({
@@ -549,7 +561,9 @@ impl AIService {
             })
             .collect();
 
-        let content = self.make_google_request(contents, request.temperature).await?;
+        let content = self
+            .make_google_request(contents, request.temperature)
+            .await?;
 
         Ok(ChatResponse {
             content,
@@ -560,37 +574,43 @@ impl AIService {
 
     // Helper to format messages for different providers
     fn format_messages_for_provider(&self, messages: &[crate::types::ChatMessage]) -> Vec<Value> {
-         messages.iter().map(|msg| {
-            let content_value = match &msg.content {
-                crate::types::ChatContent::Text(text) => json!(text),
-                crate::types::ChatContent::Parts(parts) => {
-                    let json_parts: Vec<Value> = parts.iter().map(|part| {
-                         if let Some(text) = &part.text {
-                             json!({ "type": "text", "text": text })
-                         } else if let Some(video) = &part.video_url {
-                             // Kimi format: { "type": "video_url", "video_url": { "url": ... } }
-                             json!({ 
-                                 "type": "video_url", 
-                                 "video_url": { "url": video.url } 
-                             })
-                         } else if let Some(image) = &part.image_url {
-                             json!({
-                                 "type": "image_url",
-                                 "image_url": { "url": image.url }
-                             })
-                         } else {
-                             json!({ "type": "text", "text": "" })
-                         }
-                    }).collect();
-                    json!(json_parts)
-                }
-            };
-            
-            json!({
-                "role": msg.role,
-                "content": content_value
+        messages
+            .iter()
+            .map(|msg| {
+                let content_value = match &msg.content {
+                    crate::types::ChatContent::Text(text) => json!(text),
+                    crate::types::ChatContent::Parts(parts) => {
+                        let json_parts: Vec<Value> = parts
+                            .iter()
+                            .map(|part| {
+                                if let Some(text) = &part.text {
+                                    json!({ "type": "text", "text": text })
+                                } else if let Some(video) = &part.video_url {
+                                    // Kimi format: { "type": "video_url", "video_url": { "url": ... } }
+                                    json!({
+                                        "type": "video_url",
+                                        "video_url": { "url": video.url }
+                                    })
+                                } else if let Some(image) = &part.image_url {
+                                    json!({
+                                        "type": "image_url",
+                                        "image_url": { "url": image.url }
+                                    })
+                                } else {
+                                    json!({ "type": "text", "text": "" })
+                                }
+                            })
+                            .collect();
+                        json!(json_parts)
+                    }
+                };
+
+                json!({
+                    "role": msg.role,
+                    "content": content_value
+                })
             })
-        }).collect()
+            .collect()
     }
 
     pub async fn segment_translate_explain(
@@ -598,7 +618,10 @@ impl AIService {
         text: String,
         target_language: String,
     ) -> Result<crate::types::SegmentExplanation, String> {
-        println!("Starting segment_translate_explain for text: '{}'...", text.chars().take(50).collect::<String>());
+        println!(
+            "Starting segment_translate_explain for text: '{}'...",
+            text.chars().take(50).collect::<String>()
+        );
         let native_language_name = match target_language.as_str() {
             "zh" | "zh-CN" => "中文",
             "zh-TW" => "繁體中文",
@@ -660,17 +683,18 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
         println!("Sending request to AI provider: {}", self.provider);
         let content = if self.is_google_provider() {
             // 使用 Google API 格式
-            let contents = vec![
-                json!({
-                    "role": "user",
-                    "parts": [{"text": format!("{}\n\nAnalyze this: {}", system_prompt, text)}]
-                })
-            ];
+            let contents = vec![json!({
+                "role": "user",
+                "parts": [{"text": format!("{}\n\nAnalyze this: {}", system_prompt, text)}]
+            })];
             self.make_google_request(contents, Some(0.3)).await?
         } else {
             self.make_request(messages, Some(0.3), false).await?
         };
-        println!("Received response from AI provider. Content length: {}", content.len());
+        println!(
+            "Received response from AI provider. Content length: {}",
+            content.len()
+        );
 
         // Robust JSON extraction
         let json_str = Self::extract_json(&content);
@@ -681,7 +705,7 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
             Ok(explanation) => {
                 println!("Successfully parsed explanation JSON.");
                 Ok(explanation)
-            },
+            }
             Err(e) => {
                 println!("Initial JSON parse failed: {}. Attempting repair...", e);
                 let repaired_json = Self::repair_json(&json_str);
@@ -689,11 +713,14 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
                     Ok(explanation) => {
                         println!("Successfully parsed repaired JSON.");
                         Ok(explanation)
-                    },
+                    }
                     Err(e2) => {
                         println!("Failed to parse repaired JSON: {}.", e2);
                         println!("Original content: {}", content);
-                        Err(format!("Failed to parse AI response. Error: {}. Content: {}", e2, repaired_json))
+                        Err(format!(
+                            "Failed to parse AI response. Error: {}. Content: {}",
+                            e2, repaired_json
+                        ))
                     }
                 }
             }
@@ -701,9 +728,12 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
     }
 
     /// Upload a file to the API provider (currently supports Moonshot)
-    pub async fn upload_file(&self, file_path: &std::path::Path) -> Result<FileUploadResponse, String> {
+    pub async fn upload_file(
+        &self,
+        file_path: &std::path::Path,
+    ) -> Result<FileUploadResponse, String> {
         if self.provider != "moonshot" {
-             return Err("File upload currently only supported for Moonshot provider".to_string());
+            return Err("File upload currently only supported for Moonshot provider".to_string());
         }
 
         let file_name = file_path
@@ -712,10 +742,14 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
             .to_string_lossy()
             .to_string();
 
-        let file_content = std::fs::read(file_path)
-            .map_err(|e| format!("Failed to read file: {}", e))?;
+        let file_content =
+            std::fs::read(file_path).map_err(|e| format!("Failed to read file: {}", e))?;
 
-        let mime_type = match std::path::Path::new(&file_name).extension().and_then(|s| s.to_str()).map(|s| s.to_lowercase()) {
+        let mime_type = match std::path::Path::new(&file_name)
+            .extension()
+            .and_then(|s| s.to_str())
+            .map(|s| s.to_lowercase())
+        {
             Some(ext) if ext == "mp4" => "video/mp4",
             Some(ext) if ext == "mp3" => "audio/mpeg",
             Some(ext) if ext == "wav" => "audio/wav",
@@ -738,8 +772,9 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
             .text("purpose", "file-extract"); // Moonshot requires 'file-extract' for Kimi
 
         let url = "https://api.moonshot.cn/v1/files";
-        
-        let response = self.client
+
+        let response = self
+            .client
             .post(url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .multipart(form)
@@ -748,13 +783,18 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
             .map_err(|e| format!("Failed to upload file: {}", e))?;
 
         if !response.status().is_success() {
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             return Err(format!("Upload failed: {}", error_text));
         }
 
-        let json: Value = response.json().await
+        let json: Value = response
+            .json()
+            .await
             .map_err(|e| format!("Failed to parse upload response: {}", e))?;
-            
+
         Ok(FileUploadResponse {
             id: json["id"].as_str().unwrap_or("").to_string(),
             bytes: json["bytes"].as_u64().unwrap_or(0),
@@ -770,50 +810,56 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
         // 1. Try finding markdown code blocks explicitly
         if let Some(start) = content.find("```json") {
             if let Some(end) = content[start..].rfind("```") {
-                if end > 7 { // Ensure there's content between ```json and ```
-                     return content[start+7..start+end].trim().to_string();
+                if end > 7 {
+                    // Ensure there's content between ```json and ```
+                    return content[start + 7..start + end].trim().to_string();
                 }
             }
         }
-        
+
         // 2. Try generic code blocks
         if let Some(start) = content.find("```") {
-             // Find the next ``` 
-             if let Some(end_offset) = content[start+3..].find("```") {
-                 let end = start + 3 + end_offset;
-                 return content[start+3..end].trim().to_string();
-             }
+            // Find the next ```
+            if let Some(end_offset) = content[start + 3..].find("```") {
+                let end = start + 3 + end_offset;
+                return content[start + 3..end].trim().to_string();
+            }
         }
 
         // 3. Robust brace counting to find the main JSON object
         if let Some(start_idx) = content.find('{') {
-             let mut balance = 0;
-             let mut end_idx = start_idx;
-             let mut found_end = false;
-             
-             // Iterate through chars to find the matching closing brace
-             for (i, c) in content[start_idx..].char_indices() {
-                 match c {
-                     '{' => balance += 1,
-                     '}' => {
-                         balance -= 1;
-                         if balance == 0 {
-                             end_idx = start_idx + i;
-                             found_end = true;
-                             break;
-                         }
-                     },
-                     _ => {}
-                 }
-             }
-             
-             if found_end {
-                 return content[start_idx..=end_idx].to_string();
-             }
+            let mut balance = 0;
+            let mut end_idx = start_idx;
+            let mut found_end = false;
+
+            // Iterate through chars to find the matching closing brace
+            for (i, c) in content[start_idx..].char_indices() {
+                match c {
+                    '{' => balance += 1,
+                    '}' => {
+                        balance -= 1;
+                        if balance == 0 {
+                            end_idx = start_idx + i;
+                            found_end = true;
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            if found_end {
+                return content[start_idx..=end_idx].to_string();
+            }
         }
 
         // 4. Fallback to just trimming
-        content.trim().trim_start_matches("```json").trim_start_matches("```").trim_end_matches("```").to_string()
+        content
+            .trim()
+            .trim_start_matches("```json")
+            .trim_start_matches("```")
+            .trim_end_matches("```")
+            .to_string()
     }
 
     /// Attempts to repair common JSON errors from LLMs
@@ -821,7 +867,7 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
         // Use regex to remove trailing commas which are invalid in JSON but common in LLM output
         // Invalid: { "a": 1, } -> Valid: { "a": 1 }
         // Invalid: [ "a", ] -> Valid: [ "a" ]
-        
+
         let mut repaired = json_str.to_string();
 
         if let Ok(re) = Regex::new(r",(\s*\})") {
@@ -831,7 +877,7 @@ Ensure all explanations, meanings, and descriptive text are written in {0}."#,
         if let Ok(re) = Regex::new(r",(\s*\])") {
             repaired = re.replace_all(&repaired, "$1").to_string();
         }
-        
+
         // Normalize quotes
         repaired = repaired.replace("“", "\"").replace("”", "\"");
 
