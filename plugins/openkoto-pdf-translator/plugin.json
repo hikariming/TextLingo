@@ -1,7 +1,7 @@
 {
     "name": "openkoto-pdf-translator",
     "display_name": "PDF 翻译插件",
-    "version": "0.1.0",
+    "version": "0.5.2",
     "description": "提供本地 PDF 文档的翻译功能，支持生成纯译文和双语对照版。",
     "entry_points": {
         "dev": {
