@@ -255,6 +255,10 @@
         "moonshot-v1-128k": "Moonshot v1 128k",
         "moonshot-v1-32k": "Moonshot v1 32k",
         "moonshot-v1-8k": "Moonshot v1 8k"
+      },
+      "ollama": {
+        "qwen2_5_7b_instruct": "Qwen2.5 7B Instruct (本地)",
+        "llama3_1_8b_instruct": "Llama 3.1 8B Instruct (本地)"
       }
     },
     "languages": {
@@ -395,7 +399,8 @@
     "success": "字幕提取成功！",
     "successMessage": "成功提取 {{count}} 个字幕片段！",
     "error": "字幕提取失败",
-    "geminiRequired": "字幕提取需要使用 Gemini 模型。推荐使用 Gemini 3.0 Flash模型，速度较快 ，pro模型精准但转录速度极慢",
+    "geminiRequired": "字幕提取需要使用 Gemini 或 Kimi K2.5 云端模型。推荐使用 Gemini 3.0 Flash，速度较快，Pro 模型更精准但转录更慢。",
+    "localNotSupported": "字幕提取暂不支持 Ollama / LM Studio 本地模型，请切换到 Gemini 或 Kimi K2.5。",
     "reExtract": "重新提取",
     "progress": {
       "start": "开始提取字幕...",

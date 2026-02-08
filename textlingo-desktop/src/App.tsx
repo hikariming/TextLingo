@@ -43,8 +43,11 @@ function App() {
       setConfig(configResult);
       if (configResult) {
         getApiClient(configResult); // Initialize API client
-        // Check if onboarding is needed (no model configs yet)
-        if (!configResult.model_configs || configResult.model_configs.length === 0) {
+        // Show onboarding only when it was never completed and no model config exists
+        if (
+          !configResult.onboarding_completed &&
+          (!configResult.model_configs || configResult.model_configs.length === 0)
+        ) {
           setShowOnboarding(true);
         }
       } else {

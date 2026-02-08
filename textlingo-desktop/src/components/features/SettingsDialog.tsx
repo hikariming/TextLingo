@@ -22,6 +22,7 @@ interface ModelConfig {
 }
 
 interface AppConfig {
+  onboarding_completed?: boolean;
   active_model_id?: string;
   model_configs: ModelConfig[];
   target_language: string;
@@ -94,9 +95,12 @@ const DEFAULT_MODELS = {
     { value: "moonshot-v1-32k", labelKey: "settings.models.moonshot.moonshot-v1-32k" },
     { value: "moonshot-v1-8k", labelKey: "settings.models.moonshot.moonshot-v1-8k" },
   ],
+  ollama: [
+    { value: "qwen2.5:7b-instruct", labelKey: "settings.models.ollama.qwen2_5_7b_instruct" },
+    { value: "llama3.1:8b-instruct", labelKey: "settings.models.ollama.llama3_1_8b_instruct" },
+  ],
   // Providers that require custom model input
   "openai-compatible": [],
-  "ollama": [],
   "lmstudio": [],
 };
 
@@ -136,6 +140,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
     google: DEFAULT_MODELS.google.map(m => ({ value: m.value, label: t(m.labelKey) })),
     "google-ai-studio": DEFAULT_MODELS["google-ai-studio"].map(m => ({ value: m.value, label: t(m.labelKey) })),
     moonshot: DEFAULT_MODELS.moonshot.map(m => ({ value: m.value, label: t(m.labelKey) })),
+    ollama: DEFAULT_MODELS.ollama.map(m => ({ value: m.value, label: t(m.labelKey) })),
   });
   const [modelFilter, setModelFilter] = useState("");
 
@@ -319,12 +324,13 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
 
     const provider = editingConfig.api_provider;
     // Ensure provider is defined and valid
-    if (!provider || !["openrouter", "openai", "openai-compatible", "deepseek", "siliconflow", "302ai", "google", "moonshot"].includes(provider)) {
+    if (!provider || !["openrouter", "openai", "openai-compatible", "deepseek", "siliconflow", "302ai", "google", "moonshot", "ollama"].includes(provider)) {
       if (!isAuto) setSyncError(t("settings.syncErrors.providerNotSupported") || "Provider not supported for sync");
       return;
     }
 
-    if (!editingConfig.api_key?.trim()) {
+    const requiresApiKey = !["ollama"].includes(provider);
+    if (requiresApiKey && !editingConfig.api_key?.trim()) {
       if (!isAuto) setSyncError(t("settings.syncErrors.apiKeyRequired"));
       return;
     }
@@ -380,6 +386,14 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
         url = "https://api.moonshot.cn/v1/models";
         headers = {
           "Authorization": `Bearer ${editingConfig.api_key}`,
+          "Content-Type": "application/json",
+        };
+      } else if (provider === "ollama") {
+        const configuredBase = editingConfig.base_url?.trim() || DEFAULT_BASE_URLS.ollama;
+        const trimmedBase = configuredBase.replace(/\/$/, "");
+        const host = trimmedBase.endsWith("/v1") ? trimmedBase.slice(0, -3) : trimmedBase;
+        url = `${host}/api/tags`;
+        headers = {
           "Content-Type": "application/json",
         };
       }
@@ -455,6 +469,14 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
             .map((m: any) => ({
               value: m.id,
               label: m.id,
+            }));
+        }
+      } else if (provider === "ollama") {
+        if (data.models && Array.isArray(data.models)) {
+          syncedModels = data.models
+            .map((m: any) => ({
+              value: m.name,
+              label: m.name,
             }));
         }
       }
@@ -534,7 +556,7 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
       return newConfig;
     });
     // For providers without preset models, enable custom model input
-    const needsCustomModel = ["openai-compatible", "ollama", "lmstudio"].includes(provider);
+    const needsCustomModel = ["openai-compatible", "lmstudio"].includes(provider);
     setUseCustomModel(needsCustomModel);
   };
 
@@ -775,13 +797,13 @@ export function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps)
                     <label className="block text-sm font-medium text-foreground">
                       {t("settings.model")}
                     </label>
-                    {["openrouter", "openai", "deepseek", "google", "google-ai-studio", "302ai", "siliconflow", "moonshot"].includes(editingConfig.api_provider || "") && (
+                    {["openrouter", "openai", "deepseek", "google", "google-ai-studio", "302ai", "siliconflow", "moonshot", "ollama"].includes(editingConfig.api_provider || "") && (
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => syncModels(false)}
-                        disabled={isSyncingModels || !editingConfig.api_key}
+                        disabled={isSyncingModels || (editingConfig.api_provider !== "ollama" && !editingConfig.api_key)}
                         className="h-6 px-2 text-xs"
                         title={t("settings.syncModelsTooltip")}
                       >

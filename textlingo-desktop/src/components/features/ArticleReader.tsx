@@ -277,10 +277,39 @@ export function ArticleReader({
   const handleExtractSubtitles = async () => {
     if (!article.media_path) return;
 
-    setIsExtractingSubtitles(true);
     setError(null);
 
     try {
+      const latestConfig = await invoke<AppConfig | null>("get_config");
+      const modelConfigs = latestConfig?.model_configs || [];
+      const activeConfig = latestConfig?.active_model_id
+        ? modelConfigs.find(c => c.id === latestConfig.active_model_id)
+        : modelConfigs[0];
+
+      if (!activeConfig) {
+        throw new Error(t("subtitleExtraction.geminiRequired"));
+      }
+
+      const provider = activeConfig.api_provider;
+      const model = activeConfig.model || "";
+
+      if (provider === "ollama" || provider === "lmstudio") {
+        throw new Error(t("subtitleExtraction.localNotSupported"));
+      }
+
+      const isSupported =
+        model.includes("gemini")
+        || model.startsWith("google/gemini")
+        || provider === "google"
+        || provider === "google-ai-studio"
+        || (provider === "moonshot" && model.includes("kimi"))
+        || model.includes("kimi");
+
+      if (!isSupported) {
+        throw new Error(t("subtitleExtraction.geminiRequired"));
+      }
+
+      setIsExtractingSubtitles(true);
       const updatedArticle = await invoke<Article>("extract_subtitles_cmd", {
         articleId: article.id,
       });

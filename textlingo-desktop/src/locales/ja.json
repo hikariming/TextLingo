@@ -244,6 +244,10 @@
         "moonshot-v1-128k": "Moonshot v1 128k",
         "moonshot-v1-32k": "Moonshot v1 32k",
         "moonshot-v1-8k": "Moonshot v1 8k"
+      },
+      "ollama": {
+        "qwen2_5_7b_instruct": "Qwen2.5 7B Instruct (ローカル)",
+        "llama3_1_8b_instruct": "Llama 3.1 8B Instruct (ローカル)"
       }
     },
     "languages": {
@@ -384,7 +388,8 @@
     "success": "字幕の抽出に成功しました！",
     "successMessage": "{{count}}個の字幕セグメントを抽出しました！",
     "error": "字幕の抽出に失敗しました",
-    "geminiRequired": "字幕抽出にはGeminiモデルが必要です。Gemini 3.0 Flashモデル（高速）を推奨します。Proモデルは高精度ですが、転写速度が非常に遅いです。",
+    "geminiRequired": "字幕抽出にはクラウドの Gemini または Kimi K2.5 モデルが必要です。Gemini 3.0 Flash（高速）を推奨します。Pro は高精度ですが転写が遅くなります。",
+    "localNotSupported": "字幕抽出は Ollama / LM Studio のローカルモデルには未対応です。Gemini または Kimi K2.5 に切り替えてください。",
     "reExtract": "再抽出",
     "progress": {
       "start": "字幕抽出を開始...",

@@ -56,6 +56,7 @@ export function OnboardingDialog({ isOpen, onFinish }: OnboardingDialogProps) {
         try {
             // 1. Create base config
             const initialConfig: AppConfig = {
+                onboarding_completed: true,
                 model_configs: [],
                 target_language: targetLanguage,
                 interface_language: i18n.language,

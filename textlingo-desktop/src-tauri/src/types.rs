@@ -33,6 +33,9 @@ impl ModelConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
+    /// Whether onboarding has been completed at least once
+    #[serde(default)]
+    pub onboarding_completed: bool,
     /// Active model config ID (defaults to first config if not set)
     #[serde(default)]
     pub active_model_id: Option<String>,
@@ -55,6 +58,7 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
+            onboarding_completed: false,
             active_model_id: None,
             model_configs: Vec::new(),
             target_language: "zh-CN".to_string(),

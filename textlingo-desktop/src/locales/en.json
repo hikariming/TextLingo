@@ -255,6 +255,10 @@
         "moonshot-v1-128k": "Moonshot v1 128k",
         "moonshot-v1-32k": "Moonshot v1 32k",
         "moonshot-v1-8k": "Moonshot v1 8k"
+      },
+      "ollama": {
+        "qwen2_5_7b_instruct": "Qwen2.5 7B Instruct (Local)",
+        "llama3_1_8b_instruct": "Llama 3.1 8B Instruct (Local)"
       }
     },
     "languages": {
@@ -395,7 +399,8 @@
     "success": "Subtitles extracted successfully!",
     "successMessage": "Successfully extracted {{count}} subtitle segments!",
     "error": "Failed to extract subtitles",
-    "geminiRequired": "Subtitle extraction requires a Gemini model. Recommended: Gemini 3.0 Flash (faster). The Pro model is accurate but transcription is extremely slow.",
+    "geminiRequired": "Subtitle extraction requires a cloud Gemini or Kimi K2.5 model. Recommended: Gemini 3.0 Flash (faster). Pro is more accurate but much slower.",
+    "localNotSupported": "Subtitle extraction does not support local Ollama / LM Studio models yet. Please switch to Gemini or Kimi K2.5.",
     "reExtract": "Re-extract",
     "progress": {
       "start": "Starting subtitle extraction...",

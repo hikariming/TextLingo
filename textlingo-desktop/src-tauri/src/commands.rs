@@ -1207,17 +1207,25 @@ pub async fn extract_subtitles_cmd(
     let api_key = &active_config.api_key;
     let base_url = active_config.base_url.as_deref();
 
-    // 允许的 Gemini 或 Kimi 模型
+    // 本地 provider 当前不支持字幕提取（该流程依赖云端多模态转录能力）
+    if provider == "ollama" || provider == "lmstudio" {
+        return Err(
+            "字幕提取暂不支持 Ollama / LM Studio 本地模型。请切换到 Gemini 或 Kimi K2.5。"
+                .to_string(),
+        );
+    }
+
+    // 允许的 Gemini 或 Kimi K2.5 模型
     let is_supported = model.contains("gemini")
         || model.starts_with("google/gemini")
         || provider == "google"
         || provider == "google-ai-studio"
-        || provider == "moonshot"
+        || (provider == "moonshot" && model.contains("kimi"))
         || model.contains("kimi");
 
     if !is_supported {
         return Err(
-            "字幕提取需要使用 Gemini 或 Kimi K2.5 模型。请在设置中配置相关 API".to_string(),
+            "字幕提取需要使用 Gemini 或 Kimi K2.5 云端模型。请在设置中切换模型。".to_string(),
         );
     }
 

@@ -11,6 +11,7 @@ export interface ModelConfig {
 }
 
 export interface AppConfig {
+  onboarding_completed?: boolean;
   // Legacy fields (deprecated, for backward compatibility)
   api_key?: string;
   api_provider?: string;
