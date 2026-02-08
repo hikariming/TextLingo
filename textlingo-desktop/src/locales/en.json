@@ -85,7 +85,15 @@
     "originalText": "Original Text",
     "generateExplanation": "Generate Explanation",
     "notes": "Notes",
-    "translation": "Translation"
+    "translation": "Translation",
+    "export": "Export",
+    "exportMarkdown": "Export Markdown",
+    "exportDocx": "Export DOCX",
+    "exportOriginalTranslationMd": "Original + Translation (Markdown)",
+    "exportAnnotatedMd": "Original + Translation + Explanations (Markdown)",
+    "exportOriginalTranslationDocx": "Original + Translation (DOCX)",
+    "exportAnnotatedDocx": "Original + Translation + Explanations (DOCX)",
+    "exportNoSegments": "No segments to export. Please segment and translate first."
   },
   "novelChat": {
     "aiAssistant": "AI Assistant",

@@ -24,8 +24,10 @@ use tauri_plugin_shell::ShellExt;
 use uuid::Uuid;
 
 // API 端点
+const OPENAI_API_URL: &str = "https://api.openai.com/v1/chat/completions";
 const OPENROUTER_API_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
 const API_302AI_URL: &str = "https://api.302.ai/v1/chat/completions";
+const MOONSHOT_API_URL: &str = "https://api.moonshot.cn/v1/chat/completions";
 const GOOGLE_GEMINI_URL: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 
 /// 从视频中提取字幕的主函数
@@ -48,6 +50,7 @@ pub async fn extract_subtitles(
     provider: &str,
     api_key: &str,
     model: &str,
+    base_url: Option<&str>,
     event_id: &str,
 ) -> Result<Vec<ArticleSegment>, String> {
     println!("[SubtitleExtraction] 开始提取字幕: {:?}", video_path);
@@ -86,7 +89,15 @@ pub async fn extract_subtitles(
             serde_json::json!({ "phase": "chunked", "message": "视频较长，启用分片提取模式..." }),
         );
         return extract_subtitles_chunked(
-            app, video_path, video_id, provider, api_key, model, duration, event_id,
+            app,
+            video_path,
+            video_id,
+            provider,
+            api_key,
+            model,
+            base_url,
+            duration,
+            event_id,
         )
         .await;
     }
@@ -108,7 +119,8 @@ pub async fn extract_subtitles(
     );
 
     // 3. 调用 Gemini API 进行转录
-    let transcription = transcribe_audio_with_gemini(&audio_path, provider, api_key, model).await?;
+    let transcription =
+        transcribe_audio_with_gemini(&audio_path, provider, api_key, model, base_url).await?;
     println!(
         "[SubtitleExtraction] 转录完成，共 {} 个片段",
         transcription.segments.len()
@@ -295,6 +307,7 @@ async fn extract_and_transcribe_segment(
     provider: String,
     api_key: String,
     model: String,
+    base_url: Option<String>,
 ) -> Result<ChunkTranscriptionResult, String> {
     println!(
         "[SubtitleExtraction] 提取片段: start={:.1}s, duration={:.1}s, suffix={}",
@@ -307,7 +320,14 @@ async fn extract_and_transcribe_segment(
 
     // 2. 转录音频
     let transcription =
-        transcribe_audio_with_gemini(&audio_path, &provider, &api_key, &model).await?;
+        transcribe_audio_with_gemini(
+            &audio_path,
+            &provider,
+            &api_key,
+            &model,
+            base_url.as_deref(),
+        )
+        .await?;
 
     // 3. 清理临时音频文件
     if let Err(e) = fs::remove_file(&audio_path) {
@@ -362,6 +382,7 @@ async fn extract_subtitles_chunked(
     provider: &str,
     api_key: &str,
     model: &str,
+    base_url: Option<&str>,
     total_duration: f64,
     event_id: &str,
 ) -> Result<Vec<ArticleSegment>, String> {
@@ -418,6 +439,7 @@ async fn extract_subtitles_chunked(
                     provider.to_string(),
                     api_key.to_string(),
                     model.to_string(),
+                    base_url.map(str::to_string),
                 ),
                 extract_and_transcribe_segment(
                     app.clone(),
@@ -428,6 +450,7 @@ async fn extract_subtitles_chunked(
                     provider.to_string(),
                     api_key.to_string(),
                     model.to_string(),
+                    base_url.map(str::to_string),
                 )
             );
 
@@ -456,6 +479,7 @@ async fn extract_subtitles_chunked(
                 provider.to_string(),
                 api_key.to_string(),
                 model.to_string(),
+                base_url.map(str::to_string),
             )
             .await?;
 
@@ -882,6 +906,7 @@ async fn transcribe_audio_with_gemini(
     provider: &str,
     api_key: &str,
     model: &str,
+    base_url: Option<&str>,
 ) -> Result<TranscriptionResult, String> {
     const MAX_RETRIES: u32 = 3;
     let mut retry_count = 0;
@@ -971,11 +996,35 @@ IMPORTANT: Each segment = one sentence. Timestamps must be precise to the second
                     .map_err(|e| format!("API 请求失败: {}", e))?
             }
             _ => {
-                // OpenRouter / 302.AI (OpenAI 兼容格式)
-                let api_url = match provider {
-                    "openrouter" => OPENROUTER_API_URL,
-                    "302ai" => API_302AI_URL,
-                    _ => API_302AI_URL,
+                // OpenAI 兼容格式：优先使用用户配置的 base_url，避免错误回退到固定网关
+                let api_url = if let Some(custom_base_url) =
+                    base_url.and_then(|url| (!url.trim().is_empty()).then_some(url))
+                {
+                    let trimmed = custom_base_url.trim_end_matches('/');
+                    if trimmed.ends_with("/chat/completions") {
+                        trimmed.to_string()
+                    } else {
+                        format!("{}/chat/completions", trimmed)
+                    }
+                } else {
+                    match provider {
+                        "openrouter" => OPENROUTER_API_URL.to_string(),
+                        "302ai" => API_302AI_URL.to_string(),
+                        "moonshot" => MOONSHOT_API_URL.to_string(),
+                        "openai" => OPENAI_API_URL.to_string(),
+                        "openai-compatible" => {
+                            return Err(
+                                "openai-compatible provider requires base_url in settings"
+                                    .to_string(),
+                            );
+                        }
+                        _ => {
+                            return Err(format!(
+                                "Unsupported provider '{}' for subtitle transcription without base_url",
+                                provider
+                            ));
+                        }
+                    }
                 };
 
                 // 使用 OpenAI 兼容的 input_audio 格式
@@ -1001,7 +1050,7 @@ IMPORTANT: Each segment = one sentence. Timestamps must be precise to the second
                 });
 
                 client
-                    .post(api_url)
+                    .post(&api_url)
                     .header("Authorization", format!("Bearer {}", api_key))
                     .header("Content-Type", "application/json")
                     .json(&request_body)

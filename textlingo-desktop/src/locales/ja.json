@@ -83,7 +83,15 @@
     "originalText": "原文",
     "generateExplanation": "解説を生成",
     "notes": "ノート",
-    "translation": "翻訳"
+    "translation": "翻訳",
+    "export": "エクスポート",
+    "exportMarkdown": "Markdownにエクスポート",
+    "exportDocx": "DOCXにエクスポート",
+    "exportOriginalTranslationMd": "原文＋翻訳（Markdown）",
+    "exportAnnotatedMd": "原文＋翻訳＋解説（Markdown）",
+    "exportOriginalTranslationDocx": "原文＋翻訳（DOCX）",
+    "exportAnnotatedDocx": "原文＋翻訳＋解説（DOCX）",
+    "exportNoSegments": "エクスポートできるセグメントがありません。セグメント化と翻訳を先に行ってください。"
   },
   "novelChat": {
     "aiAssistant": "AIアシスタント",

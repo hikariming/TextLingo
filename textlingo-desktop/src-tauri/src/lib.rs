@@ -63,6 +63,7 @@ pub fn run() {
             commands::extract_subtitles_cmd,
             // 文件操作
             commands::write_text_file,
+            commands::write_binary_file,
             // 删除操作
             commands::delete_article_subtitles_cmd,
             commands::delete_article_analysis_cmd,

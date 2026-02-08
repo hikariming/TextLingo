@@ -85,7 +85,15 @@
     "originalText": "原文",
     "generateExplanation": "生成讲解",
     "notes": "笔记",
-    "translation": "翻译"
+    "translation": "翻译",
+    "export": "导出",
+    "exportMarkdown": "导出 Markdown",
+    "exportDocx": "导出 DOCX",
+    "exportOriginalTranslationMd": "原文-翻译（Markdown）",
+    "exportAnnotatedMd": "原文翻译精讲（Markdown）",
+    "exportOriginalTranslationDocx": "原文-翻译（DOCX）",
+    "exportAnnotatedDocx": "原文翻译精讲（DOCX）",
+    "exportNoSegments": "暂无可导出的分段内容，请先分段或翻译。"
   },
   "novelChat": {
     "aiAssistant": "AI 助手",

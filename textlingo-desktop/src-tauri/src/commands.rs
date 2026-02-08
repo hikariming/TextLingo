@@ -1205,6 +1205,7 @@ pub async fn extract_subtitles_cmd(
     let model = &active_config.model;
     let provider = &active_config.api_provider;
     let api_key = &active_config.api_key;
+    let base_url = active_config.base_url.as_deref();
 
     // 允许的 Gemini 或 Kimi 模型
     let is_supported = model.contains("gemini")
@@ -1228,6 +1229,7 @@ pub async fn extract_subtitles_cmd(
         provider,
         api_key,
         model,
+        base_url,
         &article_id, // event_id 用于进度事件
     )
     .await?;
@@ -1372,6 +1374,12 @@ pub async fn import_book_cmd(
 // File System Commands
 #[tauri::command]
 pub async fn write_text_file(path: String, content: String) -> Result<(), String> {
+    use std::fs;
+    fs::write(path, content).map_err(|e| format!("Failed to write file: {}", e))
+}
+
+#[tauri::command]
+pub async fn write_binary_file(path: String, content: Vec<u8>) -> Result<(), String> {
     use std::fs;
     fs::write(path, content).map_err(|e| format!("Failed to write file: {}", e))
 }

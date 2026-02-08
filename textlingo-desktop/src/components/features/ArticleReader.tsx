@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { save } from "@tauri-apps/plugin-dialog";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
@@ -10,6 +11,7 @@ import {
   Sparkles,
   Loader2,
   FileText,
+  FileDown,
   ChevronLeft,
   ChevronRight,
   Split,
@@ -24,6 +26,7 @@ import {
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import { AnalysisType, AppConfig } from "../../lib/tauri";
+import { Document, HeadingLevel, Packer, Paragraph, TextRun } from "docx";
 import { Article, SegmentExplanation } from "../../types";
 import { ArticleChatAssistant } from "./ArticleChatAssistant";
 import { ArticleExplanationPanel } from "./ArticleExplanationPanel";
@@ -33,6 +36,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
 import { useConfig } from "../../lib/hooks";
 
@@ -513,6 +518,238 @@ export function ArticleReader({
 
   const hasSegments = localSegments && localSegments.length > 0;
 
+  const getSortedSegments = () => {
+    if (!hasSegments) return [];
+    return [...localSegments].sort((a, b) => a.order - b.order);
+  };
+
+  const safeTitle = (article.title || t("articleReader.untitled") || "article").replace(/[/\\?%*:|"<>]/g, "-");
+
+  const buildMarkdownContent = (includeExplanation: boolean) => {
+    const segments = getSortedSegments();
+    const lines: string[] = [];
+    const title = article.title || t("articleReader.untitled") || "Article";
+
+    lines.push(`# ${title}`);
+    lines.push("");
+
+    segments.forEach((seg, idx) => {
+      const segmentTitle = t("articleReader.segmentNumber", { number: idx + 1 }) || `Segment ${idx + 1}`;
+      lines.push(`## ${segmentTitle}`);
+      lines.push("");
+      lines.push(seg.text);
+      if (seg.translation) {
+        lines.push(`> ${seg.translation}`);
+      }
+
+      if (includeExplanation && seg.explanation) {
+        lines.push("");
+        const explanationLabel = t("articleReader.explanation") || "Explanation";
+        lines.push(`**${explanationLabel}**`);
+        if (seg.explanation.translation) {
+          const translationLabel = t("articleReader.translation") || "Translation";
+          lines.push(`${translationLabel}: ${seg.explanation.translation}`);
+        }
+        if (seg.explanation.explanation) {
+          lines.push(seg.explanation.explanation);
+        }
+
+        if (seg.explanation.vocabulary && seg.explanation.vocabulary.length > 0) {
+          lines.push("");
+          lines.push(`${t("articleReader.vocabulary") || "Vocabulary"}:`);
+          seg.explanation.vocabulary.forEach(item => {
+            const usage = item.usage ? ` (${item.usage})` : "";
+            lines.push(`- ${item.word}: ${item.meaning}${usage}`);
+          });
+        }
+
+        if (seg.explanation.grammar_points && seg.explanation.grammar_points.length > 0) {
+          lines.push("");
+          lines.push(`${t("articleReader.grammar") || "Grammar"}:`);
+          seg.explanation.grammar_points.forEach(point => {
+            const example = point.example ? ` (${point.example})` : "";
+            lines.push(`- ${point.point}: ${point.explanation}${example}`);
+          });
+        }
+      }
+
+      lines.push("");
+    });
+
+    return lines.join("\n");
+  };
+
+  const buildDocxBuffer = async (includeExplanation: boolean) => {
+    const segments = getSortedSegments();
+    const title = article.title || t("articleReader.untitled") || "Article";
+
+    const children: Paragraph[] = [
+      new Paragraph({
+        text: title,
+        heading: HeadingLevel.HEADING_1,
+        spacing: { after: 300 },
+      }),
+    ];
+
+    segments.forEach((seg, idx) => {
+      const segmentTitle = t("articleReader.segmentNumber", { number: idx + 1 }) || `Segment ${idx + 1}`;
+      children.push(
+        new Paragraph({
+          text: segmentTitle,
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 240, after: 120 },
+        })
+      );
+
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ text: seg.text, bold: true })],
+          spacing: { after: 80 },
+        })
+      );
+
+      if (seg.translation) {
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ text: seg.translation, color: "2563EB" })],
+            spacing: { after: 120 },
+          })
+        );
+      }
+
+      if (includeExplanation && seg.explanation) {
+        children.push(
+          new Paragraph({
+            text: t("articleReader.explanation") || "Explanation",
+            heading: HeadingLevel.HEADING_3,
+            spacing: { before: 120, after: 80 },
+          })
+        );
+
+        if (seg.explanation.translation) {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: `${t("articleReader.translation") || "Translation"}: ${seg.explanation.translation}` })],
+              spacing: { after: 60 },
+            })
+          );
+        }
+
+        if (seg.explanation.explanation) {
+          children.push(
+            new Paragraph({
+              text: seg.explanation.explanation,
+              spacing: { after: 80 },
+            })
+          );
+        }
+
+        if (seg.explanation.vocabulary && seg.explanation.vocabulary.length > 0) {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: t("articleReader.vocabulary") || "Vocabulary", bold: true })],
+              spacing: { after: 40 },
+            })
+          );
+          seg.explanation.vocabulary.forEach(item => {
+            const usage = item.usage ? ` (${item.usage})` : "";
+            children.push(
+              new Paragraph({
+                text: `${item.word}: ${item.meaning}${usage}`,
+                bullet: { level: 0 },
+                spacing: { after: 20 },
+              })
+            );
+          });
+        }
+
+        if (seg.explanation.grammar_points && seg.explanation.grammar_points.length > 0) {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: t("articleReader.grammar") || "Grammar", bold: true })],
+              spacing: { before: 40, after: 40 },
+            })
+          );
+          seg.explanation.grammar_points.forEach(point => {
+            const example = point.example ? ` (${point.example})` : "";
+            children.push(
+              new Paragraph({
+                text: `${point.point}: ${point.explanation}${example}`,
+                bullet: { level: 0 },
+                spacing: { after: 20 },
+              })
+            );
+          });
+        }
+      }
+    });
+
+    const doc = new Document({
+      sections: [
+        {
+          children,
+        },
+      ],
+    });
+
+    const packer = Packer as unknown as {
+      toBlob?: (d: Document) => Promise<Blob>;
+      toArrayBuffer?: (d: Document) => Promise<ArrayBuffer>;
+      toBuffer?: (d: Document) => Promise<Uint8Array | ArrayBuffer>;
+      toUint8Array?: (d: Document) => Promise<Uint8Array>;
+    };
+
+    if (typeof packer.toBlob === "function") {
+      const blob = await packer.toBlob(doc);
+      const arrayBuffer = await blob.arrayBuffer();
+      return new Uint8Array(arrayBuffer);
+    }
+
+    if (typeof packer.toArrayBuffer === "function") {
+      const arrayBuffer = await packer.toArrayBuffer(doc);
+      return new Uint8Array(arrayBuffer);
+    }
+
+    if (typeof packer.toBuffer === "function") {
+      const buffer = await packer.toBuffer(doc);
+      return buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+    }
+
+    if (typeof packer.toUint8Array === "function") {
+      return packer.toUint8Array(doc);
+    }
+
+    throw new Error("docx packer method not available in current runtime");
+  };
+
+  const handleArticleExport = async (format: "md" | "docx", includeExplanation: boolean) => {
+    if (!hasSegments) {
+      setError(t("articleReader.exportNoSegments") || "Please segment the article before exporting.");
+      return;
+    }
+
+    const defaultPath = `${safeTitle}${includeExplanation ? "_annotated" : "_bilingual"}.${format}`;
+    const filePath = await save({
+      defaultPath,
+      filters: [
+        {
+          name: format === "md" ? "Markdown" : "DOCX",
+          extensions: [format],
+        },
+      ],
+    });
+
+    if (!filePath) return;
+
+    if (format === "md") {
+      const content = buildMarkdownContent(includeExplanation);
+      await invoke("write_text_file", { path: filePath, content });
+    } else {
+      const buffer = await buildDocxBuffer(includeExplanation);
+      await invoke("write_binary_file", { path: filePath, content: Array.from(buffer) });
+    }
+  };
+
   return (
     <div className="h-full flex overflow-hidden">
       {/* Main Content Area */}
@@ -720,6 +957,39 @@ export function ArticleReader({
                     <span className="ml-2 hidden xl:inline">{t("articleReader.segment")}</span>
                   </Button>
                 )}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 md:h-9 gap-2"
+                      title={t("articleReader.export") || "Export"}
+                    >
+                      <FileDown size={16} />
+                      <span className="hidden xl:inline">{t("articleReader.export") || "Export"}</span>
+                      <ChevronDown size={14} className="opacity-60" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-[220px]">
+                    <DropdownMenuLabel>{t("articleReader.exportMarkdown") || "Markdown"}</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => handleArticleExport("md", false)}>
+                      {t("articleReader.exportOriginalTranslationMd") || "Original + Translation (MD)"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleArticleExport("md", true)}>
+                      {t("articleReader.exportAnnotatedMd") || "Original + Translation + Notes (MD)"}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>{t("articleReader.exportDocx") || "DOCX"}</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => handleArticleExport("docx", false)}>
+                      {t("articleReader.exportOriginalTranslationDocx") || "Original + Translation (DOCX)"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleArticleExport("docx", true)}>
+                      {t("articleReader.exportAnnotatedDocx") || "Original + Translation + Notes (DOCX)"}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               // No Segments - Show Segment buttons if NOT video (Wait, video should extract subtitles, not segmentation usually)

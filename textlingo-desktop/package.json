@@ -25,6 +25,7 @@
     "ai": "^6.0.26",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "docx": "^9.2.2",
     "epubjs": "^0.3.93",
     "i18next": "^25.7.4",
     "lucide-react": "^0.562.0",
