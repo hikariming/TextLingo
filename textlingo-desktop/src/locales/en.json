@@ -354,6 +354,28 @@
       "fileRequired": "Please select a file"
     }
   },
+  "webImport": {
+    "title": "Web Import",
+    "hint": "Paste a webpage URL, preview extracted content first, then confirm import into your materials.",
+    "urlLabel": "Web URL",
+    "urlPlaceholder": "https://example.com/article",
+    "fetchPreview": "Fetch Preview",
+    "fetching": "Fetching...",
+    "previewSourceLocal": "Preview source: local parser",
+    "previewSourceBackend": "Preview source: backend parser",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Leave empty to use extracted title",
+    "contentLabel": "Content Preview (Editable)",
+    "contentPlaceholder": "Extracted content appears here. You can edit it before import.",
+    "wordCount": "Characters: {{count}}",
+    "import": "Confirm Import",
+    "importing": "Importing...",
+    "errors": {
+      "urlRequired": "Please enter a URL",
+      "urlInvalid": "URL must start with http:// or https://",
+      "contentTooShort": "Content is too short. Check the URL or edit content before import."
+    }
+  },
   "youtubeImport": {
     "title": "Import YouTube Video",
     "urlLabel": "Video URL",

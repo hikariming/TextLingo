@@ -12,7 +12,8 @@ import {
   Eye,
   Plus,
   MoreVertical,
-  Music
+  Music,
+  Globe
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -153,6 +154,23 @@ export function ArticleList({
   const AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'wma'];
 
   const getArticleType = (article: Article) => {
+    if (article.source_type) {
+      switch (article.source_type) {
+        case "web":
+          return "WEB";
+        case "youtube":
+        case "local_video":
+          return "VIDEO";
+        case "audio":
+          return "AUDIO";
+        case "book":
+          return article.book_type?.toUpperCase() || "BOOK";
+        case "article":
+        default:
+          return "ARTICLE";
+      }
+    }
+
     if (article.book_path) {
       return article.book_type?.toUpperCase() || "BOOK";
     }
@@ -179,6 +197,8 @@ export function ArticleList({
         return <Video className="text-primary" size={size} />;
       case "AUDIO":
         return <Music className="text-primary" size={size} />;
+      case "WEB":
+        return <Globe className="text-primary" size={size} />;
       default:
         return <FileText className="text-primary" size={size} />;
     }
@@ -210,6 +230,7 @@ export function ArticleList({
     switch (type) {
       case 'VIDEO': return 'bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20';
       case 'AUDIO': return 'bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20';
+      case 'WEB': return 'bg-gradient-to-br from-cyan-50 to-sky-100 dark:from-cyan-900/20 dark:to-sky-900/20';
       case 'PDF': return 'bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/20';
       case 'EPUB':
       case 'BOOK': return 'bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20';

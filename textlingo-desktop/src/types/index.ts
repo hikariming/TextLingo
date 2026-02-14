@@ -2,6 +2,8 @@ export interface Article {
     id: string;
     title: string;
     content: string;
+    /** 素材来源类型: web | article | youtube | local_video | audio | book */
+    source_type?: "web" | "article" | "youtube" | "local_video" | "audio" | "book";
     source_url?: string;
     media_path?: string;
     /** 书籍文件路径 (EPUB/TXT/PDF) */

@@ -14,7 +14,8 @@
     "configureApiKey": "使用を開始するにはAPIキーを設定してください",
     "newArticle": "新規記事",
     "settings": "設定",
-    "favorites": "お気に入り"
+    "favorites": "お気に入り",
+    "newMaterial": "新規素材"
   },
   "footer": {
     "provider": "プロバイダー",
@@ -341,6 +342,28 @@
     "importing": "インポート中...",
     "errors": {
       "fileRequired": "ファイルを選択してください"
+    }
+  },
+  "webImport": {
+    "title": "Webインポート",
+    "hint": "WebページURLを入力し、抽出結果をプレビューしてから素材として取り込みます。",
+    "urlLabel": "Web URL",
+    "urlPlaceholder": "https://example.com/article",
+    "fetchPreview": "プレビュー取得",
+    "fetching": "取得中...",
+    "previewSourceLocal": "プレビュー元: ローカル解析",
+    "previewSourceBackend": "プレビュー元: バックエンド解析",
+    "titleLabel": "タイトル",
+    "titlePlaceholder": "空欄の場合は抽出タイトルを使用",
+    "contentLabel": "本文プレビュー（編集可）",
+    "contentPlaceholder": "抽出された本文が表示されます。取り込み前に編集できます。",
+    "wordCount": "文字数: {{count}}",
+    "import": "インポート確定",
+    "importing": "インポート中...",
+    "errors": {
+      "urlRequired": "URLを入力してください",
+      "urlInvalid": "URLは http:// または https:// で始まる必要があります",
+      "contentTooShort": "本文が短すぎます。URLを確認するか本文を編集してください。"
     }
   },
   "youtubeImport": {

@@ -354,6 +354,28 @@
       "fileRequired": "请选择文件"
     }
   },
+  "webImport": {
+    "title": "网页导入",
+    "hint": "输入网页链接后先抓取预览，再确认导入到素材库，随后可直接进行翻译与精讲。",
+    "urlLabel": "网页链接",
+    "urlPlaceholder": "https://example.com/article",
+    "fetchPreview": "抓取预览",
+    "fetching": "抓取中...",
+    "previewSourceLocal": "当前预览来源：本地解析",
+    "previewSourceBackend": "当前预览来源：后端解析",
+    "titleLabel": "标题",
+    "titlePlaceholder": "留空则使用抓取标题",
+    "contentLabel": "正文预览（可编辑）",
+    "contentPlaceholder": "抓取结果将显示在这里，可手动修改后再导入。",
+    "wordCount": "字数：{{count}}",
+    "import": "确认导入",
+    "importing": "导入中...",
+    "errors": {
+      "urlRequired": "请输入网页链接",
+      "urlInvalid": "链接必须以 http:// 或 https:// 开头",
+      "contentTooShort": "正文内容过短，请检查链接或手动补充后再导入"
+    }
+  },
   "youtubeImport": {
     "title": "导入 YouTube 视频",
     "urlLabel": "视频链接",

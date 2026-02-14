@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { Plus, FileText, Youtube, FolderOpen, BookOpen, Music } from "lucide-react";
+import { Plus, FileText, Youtube, FolderOpen, BookOpen, Music, Globe } from "lucide-react";
 import { Article } from "../../types";
 import { NewArticleForm } from "./NewArticleForm";
 import { YouTubeImportForm } from "./YouTubeImportForm";
 import { LocalVideoImportForm } from "./LocalVideoImportForm";
 import { BookImportForm } from "./BookImportForm";
 import { LocalAudioImportForm } from "./LocalAudioImportForm";
+import { WebImportForm } from "./WebImportForm";
 import { cn } from "../../lib/utils";
 
 const AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'wma'];
@@ -18,7 +19,7 @@ function isAudioFile(path: string): boolean {
     return AUDIO_EXTENSIONS.includes(ext);
 }
 
-type MaterialType = "article" | "youtube" | "local" | "book" | "audio";
+type MaterialType = "article" | "web" | "youtube" | "local" | "book" | "audio";
 
 interface NewMaterialDialogProps {
     isOpen: boolean;
@@ -34,7 +35,8 @@ export function NewMaterialDialog({ isOpen, onClose, onSave, editingArticle }: N
     // Initialize/Reset tab when dialog opens or editingArticle changes
     useState(() => {
         if (editingArticle) {
-            if (editingArticle.book_path) setActiveTab("book");
+            if (editingArticle.source_type === "web") setActiveTab("web");
+            else if (editingArticle.book_path) setActiveTab("book");
             else if (editingArticle.media_path?.includes("http")) setActiveTab("youtube"); // Simple heuristic
             else if (editingArticle.media_path && isAudioFile(editingArticle.media_path)) setActiveTab("audio");
             else if (editingArticle.media_path) setActiveTab("local");
@@ -82,6 +84,21 @@ export function NewMaterialDialog({ isOpen, onClose, onSave, editingArticle }: N
                     >
                         <FileText size={18} />
                         {t("newArticle.title")}
+                    </button>
+
+                    <button
+                        className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
+                            activeTab === "web"
+                                ? "bg-blue-500/10 text-blue-500"
+                                : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                            isEditing && activeTab !== "web" && "opacity-50 cursor-not-allowed"
+                        )}
+                        onClick={() => !isEditing && setActiveTab("web")}
+                        disabled={isEditing}
+                    >
+                        <Globe size={18} />
+                        {t("webImport.title", "网页导入")}
                     </button>
 
                     <button
@@ -166,6 +183,7 @@ export function NewMaterialDialog({ isOpen, onClose, onSave, editingArticle }: N
                         ) : (
                             <>
                                 {activeTab === "book" && <BookImportForm onSave={handleSave} onCancel={handleClose} />}
+                                {activeTab === "web" && <WebImportForm onSave={handleSave} onCancel={handleClose} />}
                                 {activeTab === "youtube" && <YouTubeImportForm onSave={handleSave} onCancel={handleClose} />}
                                 {activeTab === "local" && <LocalVideoImportForm onSave={handleSave} onCancel={handleClose} />}
                                 {activeTab === "audio" && <LocalAudioImportForm onSave={handleSave} onCancel={handleClose} />}

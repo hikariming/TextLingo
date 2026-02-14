@@ -94,6 +94,9 @@ pub struct Article {
     pub id: String,
     pub title: String,
     pub content: String,
+    /// 素材来源类型: "web" | "article" | "youtube" | "local_video" | "audio" | "book"
+    #[serde(default)]
+    pub source_type: Option<String>,
     pub source_url: Option<String>,
     pub media_path: Option<String>,
     /// 书籍文件路径 (EPUB/TXT/PDF)

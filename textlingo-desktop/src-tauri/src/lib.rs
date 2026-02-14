@@ -39,6 +39,7 @@ pub fn run() {
             commands::update_article_segment,
             commands::delete_article_cmd,
             commands::fetch_url_content,
+            commands::import_web_material_cmd,
             // AI operations
             commands::translate_text,
             commands::analyze_text,

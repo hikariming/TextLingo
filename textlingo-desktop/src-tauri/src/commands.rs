@@ -411,6 +411,7 @@ pub async fn create_article(
         id: id.clone(),
         title: title.clone(),
         content: content.clone(),
+        source_type: Some("article".to_string()),
         source_url: source_url.clone(),
         media_path: None,
         book_path: None,
@@ -1144,14 +1145,29 @@ pub async fn import_local_video_cmd(
     std::fs::copy(src_path, &dest_path).map_err(|e| format!("Failed to copy file: {}", e))?;
 
     let created_at = chrono::Utc::now().to_rfc3339();
+    let is_audio = matches!(
+        ext.to_lowercase().as_str(),
+        "mp3" | "wav" | "m4a" | "aac" | "flac" | "ogg" | "wma"
+    );
 
     // Initial content placeholder
-    let content = format!("[Local Import] {}", file_name);
+    let content = if is_audio {
+        format!("[Audio Import] {}", file_name)
+    } else {
+        format!("[Local Import] {}", file_name)
+    };
 
     let article = Article {
         id: id.clone(),
         title: file_name.into_owned(),
         content,
+        source_type: Some(
+            if is_audio {
+                "audio".to_string()
+            } else {
+                "local_video".to_string()
+            },
+        ),
         source_url: Some(format!("file://{}", file_path)),
         media_path: Some(dest_path.to_string_lossy().into_owned()),
         book_path: None,
@@ -1357,6 +1373,7 @@ pub async fn import_book_cmd(
         id: id.clone(),
         title: book_title,
         content,
+        source_type: Some("book".to_string()),
         source_url: Some(format!("file://{}", file_path)),
         media_path: None,
         book_path: Some(dest_path.to_string_lossy().into_owned()),
@@ -1375,6 +1392,48 @@ pub async fn import_book_cmd(
         "[ImportBook] 书籍导入成功: {} ({})",
         article.title, book_type
     );
+
+    Ok(article)
+}
+
+#[tauri::command]
+pub async fn import_web_material_cmd(
+    app_handle: AppHandle,
+    url: String,
+    title: Option<String>,
+    content: String,
+) -> Result<Article, String> {
+    let parsed_url = url::Url::parse(&url).map_err(|_| "Invalid URL format".to_string())?;
+    if parsed_url.scheme() != "http" && parsed_url.scheme() != "https" {
+        return Err("Only HTTP and HTTPS URLs are supported".to_string());
+    }
+
+    if content.trim().len() < 10 {
+        return Err("Extracted content is too short. Please check the URL and try again.".to_string());
+    }
+
+    let id = Uuid::new_v4().to_string();
+    let created_at = chrono::Utc::now().to_rfc3339();
+    let final_title = title.unwrap_or_else(|| "Untitled Web Material".to_string());
+    let segments = create_segments_from_content(&id, &content);
+
+    let article = Article {
+        id: id.clone(),
+        title: final_title,
+        content,
+        source_type: Some("web".to_string()),
+        source_url: Some(url),
+        media_path: None,
+        book_path: None,
+        book_type: None,
+        created_at,
+        translated: false,
+        segments,
+    };
+
+    let article_json = serde_json::to_string(&article)
+        .map_err(|e| format!("Failed to serialize article: {}", e))?;
+    save_article(&app_handle, &id, &article_json)?;
 
     Ok(article)
 }

@@ -153,6 +153,7 @@ pub async fn import_youtube_video(app: AppHandle, url: String) -> Result<Article
         id: video_id.clone(),
         title: video_title,
         content,
+        source_type: Some("youtube".to_string()),
         source_url: Some(url),
         media_path: Some(video_path.to_string_lossy().into_owned()),
         book_path: None,
