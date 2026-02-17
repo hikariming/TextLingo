@@ -26,6 +26,9 @@ export interface AppConfig {
   backend_url?: string;
   // Auth token for backend API
   auth_token?: string;
+  // SRS daily limits
+  srs_daily_new_limit?: number;
+  srs_daily_review_limit?: number;
 }
 
 import { Article } from "../types";

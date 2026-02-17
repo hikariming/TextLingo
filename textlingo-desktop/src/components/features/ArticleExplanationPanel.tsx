@@ -5,6 +5,7 @@ import { ArticleSegment, SegmentExplanation, VocabularyItem, GrammarPoint } from
 import { Button } from "../ui/button";
 import { RefreshCw, BookOpen, MessageCircle, Languages, SpellCheck, Star, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { SelectPackDialog } from "./SelectPackDialog";
 
 interface ArticleExplanationPanelProps {
     segment: ArticleSegment | null;
@@ -30,25 +31,39 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
     // 跟踪已收藏的单词和语法点（仅用于UI反馈）
     const [favoritedVocabs, setFavoritedVocabs] = useState<Set<string>>(new Set());
     const [favoritedGrammars, setFavoritedGrammars] = useState<Set<string>>(new Set());
+    const [isPackDialogOpen, setIsPackDialogOpen] = useState(false);
+    const [pendingVocabFavorite, setPendingVocabFavorite] = useState<{
+        item: VocabularyItem;
+        key: string;
+    } | null>(null);
 
     // 收藏单词
     const handleFavoriteVocab = async (item: VocabularyItem, idx: number) => {
         const key = `${item.word}-${idx}`;
         if (favoritedVocabs.has(key)) return;
+        setPendingVocabFavorite({ item, key });
+        setIsPackDialogOpen(true);
+    };
 
+    const handleConfirmVocabPackSelection = async (packIds: string[]) => {
+        if (!pendingVocabFavorite) return;
         try {
             await invoke("add_favorite_vocabulary_cmd", {
-                word: item.word,
-                meaning: item.meaning,
-                usage: item.usage || "",
-                example: item.example,
-                reading: item.reading,
+                word: pendingVocabFavorite.item.word,
+                meaning: pendingVocabFavorite.item.meaning,
+                usage: pendingVocabFavorite.item.usage || "",
+                explanation: null,
+                example: pendingVocabFavorite.item.example,
+                reading: pendingVocabFavorite.item.reading,
                 sourceArticleId: articleId,
                 sourceArticleTitle: articleTitle,
+                packIds,
             });
-            setFavoritedVocabs(prev => new Set(prev).add(key));
+            setFavoritedVocabs(prev => new Set(prev).add(pendingVocabFavorite.key));
         } catch (err) {
             console.error("Failed to favorite vocabulary:", err);
+        } finally {
+            setPendingVocabFavorite(null);
         }
     };
 
@@ -255,6 +270,16 @@ export const ArticleExplanationPanel: React.FC<ArticleExplanationPanelProps> = (
                     </Section>
                 )}
 
+                <SelectPackDialog
+                    open={isPackDialogOpen}
+                    onOpenChange={(open) => {
+                        setIsPackDialogOpen(open);
+                        if (!open) {
+                            setPendingVocabFavorite(null);
+                        }
+                    }}
+                    onConfirm={handleConfirmVocabPackSelection}
+                />
             </div>
         </div>
     );

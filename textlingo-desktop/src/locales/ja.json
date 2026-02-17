@@ -320,7 +320,18 @@
     "downloadTxt": "TXTファイルをダウンロード",
     "copied": "コピーしました",
     "importSuccess": "{{count}}個の単語をインポートしました",
-    "importError": "インポートに失敗しました"
+    "importError": "インポートに失敗しました",
+    "actions": "管理",
+    "exportWordList": "単語リストをエクスポート",
+    "allPacks": "すべての単語",
+    "unknownPack": "不明なパック",
+    "newPackPrompt": "新しいパック名を入力",
+    "deletePackConfirm": "このパックを削除しますか？",
+    "selectPackForExport": "エクスポート前にパックを選択してください",
+    "importPackSuccess": "インポート完了",
+    "packTrade": "単語パック",
+    "exportWordPack": "単語パックをエクスポート",
+    "importWordPack": "単語パックをインポート"
   },
   "localImport": {
     "title": "ローカル動画",

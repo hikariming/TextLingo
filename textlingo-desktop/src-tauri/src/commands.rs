@@ -4,17 +4,21 @@ use crate::storage::{
     delete_bookmark,
     delete_favorite_grammar,
     delete_favorite_vocabulary,
+    delete_word_pack,
     ensure_app_dirs,
+    ensure_favorites_dirs,
     list_articles,
     list_bookmarks,
     list_bookmarks_for_book,
     list_favorite_grammars,
     list_favorite_vocabularies,
+    list_word_packs,
     load_article,
     load_bookmark,
     load_config,
     load_favorite_grammar,
     load_favorite_vocabulary,
+    load_word_pack,
     save_article,
     // 书签存储函数
     save_bookmark,
@@ -22,13 +26,16 @@ use crate::storage::{
     save_favorite_grammar,
     // 收藏夹存储函数
     save_favorite_vocabulary,
+    save_word_pack,
 };
 use crate::types::{
     AnalysisRequest, AnalysisResponse, AnalysisType, Article, ArticleSegment, Bookmark,
     ChatRequest, ChatResponse, FavoriteGrammar, FavoriteVocabulary, ModelConfig,
-    TranslationRequest, TranslationResponse,
+    TranslationRequest, TranslationResponse, WordPack,
 };
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::path::PathBuf;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -176,10 +183,382 @@ fn is_abbreviation(chars: &[char], pos: usize) -> bool {
     false
 }
 
+const DEFAULT_UNGROUPED_PACK_ID: &str = "system-ungrouped";
+const DEFAULT_UNGROUPED_PACK_NAME: &str = "未分组";
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct WordPackExportMeta {
+    name: String,
+    #[serde(default)]
+    description: Option<String>,
+    #[serde(default)]
+    cover_url: Option<String>,
+    #[serde(default)]
+    author: Option<String>,
+    #[serde(default)]
+    language_from: Option<String>,
+    #[serde(default)]
+    language_to: Option<String>,
+    #[serde(default)]
+    tags: Vec<String>,
+    #[serde(default)]
+    version: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct WordPackExportEntry {
+    word: String,
+    meaning: String,
+    #[serde(default)]
+    usage: Option<String>,
+    #[serde(default)]
+    example: Option<String>,
+    #[serde(default)]
+    reading: Option<String>,
+    #[serde(default)]
+    explanation: Option<String>,
+    #[serde(default)]
+    tags: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct WordPackExportFile {
+    schema_version: String,
+    pack: WordPackExportMeta,
+    entries: Vec<WordPackExportEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportWordPackResult {
+    pub file_name: String,
+    pub json_content: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportWordPackResult {
+    pub created_pack_id: String,
+    pub total: usize,
+    pub imported: usize,
+    pub skipped: usize,
+    pub errors: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SrsUpdateResult {
+    pub srs_state: String,
+    pub repetitions: i32,
+    pub interval_days: i32,
+    pub ease_factor: f64,
+    pub due_date: String,
+}
+
+fn normalize_word(word: &str) -> String {
+    word.trim().to_lowercase()
+}
+
+fn parse_local_date(date_local: &str) -> Result<chrono::NaiveDate, String> {
+    chrono::NaiveDate::parse_from_str(date_local, "%Y-%m-%d")
+        .map_err(|_| format!("Invalid local date format: {}", date_local))
+}
+
+fn today_local_date() -> chrono::NaiveDate {
+    chrono::Local::now().date_naive()
+}
+
+fn ensure_default_word_pack(app_handle: &AppHandle) -> Result<WordPack, String> {
+    ensure_favorites_dirs(app_handle)?;
+    let now = chrono::Utc::now().to_rfc3339();
+    let default_pack = WordPack {
+        id: DEFAULT_UNGROUPED_PACK_ID.to_string(),
+        name: DEFAULT_UNGROUPED_PACK_NAME.to_string(),
+        description: Some("系统默认合集".to_string()),
+        cover_url: None,
+        author: Some("OpenKoto".to_string()),
+        language_from: None,
+        language_to: None,
+        tags: vec!["system".to_string()],
+        version: Some("1.0.0".to_string()),
+        created_at: now.clone(),
+        updated_at: now,
+        is_system: true,
+    };
+
+    let existing = load_word_pack(app_handle, DEFAULT_UNGROUPED_PACK_ID)
+        .ok()
+        .and_then(|json| serde_json::from_str::<WordPack>(&json).ok());
+
+    if let Some(pack) = existing {
+        return Ok(pack);
+    }
+
+    let json = serde_json::to_string(&default_pack)
+        .map_err(|e| format!("Failed to serialize default pack: {}", e))?;
+    save_word_pack(app_handle, &default_pack.id, &json)?;
+    Ok(default_pack)
+}
+
+fn load_all_word_packs(app_handle: &AppHandle) -> Result<Vec<WordPack>, String> {
+    let ids = list_word_packs(app_handle)?;
+    let mut packs = Vec::new();
+
+    for id in ids {
+        if let Ok(json) = load_word_pack(app_handle, &id) {
+            if let Ok(pack) = serde_json::from_str::<WordPack>(&json) {
+                packs.push(pack);
+            }
+        }
+    }
+
+    packs.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+    Ok(packs)
+}
+
+fn load_all_favorite_vocabularies_internal(
+    app_handle: &AppHandle,
+) -> Result<Vec<FavoriteVocabulary>, String> {
+    let ids = list_favorite_vocabularies(app_handle)?;
+    let mut favorites = Vec::new();
+
+    for id in ids {
+        if let Ok(json) = load_favorite_vocabulary(app_handle, &id) {
+            if let Ok(favorite) = serde_json::from_str::<FavoriteVocabulary>(&json) {
+                favorites.push(favorite);
+            }
+        }
+    }
+
+    Ok(favorites)
+}
+
+fn persist_favorite_vocabulary(
+    app_handle: &AppHandle,
+    favorite: &FavoriteVocabulary,
+) -> Result<(), String> {
+    let json = serde_json::to_string(favorite)
+        .map_err(|e| format!("Failed to serialize favorite vocabulary: {}", e))?;
+    save_favorite_vocabulary(app_handle, &favorite.id, &json)
+}
+
+fn sanitize_pack_ids(pack_ids: Option<Vec<String>>) -> Vec<String> {
+    let mut seen = HashSet::new();
+    pack_ids
+        .unwrap_or_default()
+        .into_iter()
+        .map(|id| id.trim().to_string())
+        .filter(|id| !id.is_empty())
+        .filter(|id| seen.insert(id.clone()))
+        .collect()
+}
+
+fn filter_existing_pack_ids(
+    pack_ids: Vec<String>,
+    existing_pack_ids: &HashSet<String>,
+    default_pack_id: &str,
+) -> Vec<String> {
+    let mut result: Vec<String> = pack_ids
+        .into_iter()
+        .filter(|id| existing_pack_ids.contains(id))
+        .collect();
+
+    if result.is_empty() {
+        result.push(default_pack_id.to_string());
+    }
+
+    result
+}
+
+fn sort_by_due_then_last_review(
+    a: &FavoriteVocabulary,
+    b: &FavoriteVocabulary,
+) -> std::cmp::Ordering {
+    match a.due_date.cmp(&b.due_date) {
+        std::cmp::Ordering::Equal => a.last_reviewed_at.cmp(&b.last_reviewed_at),
+        ord => ord,
+    }
+}
+
+fn is_due_on_or_before(due_date: &str, target_date: chrono::NaiveDate) -> bool {
+    parse_local_date(due_date)
+        .map(|due| due <= target_date)
+        .unwrap_or(true)
+}
+
+fn sanitize_file_name(name: &str) -> String {
+    let sanitized = name
+        .chars()
+        .map(|c| match c {
+            '/' | '\\' | '?' | '%' | '*' | ':' | '|' | '"' | '<' | '>' => '-',
+            _ => c,
+        })
+        .collect::<String>()
+        .trim()
+        .to_string();
+
+    if sanitized.is_empty() {
+        "openkoto_word_pack".to_string()
+    } else {
+        sanitized
+    }
+}
+
+pub fn calculate_sm2_update(
+    repetitions: i32,
+    interval_days: i32,
+    ease_factor: f64,
+    grade: &str,
+    review_date: chrono::NaiveDate,
+) -> Result<SrsUpdateResult, String> {
+    let q = match grade {
+        "unknown" => 2.0,
+        "uncertain" => 3.0,
+        "known" => 5.0,
+        _ => return Err("Invalid grade, expected unknown|uncertain|known".to_string()),
+    };
+
+    let mut next_repetitions = repetitions.max(0);
+    let mut next_interval_days = interval_days.max(0);
+    let mut next_ease_factor = if ease_factor < 1.3 { 2.5 } else { ease_factor };
+    let next_state;
+
+    if q < 3.0 {
+        next_repetitions = 0;
+        next_interval_days = 1;
+        next_state = "learning".to_string();
+    } else {
+        if next_repetitions == 0 {
+            next_interval_days = 1;
+        } else if next_repetitions == 1 {
+            next_interval_days = 6;
+        } else {
+            next_interval_days = ((next_interval_days as f64) * next_ease_factor).round() as i32;
+        }
+        next_repetitions += 1;
+        next_state = "review".to_string();
+    }
+
+    next_ease_factor = (next_ease_factor + (0.1 - (5.0 - q) * (0.08 + (5.0 - q) * 0.02))).max(1.3);
+    let due_date = (review_date + chrono::Duration::days(next_interval_days as i64))
+        .format("%Y-%m-%d")
+        .to_string();
+
+    Ok(SrsUpdateResult {
+        srs_state: next_state,
+        repetitions: next_repetitions,
+        interval_days: next_interval_days,
+        ease_factor: next_ease_factor,
+        due_date,
+    })
+}
+
+pub fn build_due_vocabulary_queue(
+    mut all: Vec<FavoriteVocabulary>,
+    pack_id: &str,
+    date_local: &str,
+    new_limit: i32,
+    review_limit: i32,
+) -> Result<Vec<FavoriteVocabulary>, String> {
+    let target_date = parse_local_date(date_local)?;
+    let new_limit = new_limit.max(0) as usize;
+    let review_limit = review_limit.max(0) as usize;
+
+    if pack_id != "all" {
+        all.retain(|fav| fav.pack_ids.iter().any(|id| id == pack_id));
+    }
+    all.retain(|fav| is_due_on_or_before(&fav.due_date, target_date));
+
+    let (mut new_learning, mut review): (Vec<_>, Vec<_>) = all
+        .into_iter()
+        .partition(|fav| fav.srs_state == "new" || fav.srs_state == "learning");
+
+    new_learning.sort_by(sort_by_due_then_last_review);
+    review.sort_by(sort_by_due_then_last_review);
+
+    let mut queue = Vec::new();
+    queue.extend(new_learning.into_iter().take(new_limit));
+    queue.extend(review.into_iter().take(review_limit));
+    Ok(queue)
+}
+
+fn migrate_favorite_vocabularies(app_handle: &AppHandle) -> Result<(), String> {
+    let default_pack = ensure_default_word_pack(app_handle)?;
+    let ids = list_favorite_vocabularies(app_handle)?;
+    let today = today_local_date().format("%Y-%m-%d").to_string();
+
+    for id in ids {
+        let json = match load_favorite_vocabulary(app_handle, &id) {
+            Ok(content) => content,
+            Err(_) => continue,
+        };
+
+        let mut favorite = match serde_json::from_str::<FavoriteVocabulary>(&json) {
+            Ok(item) => item,
+            Err(_) => continue,
+        };
+
+        let mut changed = false;
+
+        if favorite.pack_ids.is_empty() {
+            favorite.pack_ids = vec![default_pack.id.clone()];
+            changed = true;
+        } else {
+            let dedup = sanitize_pack_ids(Some(favorite.pack_ids.clone()));
+            if dedup != favorite.pack_ids {
+                favorite.pack_ids = dedup;
+                changed = true;
+            }
+        }
+
+        if favorite.srs_state != "new"
+            && favorite.srs_state != "learning"
+            && favorite.srs_state != "review"
+        {
+            favorite.srs_state = "new".to_string();
+            changed = true;
+        }
+
+        if favorite.ease_factor < 1.3 {
+            favorite.ease_factor = 2.5;
+            changed = true;
+        }
+
+        if favorite.due_date.trim().is_empty() {
+            favorite.due_date = today.clone();
+            changed = true;
+        } else if parse_local_date(&favorite.due_date).is_err() {
+            favorite.due_date = today.clone();
+            changed = true;
+        }
+
+        if favorite.interval_days < 0 {
+            favorite.interval_days = 0;
+            changed = true;
+        }
+
+        if favorite.repetitions < 0 {
+            favorite.repetitions = 0;
+            changed = true;
+        }
+
+        if favorite.review_count < 0 {
+            favorite.review_count = 0;
+            changed = true;
+        }
+
+        if changed {
+            persist_favorite_vocabulary(app_handle, &favorite)?;
+        }
+    }
+
+    Ok(())
+}
+
 // Initialize the app (ensure directories exist)
 #[tauri::command]
 pub async fn init_app(app_handle: AppHandle) -> Result<String, String> {
     ensure_app_dirs(&app_handle)?;
+    ensure_favorites_dirs(&app_handle)?;
+    let _ = ensure_default_word_pack(&app_handle)?;
+    migrate_favorite_vocabularies(&app_handle)?;
     Ok("App initialized successfully".to_string())
 }
 
@@ -973,6 +1352,138 @@ fn extract_title_from_html(html: &str, url: &str) -> String {
 // Favorites Commands - 收藏夹命令
 // ============================================================================
 
+/// 创建单词包
+#[tauri::command]
+pub async fn create_word_pack_cmd(
+    app_handle: AppHandle,
+    name: String,
+    description: Option<String>,
+    cover_url: Option<String>,
+    author: Option<String>,
+    language_from: Option<String>,
+    language_to: Option<String>,
+    tags: Option<Vec<String>>,
+    version: Option<String>,
+) -> Result<WordPack, String> {
+    ensure_default_word_pack(&app_handle)?;
+
+    let now = chrono::Utc::now().to_rfc3339();
+    let pack = WordPack {
+        id: Uuid::new_v4().to_string(),
+        name: name.trim().to_string(),
+        description,
+        cover_url,
+        author,
+        language_from,
+        language_to,
+        tags: tags.unwrap_or_default(),
+        version,
+        created_at: now.clone(),
+        updated_at: now,
+        is_system: false,
+    };
+
+    if pack.name.is_empty() {
+        return Err("Pack name is required".to_string());
+    }
+
+    let json = serde_json::to_string(&pack)
+        .map_err(|e| format!("Failed to serialize word pack: {}", e))?;
+    save_word_pack(&app_handle, &pack.id, &json)?;
+    Ok(pack)
+}
+
+/// 更新单词包
+#[tauri::command]
+pub async fn update_word_pack_cmd(
+    app_handle: AppHandle,
+    id: String,
+    name: Option<String>,
+    description: Option<String>,
+    cover_url: Option<String>,
+    author: Option<String>,
+    language_from: Option<String>,
+    language_to: Option<String>,
+    tags: Option<Vec<String>>,
+    version: Option<String>,
+) -> Result<WordPack, String> {
+    let json = load_word_pack(&app_handle, &id)?;
+    let mut pack: WordPack =
+        serde_json::from_str(&json).map_err(|e| format!("Failed to parse word pack: {}", e))?;
+
+    if let Some(name) = name {
+        let trimmed = name.trim();
+        if trimmed.is_empty() {
+            return Err("Pack name is required".to_string());
+        }
+        pack.name = trimmed.to_string();
+    }
+    if description.is_some() {
+        pack.description = description;
+    }
+    if cover_url.is_some() {
+        pack.cover_url = cover_url;
+    }
+    if author.is_some() {
+        pack.author = author;
+    }
+    if language_from.is_some() {
+        pack.language_from = language_from;
+    }
+    if language_to.is_some() {
+        pack.language_to = language_to;
+    }
+    if tags.is_some() {
+        pack.tags = tags.unwrap_or_default();
+    }
+    if version.is_some() {
+        pack.version = version;
+    }
+
+    pack.updated_at = chrono::Utc::now().to_rfc3339();
+
+    let updated_json = serde_json::to_string(&pack)
+        .map_err(|e| format!("Failed to serialize word pack: {}", e))?;
+    save_word_pack(&app_handle, &pack.id, &updated_json)?;
+    Ok(pack)
+}
+
+/// 列出所有单词包
+#[tauri::command]
+pub async fn list_word_packs_cmd(app_handle: AppHandle) -> Result<Vec<WordPack>, String> {
+    ensure_default_word_pack(&app_handle)?;
+    let mut packs = load_all_word_packs(&app_handle)?;
+    packs.sort_by(|a, b| a.name.cmp(&b.name));
+    packs.sort_by(|a, b| b.is_system.cmp(&a.is_system));
+    Ok(packs)
+}
+
+/// 删除单词包（系统包不可删除）
+#[tauri::command]
+pub async fn delete_word_pack_cmd(app_handle: AppHandle, id: String) -> Result<(), String> {
+    if id == DEFAULT_UNGROUPED_PACK_ID {
+        return Err("System pack cannot be deleted".to_string());
+    }
+
+    let default_pack = ensure_default_word_pack(&app_handle)?;
+    let _ = load_word_pack(&app_handle, &id)?;
+
+    delete_word_pack(&app_handle, &id)?;
+
+    let mut favorites = load_all_favorite_vocabularies_internal(&app_handle)?;
+    for favorite in &mut favorites {
+        if favorite.pack_ids.iter().any(|pack_id| pack_id == &id) {
+            favorite.pack_ids.retain(|pack_id| pack_id != &id);
+            if favorite.pack_ids.is_empty() {
+                favorite.pack_ids.push(default_pack.id.clone());
+            }
+            persist_favorite_vocabulary(&app_handle, favorite)?;
+        }
+    }
+
+    Ok(())
+}
+
 /// 添加单词收藏
 #[tauri::command]
 pub async fn add_favorite_vocabulary_cmd(
@@ -980,27 +1491,88 @@ pub async fn add_favorite_vocabulary_cmd(
     word: String,
     meaning: String,
     usage: String,
+    explanation: Option<String>,
     example: Option<String>,
     reading: Option<String>,
     source_article_id: Option<String>,
     source_article_title: Option<String>,
+    pack_ids: Option<Vec<String>>,
 ) -> Result<FavoriteVocabulary, String> {
+    let default_pack = ensure_default_word_pack(&app_handle)?;
+    let packs = load_all_word_packs(&app_handle)?;
+    let existing_pack_ids: HashSet<String> = packs.into_iter().map(|p| p.id).collect();
+
+    let normalized_input = normalize_word(&word);
+    if normalized_input.is_empty() || meaning.trim().is_empty() {
+        return Err("Word and meaning are required".to_string());
+    }
+
+    let mut pack_ids = filter_existing_pack_ids(
+        sanitize_pack_ids(pack_ids),
+        &existing_pack_ids,
+        &default_pack.id,
+    );
+
+    let mut favorites = load_all_favorite_vocabularies_internal(&app_handle)?;
+    if let Some(existing) = favorites
+        .iter_mut()
+        .find(|fav| normalize_word(&fav.word) == normalized_input)
+    {
+        let mut merged = existing.pack_ids.clone();
+        merged.append(&mut pack_ids);
+        existing.pack_ids = sanitize_pack_ids(Some(merged));
+        if existing.pack_ids.is_empty() {
+            existing.pack_ids.push(default_pack.id.clone());
+        }
+
+        if existing.meaning.trim().is_empty() {
+            existing.meaning = meaning.clone();
+        }
+        if existing.usage.trim().is_empty() {
+            existing.usage = usage.clone();
+        }
+        if existing.example.is_none() {
+            existing.example = example.clone();
+        }
+        if existing.reading.is_none() {
+            existing.reading = reading.clone();
+        }
+        if existing.explanation.is_none() {
+            existing.explanation = explanation.clone();
+        }
+        if existing.source_article_id.is_none() {
+            existing.source_article_id = source_article_id.clone();
+        }
+        if existing.source_article_title.is_none() {
+            existing.source_article_title = source_article_title.clone();
+        }
+
+        persist_favorite_vocabulary(&app_handle, existing)?;
+        return Ok(existing.clone());
+    }
+
     let favorite = FavoriteVocabulary {
         id: Uuid::new_v4().to_string(),
-        word,
-        meaning,
-        usage,
+        word: word.trim().to_string(),
+        meaning: meaning.trim().to_string(),
+        usage: usage.trim().to_string(),
+        explanation,
         example,
         reading,
         source_article_id,
         source_article_title,
+        pack_ids,
+        srs_state: "new".to_string(),
+        ease_factor: 2.5,
+        repetitions: 0,
+        interval_days: 0,
+        due_date: today_local_date().format("%Y-%m-%d").to_string(),
+        last_reviewed_at: None,
+        review_count: 0,
         created_at: chrono::Utc::now().to_rfc3339(),
     };
 
-    let json = serde_json::to_string(&favorite)
-        .map_err(|e| format!("Failed to serialize favorite: {}", e))?;
-    save_favorite_vocabulary(&app_handle, &favorite.id, &json)?;
-
+    persist_favorite_vocabulary(&app_handle, &favorite)?;
     Ok(favorite)
 }
 
@@ -1009,16 +1581,9 @@ pub async fn add_favorite_vocabulary_cmd(
 pub async fn list_favorite_vocabularies_cmd(
     app_handle: AppHandle,
 ) -> Result<Vec<FavoriteVocabulary>, String> {
-    let ids = list_favorite_vocabularies(&app_handle)?;
-    let mut favorites = Vec::new();
-
-    for id in ids {
-        if let Ok(json) = load_favorite_vocabulary(&app_handle, &id) {
-            if let Ok(favorite) = serde_json::from_str::<FavoriteVocabulary>(&json) {
-                favorites.push(favorite);
-            }
-        }
-    }
+    ensure_default_word_pack(&app_handle)?;
+    migrate_favorite_vocabularies(&app_handle)?;
+    let mut favorites = load_all_favorite_vocabularies_internal(&app_handle)?;
 
     // 按创建时间降序排列
     favorites.sort_by(|a, b| b.created_at.cmp(&a.created_at));
@@ -1034,6 +1599,257 @@ pub async fn delete_favorite_vocabulary_cmd(
 ) -> Result<(), String> {
     delete_favorite_vocabulary(&app_handle, &id)?;
     Ok(())
+}
+
+/// 设置单词收藏所属合集
+#[tauri::command]
+pub async fn set_vocabulary_pack_ids_cmd(
+    app_handle: AppHandle,
+    vocabulary_id: String,
+    pack_ids: Vec<String>,
+) -> Result<FavoriteVocabulary, String> {
+    let default_pack = ensure_default_word_pack(&app_handle)?;
+    let existing_pack_ids: HashSet<String> = list_word_packs(&app_handle)?.into_iter().collect();
+
+    let json = load_favorite_vocabulary(&app_handle, &vocabulary_id)?;
+    let mut favorite: FavoriteVocabulary = serde_json::from_str(&json)
+        .map_err(|e| format!("Failed to parse favorite vocabulary: {}", e))?;
+
+    favorite.pack_ids = filter_existing_pack_ids(
+        sanitize_pack_ids(Some(pack_ids)),
+        &existing_pack_ids,
+        &default_pack.id,
+    );
+    persist_favorite_vocabulary(&app_handle, &favorite)?;
+    Ok(favorite)
+}
+
+/// 按合集列出单词收藏
+#[tauri::command]
+pub async fn list_favorite_vocabularies_by_pack_cmd(
+    app_handle: AppHandle,
+    pack_id: String,
+) -> Result<Vec<FavoriteVocabulary>, String> {
+    let mut favorites = list_favorite_vocabularies_cmd(app_handle).await?;
+    if pack_id != "all" {
+        favorites.retain(|fav| fav.pack_ids.iter().any(|id| id == &pack_id));
+    }
+    favorites.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+    Ok(favorites)
+}
+
+/// 获取指定日期到期的背诵队列
+#[tauri::command]
+pub async fn get_due_vocabulary_queue_cmd(
+    app_handle: AppHandle,
+    pack_id: String,
+    date_local: String,
+) -> Result<Vec<FavoriteVocabulary>, String> {
+    let config = load_config(&app_handle)?.unwrap_or_default();
+    let all = list_favorite_vocabularies_cmd(app_handle).await?;
+    build_due_vocabulary_queue(
+        all,
+        &pack_id,
+        &date_local,
+        config.srs_daily_new_limit,
+        config.srs_daily_review_limit,
+    )
+}
+
+/// 复习单词并更新 SM-2 状态
+#[tauri::command]
+pub async fn review_vocabulary_cmd(
+    app_handle: AppHandle,
+    vocabulary_id: String,
+    grade: String,
+    date_local: String,
+) -> Result<FavoriteVocabulary, String> {
+    let review_date = parse_local_date(&date_local)?;
+
+    let json = load_favorite_vocabulary(&app_handle, &vocabulary_id)?;
+    let mut favorite: FavoriteVocabulary = serde_json::from_str(&json)
+        .map_err(|e| format!("Failed to parse favorite vocabulary: {}", e))?;
+
+    let next = calculate_sm2_update(
+        favorite.repetitions,
+        favorite.interval_days,
+        favorite.ease_factor,
+        &grade,
+        review_date,
+    )?;
+
+    favorite.srs_state = next.srs_state;
+    favorite.repetitions = next.repetitions;
+    favorite.interval_days = next.interval_days;
+    favorite.ease_factor = next.ease_factor;
+    favorite.due_date = next.due_date;
+    favorite.last_reviewed_at = Some(chrono::Utc::now().to_rfc3339());
+    favorite.review_count += 1;
+
+    persist_favorite_vocabulary(&app_handle, &favorite)?;
+    Ok(favorite)
+}
+
+/// 导出单词包为 OpenKoto JSON 包
+#[tauri::command]
+pub async fn export_word_pack_cmd(
+    app_handle: AppHandle,
+    pack_id: String,
+) -> Result<ExportWordPackResult, String> {
+    let pack_json = load_word_pack(&app_handle, &pack_id)?;
+    let pack: WordPack = serde_json::from_str(&pack_json)
+        .map_err(|e| format!("Failed to parse word pack: {}", e))?;
+
+    let mut entries: Vec<WordPackExportEntry> =
+        list_favorite_vocabularies_by_pack_cmd(app_handle.clone(), pack_id)
+            .await?
+            .into_iter()
+            .map(|fav| WordPackExportEntry {
+                word: fav.word,
+                meaning: fav.meaning,
+                usage: if fav.usage.trim().is_empty() {
+                    None
+                } else {
+                    Some(fav.usage)
+                },
+                example: fav.example,
+                reading: fav.reading,
+                explanation: fav.explanation,
+                tags: Vec::new(),
+            })
+            .collect();
+
+    entries.sort_by(|a, b| a.word.cmp(&b.word));
+
+    let export_file = WordPackExportFile {
+        schema_version: "openkoto-word-pack-v1".to_string(),
+        pack: WordPackExportMeta {
+            name: pack.name.clone(),
+            description: pack.description.clone(),
+            cover_url: pack.cover_url.clone(),
+            author: pack.author.clone(),
+            language_from: pack.language_from.clone(),
+            language_to: pack.language_to.clone(),
+            tags: pack.tags.clone(),
+            version: pack.version.clone(),
+        },
+        entries,
+    };
+
+    let json_content = serde_json::to_string_pretty(&export_file)
+        .map_err(|e| format!("Failed to serialize export file: {}", e))?;
+    let file_name = format!("{}.okpack.json", sanitize_file_name(&pack.name));
+
+    Ok(ExportWordPackResult {
+        file_name,
+        json_content,
+    })
+}
+
+/// 导入 OpenKoto JSON 单词包
+#[tauri::command]
+pub async fn import_word_pack_cmd(
+    app_handle: AppHandle,
+    json_content: String,
+) -> Result<ImportWordPackResult, String> {
+    ensure_default_word_pack(&app_handle)?;
+    let parsed: WordPackExportFile = serde_json::from_str(&json_content)
+        .map_err(|e| format!("Invalid word pack JSON: {}", e))?;
+
+    if parsed.entries.len() > 20000 {
+        return Err("Word pack is too large (max 20000 entries)".to_string());
+    }
+
+    let now = chrono::Utc::now().to_rfc3339();
+    let pack = WordPack {
+        id: Uuid::new_v4().to_string(),
+        name: if parsed.pack.name.trim().is_empty() {
+            "Imported Pack".to_string()
+        } else {
+            parsed.pack.name.trim().to_string()
+        },
+        description: parsed.pack.description.clone(),
+        cover_url: parsed.pack.cover_url.clone(),
+        author: parsed.pack.author.clone(),
+        language_from: parsed.pack.language_from.clone(),
+        language_to: parsed.pack.language_to.clone(),
+        tags: parsed.pack.tags.clone(),
+        version: parsed.pack.version.clone(),
+        created_at: now.clone(),
+        updated_at: now,
+        is_system: false,
+    };
+
+    let pack_json = serde_json::to_string(&pack)
+        .map_err(|e| format!("Failed to serialize word pack: {}", e))?;
+    save_word_pack(&app_handle, &pack.id, &pack_json)?;
+
+    let mut existing_words: HashSet<String> = load_all_favorite_vocabularies_internal(&app_handle)?
+        .into_iter()
+        .map(|fav| normalize_word(&fav.word))
+        .collect();
+    let mut file_seen_words = HashSet::new();
+
+    let total = parsed.entries.len();
+    let mut imported = 0usize;
+    let mut skipped = 0usize;
+    let mut errors = Vec::new();
+
+    for (index, entry) in parsed.entries.into_iter().enumerate() {
+        let word = entry.word.trim().to_string();
+        let meaning = entry.meaning.trim().to_string();
+        if word.is_empty() || meaning.is_empty() {
+            skipped += 1;
+            errors.push(format!("Entry {} missing required word/meaning", index + 1));
+            continue;
+        }
+
+        let normalized = normalize_word(&word);
+        if file_seen_words.contains(&normalized) || existing_words.contains(&normalized) {
+            skipped += 1;
+            continue;
+        }
+
+        file_seen_words.insert(normalized.clone());
+        existing_words.insert(normalized);
+
+        let favorite = FavoriteVocabulary {
+            id: Uuid::new_v4().to_string(),
+            word,
+            meaning,
+            usage: entry.usage.unwrap_or_default(),
+            explanation: entry.explanation,
+            example: entry.example,
+            reading: entry.reading,
+            source_article_id: None,
+            source_article_title: None,
+            pack_ids: vec![pack.id.clone()],
+            srs_state: "new".to_string(),
+            ease_factor: 2.5,
+            repetitions: 0,
+            interval_days: 0,
+            due_date: today_local_date().format("%Y-%m-%d").to_string(),
+            last_reviewed_at: None,
+            review_count: 0,
+            created_at: chrono::Utc::now().to_rfc3339(),
+        };
+
+        if let Err(e) = persist_favorite_vocabulary(&app_handle, &favorite) {
+            skipped += 1;
+            errors.push(format!("Entry {} failed to import: {}", index + 1, e));
+            continue;
+        }
+
+        imported += 1;
+    }
+
+    Ok(ImportWordPackResult {
+        created_pack_id: pack.id,
+        total,
+        imported,
+        skipped,
+        errors,
+    })
 }
 
 /// 添加语法收藏
@@ -1161,13 +1977,11 @@ pub async fn import_local_video_cmd(
         id: id.clone(),
         title: file_name.into_owned(),
         content,
-        source_type: Some(
-            if is_audio {
-                "audio".to_string()
-            } else {
-                "local_video".to_string()
-            },
-        ),
+        source_type: Some(if is_audio {
+            "audio".to_string()
+        } else {
+            "local_video".to_string()
+        }),
         source_url: Some(format!("file://{}", file_path)),
         media_path: Some(dest_path.to_string_lossy().into_owned()),
         book_path: None,
@@ -1409,7 +2223,9 @@ pub async fn import_web_material_cmd(
     }
 
     if content.trim().len() < 10 {
-        return Err("Extracted content is too short. Please check the URL and try again.".to_string());
+        return Err(
+            "Extracted content is too short. Please check the URL and try again.".to_string(),
+        );
     }
 
     let id = Uuid::new_v4().to_string();

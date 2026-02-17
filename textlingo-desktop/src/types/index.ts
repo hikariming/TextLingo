@@ -61,11 +61,35 @@ export interface FavoriteVocabulary {
     word: string;
     meaning: string;
     usage: string;
+    explanation?: string;
     example?: string;
     reading?: string;
     source_article_id?: string;
     source_article_title?: string;
+    pack_ids?: string[];
+    srs_state?: "new" | "learning" | "review";
+    ease_factor?: number;
+    repetitions?: number;
+    interval_days?: number;
+    due_date?: string;
+    last_reviewed_at?: string;
+    review_count?: number;
     created_at: string;
+}
+
+export interface WordPack {
+    id: string;
+    name: string;
+    description?: string;
+    cover_url?: string;
+    author?: string;
+    language_from?: string;
+    language_to?: string;
+    tags?: string[];
+    version?: string;
+    created_at: string;
+    updated_at: string;
+    is_system?: boolean;
 }
 
 // 语法收藏

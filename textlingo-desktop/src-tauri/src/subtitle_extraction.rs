@@ -89,15 +89,7 @@ pub async fn extract_subtitles(
             serde_json::json!({ "phase": "chunked", "message": "视频较长，启用分片提取模式..." }),
         );
         return extract_subtitles_chunked(
-            app,
-            video_path,
-            video_id,
-            provider,
-            api_key,
-            model,
-            base_url,
-            duration,
-            event_id,
+            app, video_path, video_id, provider, api_key, model, base_url, duration, event_id,
         )
         .await;
     }
@@ -319,15 +311,14 @@ async fn extract_and_transcribe_segment(
         extract_audio_segment(&app, &video_path, start_time, duration, &suffix).await?;
 
     // 2. 转录音频
-    let transcription =
-        transcribe_audio_with_gemini(
-            &audio_path,
-            &provider,
-            &api_key,
-            &model,
-            base_url.as_deref(),
-        )
-        .await?;
+    let transcription = transcribe_audio_with_gemini(
+        &audio_path,
+        &provider,
+        &api_key,
+        &model,
+        base_url.as_deref(),
+    )
+    .await?;
 
     // 3. 清理临时音频文件
     if let Err(e) = fs::remove_file(&audio_path) {
@@ -1013,10 +1004,8 @@ IMPORTANT: Each segment = one sentence. Timestamps must be precise to the second
                         "moonshot" => MOONSHOT_API_URL.to_string(),
                         "openai" => OPENAI_API_URL.to_string(),
                         "openai-compatible" => {
-                            return Err(
-                                "openai-compatible provider requires base_url in settings"
-                                    .to_string(),
-                            );
+                            return Err("openai-compatible provider requires base_url in settings"
+                                .to_string());
                         }
                         _ => {
                             return Err(format!(

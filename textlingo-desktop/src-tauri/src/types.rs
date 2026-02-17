@@ -53,6 +53,12 @@ pub struct AppConfig {
     /// Auth token for backend API
     #[serde(default)]
     pub auth_token: Option<String>,
+    /// Daily limit for introducing new cards in SRS
+    #[serde(default = "default_srs_daily_new_limit")]
+    pub srs_daily_new_limit: i32,
+    /// Daily limit for review cards in SRS
+    #[serde(default = "default_srs_daily_review_limit")]
+    pub srs_daily_review_limit: i32,
 }
 
 impl Default for AppConfig {
@@ -65,6 +71,8 @@ impl Default for AppConfig {
             interface_language: default_interface_language(),
             backend_url: None,
             auth_token: None,
+            srs_daily_new_limit: default_srs_daily_new_limit(),
+            srs_daily_review_limit: default_srs_daily_review_limit(),
         }
     }
 }
@@ -87,6 +95,30 @@ impl AppConfig {
 
 fn default_interface_language() -> String {
     "en".to_string()
+}
+
+fn default_srs_daily_new_limit() -> i32 {
+    20
+}
+
+fn default_srs_daily_review_limit() -> i32 {
+    100
+}
+
+fn default_srs_state() -> String {
+    "new".to_string()
+}
+
+fn default_srs_ease_factor() -> f64 {
+    2.5
+}
+
+fn default_srs_due_date() -> String {
+    chrono::Local::now().format("%Y-%m-%d").to_string()
+}
+
+fn default_zero() -> i32 {
+    0
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -169,13 +201,56 @@ pub struct FavoriteVocabulary {
     pub word: String,
     pub meaning: String,
     pub usage: String,
+    #[serde(default)]
+    pub explanation: Option<String>,
     pub example: Option<String>,
     pub reading: Option<String>,
     /// 来源文章ID（可选，文章删除后收藏仍保留）
     pub source_article_id: Option<String>,
     /// 来源文章标题（快照，便于显示）
     pub source_article_title: Option<String>,
+    #[serde(default)]
+    pub pack_ids: Vec<String>,
+    #[serde(default = "default_srs_state")]
+    pub srs_state: String,
+    #[serde(default = "default_srs_ease_factor")]
+    pub ease_factor: f64,
+    #[serde(default = "default_zero")]
+    pub repetitions: i32,
+    #[serde(default = "default_zero")]
+    pub interval_days: i32,
+    #[serde(default = "default_srs_due_date")]
+    pub due_date: String,
+    #[serde(default)]
+    pub last_reviewed_at: Option<String>,
+    #[serde(default = "default_zero")]
+    pub review_count: i32,
     pub created_at: String,
+}
+
+/// 单词包 - 用于组织和分享单词集合
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WordPack {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub cover_url: Option<String>,
+    #[serde(default)]
+    pub author: Option<String>,
+    #[serde(default)]
+    pub language_from: Option<String>,
+    #[serde(default)]
+    pub language_to: Option<String>,
+    #[serde(default)]
+    pub tags: Vec<String>,
+    #[serde(default)]
+    pub version: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+    #[serde(default)]
+    pub is_system: bool,
 }
 
 /// 收藏的语法点

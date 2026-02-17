@@ -115,17 +115,21 @@ pub fn delete_article(app_handle: &AppHandle, article_id: &str) -> Result<(), St
 
 const FAVORITES_VOCAB_DIR: &str = "favorites/vocabulary";
 const FAVORITES_GRAMMAR_DIR: &str = "favorites/grammar";
+const FAVORITES_PACKS_DIR: &str = "favorites/packs";
 
 /// 确保收藏夹目录存在
 pub fn ensure_favorites_dirs(app_handle: &AppHandle) -> Result<(), String> {
     let data_dir = get_app_data_dir(app_handle)?;
     let vocab_dir = data_dir.join(FAVORITES_VOCAB_DIR);
     let grammar_dir = data_dir.join(FAVORITES_GRAMMAR_DIR);
+    let packs_dir = data_dir.join(FAVORITES_PACKS_DIR);
 
     fs::create_dir_all(&vocab_dir)
         .map_err(|e| format!("Failed to create vocabulary favorites directory: {}", e))?;
     fs::create_dir_all(&grammar_dir)
         .map_err(|e| format!("Failed to create grammar favorites directory: {}", e))?;
+    fs::create_dir_all(&packs_dir)
+        .map_err(|e| format!("Failed to create word packs directory: {}", e))?;
 
     Ok(())
 }
@@ -246,6 +250,60 @@ pub fn delete_favorite_grammar(app_handle: &AppHandle, id: &str) -> Result<(), S
 
     if path.exists() {
         fs::remove_file(path).map_err(|e| format!("Failed to delete grammar favorite: {}", e))?;
+    }
+
+    Ok(())
+}
+
+/// 保存单词包
+pub fn save_word_pack(app_handle: &AppHandle, id: &str, content: &str) -> Result<(), String> {
+    ensure_favorites_dirs(app_handle)?;
+    let data_dir = get_app_data_dir(app_handle)?;
+    let path = data_dir.join(FAVORITES_PACKS_DIR).join(id);
+    fs::write(path, content).map_err(|e| format!("Failed to save word pack: {}", e))?;
+    Ok(())
+}
+
+/// 加载单词包
+pub fn load_word_pack(app_handle: &AppHandle, id: &str) -> Result<String, String> {
+    let data_dir = get_app_data_dir(app_handle)?;
+    let path = data_dir.join(FAVORITES_PACKS_DIR).join(id);
+
+    if !path.exists() {
+        return Err("Word pack not found".to_string());
+    }
+
+    fs::read_to_string(path).map_err(|e| format!("Failed to read word pack: {}", e))
+}
+
+/// 列出所有单词包ID
+pub fn list_word_packs(app_handle: &AppHandle) -> Result<Vec<String>, String> {
+    let data_dir = get_app_data_dir(app_handle)?;
+    let dir = data_dir.join(FAVORITES_PACKS_DIR);
+
+    if !dir.exists() {
+        return Ok(Vec::new());
+    }
+
+    let entries =
+        fs::read_dir(dir).map_err(|e| format!("Failed to read word packs directory: {}", e))?;
+
+    let ids: Vec<String> = entries
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.path().is_file())
+        .filter_map(|entry| entry.file_name().into_string().ok())
+        .collect();
+
+    Ok(ids)
+}
+
+/// 删除单词包
+pub fn delete_word_pack(app_handle: &AppHandle, id: &str) -> Result<(), String> {
+    let data_dir = get_app_data_dir(app_handle)?;
+    let path = data_dir.join(FAVORITES_PACKS_DIR).join(id);
+
+    if path.exists() {
+        fs::remove_file(path).map_err(|e| format!("Failed to delete word pack: {}", e))?;
     }
 
     Ok(())

@@ -330,7 +330,18 @@
     "downloadTxt": "Download TXT File",
     "copied": "Copied!",
     "importSuccess": "Successfully imported {{count}} words",
-    "importError": "Import failed"
+    "importError": "Import failed",
+    "actions": "Manage",
+    "exportWordList": "Export Word List",
+    "allPacks": "All Words",
+    "unknownPack": "Unknown Pack",
+    "newPackPrompt": "Enter a new pack name",
+    "deletePackConfirm": "Delete this pack?",
+    "selectPackForExport": "Please choose a specific pack before exporting",
+    "importPackSuccess": "Import completed",
+    "packTrade": "Word Packs",
+    "exportWordPack": "Export Word Pack",
+    "importWordPack": "Import Word Pack"
   },
   "localImport": {
     "title": "Local Video",

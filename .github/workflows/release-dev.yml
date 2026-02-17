@@ -9,7 +9,46 @@ on:
       - 'dev-*'   # 匹配 dev-xxx 格式的 tag
 
 jobs:
+  ci-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: textlingo-desktop/package-lock.json
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ./textlingo-desktop
+
+      - name: Typecheck
+        run: npm run typecheck
+        working-directory: ./textlingo-desktop
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Rust tests
+        run: cargo test --all-features --all-targets
+        working-directory: ./textlingo-desktop/src-tauri
+
+      - name: Rust coverage gate (>=90%)
+        run: cargo llvm-cov --workspace --all-features --all-targets --summary-only --fail-under-lines 90
+        working-directory: ./textlingo-desktop/src-tauri
+
+      - name: Frontend coverage gate (>=80%)
+        run: npm run coverage
+        working-directory: ./textlingo-desktop
+
   publish-tauri:
+    needs: ci-gate
     permissions:
       contents: write
     strategy:

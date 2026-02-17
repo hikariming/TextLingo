@@ -330,7 +330,18 @@
     "downloadTxt": "下载 TXT 文件",
     "copied": "已复制",
     "importSuccess": "成功导入 {{count}} 个单词",
-    "importError": "导入失败"
+    "importError": "导入失败",
+    "actions": "管理",
+    "exportWordList": "导出单词列表",
+    "allPacks": "全部单词",
+    "unknownPack": "未知合集",
+    "newPackPrompt": "输入新合集名称",
+    "deletePackConfirm": "确定删除合集吗？",
+    "selectPackForExport": "请先选择一个具体合集再导出",
+    "importPackSuccess": "导入完成",
+    "packTrade": "单词包",
+    "exportWordPack": "导出单词包",
+    "importWordPack": "导入单词包"
   },
   "localImport": {
     "title": "本地视频",

@@ -1,10 +1,10 @@
 // Modules
 mod ai_service;
-mod commands;
+pub mod commands;
 mod plugin_manager;
 mod storage;
 mod subtitle_extraction;
-mod types;
+pub mod types;
 mod video_server;
 mod youtube;
 
@@ -49,8 +49,18 @@ pub fn run() {
             commands::analyze_article,
             commands::segment_translate_explain_cmd,
             // 收藏夹命令
+            commands::create_word_pack_cmd,
+            commands::update_word_pack_cmd,
+            commands::list_word_packs_cmd,
+            commands::delete_word_pack_cmd,
             commands::add_favorite_vocabulary_cmd,
             commands::list_favorite_vocabularies_cmd,
+            commands::list_favorite_vocabularies_by_pack_cmd,
+            commands::set_vocabulary_pack_ids_cmd,
+            commands::get_due_vocabulary_queue_cmd,
+            commands::review_vocabulary_cmd,
+            commands::export_word_pack_cmd,
+            commands::import_word_pack_cmd,
             commands::delete_favorite_vocabulary_cmd,
             commands::add_favorite_grammar_cmd,
             commands::list_favorite_grammars_cmd,
